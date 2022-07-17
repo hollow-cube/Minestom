@@ -6,7 +6,9 @@ import net.minestom.server.event.trait.BlockEvent;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.event.trait.PlayerInstanceEvent;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockFace;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerBlockBreakEvent implements PlayerInstanceEvent, BlockEvent, CancellableEvent {
 
@@ -14,16 +16,18 @@ public class PlayerBlockBreakEvent implements PlayerInstanceEvent, BlockEvent, C
     private final Block block;
     private Block resultBlock;
     private final Point blockPosition;
+    private final BlockFace blockFace;
 
     private boolean cancelled;
 
     public PlayerBlockBreakEvent(@NotNull Player player,
-                                 @NotNull Block block, @NotNull Block resultBlock, @NotNull Point blockPosition) {
+                                 @NotNull Block block, @NotNull Block resultBlock, @NotNull Point blockPosition, @Nullable BlockFace blockFace) {
         this.player = player;
 
         this.block = block;
         this.resultBlock = resultBlock;
         this.blockPosition = blockPosition;
+        this.blockFace = blockFace;
     }
 
     /**
