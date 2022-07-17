@@ -8,6 +8,7 @@ import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.NamespaceID;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -179,15 +180,24 @@ public interface BlockHandler {
     final class PlayerDestroy extends Destroy {
         private final Player player;
 
+        private final BlockFace blockFace;
+
         @ApiStatus.Internal
-        public PlayerDestroy(Block block, Instance instance, Point blockPosition, Player player) {
+        public PlayerDestroy(Block block, Instance instance, Point blockPosition, Player player, BlockFace blockFace) {
             super(block, instance, blockPosition);
             this.player = player;
+            this.blockFace = blockFace;
         }
 
         public @NotNull Player getPlayer() {
             return player;
         }
+
+        /**
+         * @return The block face used to destroy the block, if known.
+         */
+        public @Nullable BlockFace getBlockFace() { return blockFace; }
+
     }
 
     final class Interaction {
