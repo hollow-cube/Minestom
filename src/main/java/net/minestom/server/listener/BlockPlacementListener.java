@@ -3,12 +3,14 @@ package net.minestom.server.listener;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.CollisionUtils;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerBlockPlaceEvent;
+import net.minestom.server.event.player.PlayerBlockUpdateNeighborEvent;
 import net.minestom.server.event.player.PlayerUseItemOnBlockEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
@@ -23,11 +25,17 @@ import net.minestom.server.item.Material;
 import net.minestom.server.network.packet.client.play.ClientPlayerBlockPlacementPacket;
 import net.minestom.server.network.packet.server.play.AcknowledgeBlockChangePacket;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
+import net.minestom.server.utils.Direction;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import net.minestom.server.utils.validate.Check;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class BlockPlacementListener {
     private static final BlockManager BLOCK_MANAGER = MinecraftServer.getBlockManager();
+    public static final int MAX_NEIGHBOR_UPDATE_LENGTH = 4;
 
     public static void listener(ClientPlayerBlockPlacementPacket packet, Player player) {
         final PlayerInventory playerInventory = player.getInventory();
@@ -120,7 +128,8 @@ public class BlockPlacementListener {
         }
 
         // BlockPlaceEvent check
-        PlayerBlockPlaceEvent playerBlockPlaceEvent = new PlayerBlockPlaceEvent(player, placedBlock, blockFace, placementPosition, packet.hand());
+        PlayerBlockPlaceEvent playerBlockPlaceEvent = new PlayerBlockPlaceEvent(player, placedBlock, blockFace, placementPosition,
+                new Vec(packet.cursorPositionX(), packet.cursorPositionY(), packet.cursorPositionZ()), packet.hand());
         playerBlockPlaceEvent.consumeBlock(player.getGameMode() != GameMode.CREATIVE);
         EventDispatcher.call(playerBlockPlaceEvent);
         if (playerBlockPlaceEvent.isCancelled()) {
@@ -151,6 +160,43 @@ public class BlockPlacementListener {
         } else {
             // Prevent invisible item on client
             playerInventory.update();   
+        }
+
+        updateNeighbors(player, instance, placementPosition);
+    }
+
+    public static void updateNeighbors(@NotNull Player player, @NotNull Instance in, @NotNull Point at) {
+        Set<Point> toUpdate = new HashSet<>(), updatedNeighbors = new HashSet<>();
+        toUpdate.add(at);
+        updatedNeighbors.add(at);
+
+        for(int i=0; i<MAX_NEIGHBOR_UPDATE_LENGTH; i++) {
+            Set<Point> toUpdateCopy = new HashSet<>(toUpdate);
+            toUpdate.clear();
+
+            for(Point pos : toUpdateCopy) {
+                for(var dir : Direction.values()) {
+                    Point position = pos.add(dir.normalX(), dir.normalY(), dir.normalZ());
+
+                    if(updatedNeighbors.contains(position)) continue;
+                    updatedNeighbors.add(position);
+
+                    Block block = in.getBlock(position);
+
+                    if(block.isAir()) continue;
+
+                    PlayerBlockUpdateNeighborEvent playerBlockUpdateNeighborEvent = new PlayerBlockUpdateNeighborEvent(player, block, position);
+                    EventDispatcher.call(playerBlockUpdateNeighborEvent);
+
+                    if (playerBlockUpdateNeighborEvent.getBlock() != block) {
+                        in.setBlock(position, playerBlockUpdateNeighborEvent.getBlock());
+                    }
+
+                    if (playerBlockUpdateNeighborEvent.isShouldUpdateNeighbors()) {
+                        toUpdate.add(position);
+                    }
+                }
+            }
         }
     }
 
