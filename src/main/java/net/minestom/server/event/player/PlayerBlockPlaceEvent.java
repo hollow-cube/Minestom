@@ -18,6 +18,7 @@ public class PlayerBlockPlaceEvent implements PlayerInstanceEvent, BlockEvent, C
     private Block block;
     private final BlockFace blockFace;
     private final Point blockPosition;
+    private final Point cursorPosition;
     private final Player.Hand hand;
 
     private boolean consumeBlock;
@@ -25,12 +26,13 @@ public class PlayerBlockPlaceEvent implements PlayerInstanceEvent, BlockEvent, C
     private boolean cancelled;
 
     public PlayerBlockPlaceEvent(@NotNull Player player, @NotNull Block block,
-                                 @NotNull BlockFace blockFace,
-                                 @NotNull Point blockPosition, @NotNull Player.Hand hand) {
+                                 @NotNull BlockFace blockFace, @NotNull Point blockPosition,
+                                 @NotNull Point cursorPosition, @NotNull Player.Hand hand) {
         this.player = player;
         this.block = block;
         this.blockFace = blockFace;
         this.blockPosition = blockPosition;
+        this.cursorPosition = cursorPosition;
         this.hand = hand;
         this.consumeBlock = true;
     }
@@ -65,6 +67,10 @@ public class PlayerBlockPlaceEvent implements PlayerInstanceEvent, BlockEvent, C
      */
     public @NotNull Point getBlockPosition() {
         return blockPosition;
+    }
+
+    public @NotNull Point getCursorPosition() {
+        return cursorPosition;
     }
 
     /**

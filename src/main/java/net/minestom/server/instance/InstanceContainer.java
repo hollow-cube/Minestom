@@ -16,6 +16,7 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.block.rule.BlockPlacementRule;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.palette.Palette;
+import net.minestom.server.listener.BlockPlacementListener;
 import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.BlockEntityDataPacket;
 import net.minestom.server.network.packet.server.play.EffectPacket;
@@ -205,6 +206,9 @@ public class InstanceContainer extends Instance {
                     // Prevent the block breaker to play the particles and sound two times
                     (viewer) -> !viewer.equals(player));
         }
+
+        BlockPlacementListener.updateNeighbors(player, this, blockPosition);
+
         return allowed;
     }
 
