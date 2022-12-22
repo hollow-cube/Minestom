@@ -2,7 +2,7 @@ package net.minestom.server.command;
 
 import net.kyori.adventure.audience.Audience;
 import net.minestom.server.command.builder.CommandContext;
-import net.minestom.server.permission.Permission;
+import net.minestom.server.permission.PermissionProvider;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,13 +19,17 @@ import java.util.Set;
  */
 public class ServerSender implements CommandSender {
 
-    private final Set<Permission> permissions = Collections.unmodifiableSet(new HashSet<>());
     private final TagHandler tagHandler = TagHandler.newHandler();
+    private PermissionProvider permissionProvider;
 
-    @NotNull
+    public void setPermissionProvider(@NotNull PermissionProvider permissionProvider) {
+        this.permissionProvider = permissionProvider;
+    }
+
     @Override
-    public Set<Permission> getAllPermissions() {
-        return permissions;
+    public boolean hasPermission(@NotNull String permission) {
+        if (permissionProvider == null) return true;
+        return permissionProvider.hasPermission(permission);
     }
 
     @Override

@@ -4,7 +4,7 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.permission.Permission;
+import net.minestom.server.permission.PermissionProvider;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,8 +17,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class ConsoleSender implements CommandSender {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ConsoleSender.class);
 
-    private final Set<Permission> permissions = new CopyOnWriteArraySet<>();
     private final TagHandler tagHandler = TagHandler.newHandler();
+    private PermissionProvider permissionProvider;
 
     @Override
     public void sendMessage(@NotNull String message) {
@@ -30,10 +30,14 @@ public class ConsoleSender implements CommandSender {
         LOGGER.info(message);
     }
 
-    @NotNull
+    public void setPermissionProvider(@NotNull PermissionProvider permissionProvider) {
+        this.permissionProvider = permissionProvider;
+    }
+
     @Override
-    public Set<Permission> getAllPermissions() {
-        return permissions;
+    public boolean hasPermission(@NotNull String permission) {
+        if (permissionProvider == null) return true;
+        return permissionProvider.hasPermission(permission);
     }
 
     @Override
