@@ -3,7 +3,7 @@ package net.minestom.server.command;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
-import net.minestom.server.permission.PermissionHandler;
+import net.minestom.server.permission.PermissionProvider;
 import net.minestom.server.tag.Taggable;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Main implementations are {@link Player} and {@link ConsoleSender}.
  */
-public interface CommandSender extends PermissionHandler, Audience, Taggable {
+public interface CommandSender extends PermissionProvider, Audience, Taggable {
 
     /**
      * Sends a raw string message.

@@ -2,7 +2,6 @@ package net.minestom.server.command;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandDispatcher;
-import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -125,9 +124,10 @@ public class CommandConditionTest {
     }
 
     private static final class Sender implements CommandSender {
+
         @Override
-        public @NotNull Set<Permission> getAllPermissions() {
-            return null;
+        public boolean hasPermission(@NotNull String permission) {
+            return true;
         }
 
         @Override
