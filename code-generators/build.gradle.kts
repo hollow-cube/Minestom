@@ -13,6 +13,8 @@ dependencies {
     implementation(libs.javaPoet)
     // Contains the json files
     implementation(libs.minestomData)
+
+    implementation("org.slf4j:slf4j-api:2.0.6")
 }
 
 tasks {
