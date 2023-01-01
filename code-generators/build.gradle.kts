@@ -11,8 +11,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.jetbrainsAnnotations)
     implementation(libs.javaPoet)
-    // Logging
-    implementation(libs.bundles.logging)
     // Contains the json files
     implementation(libs.minestomData)
 }

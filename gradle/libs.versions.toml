@@ -11,10 +11,6 @@ minestomData = "53e0da5be1"
 hephaistos = "2.5.3"
 jetbrainsAnnotations = "23.0.0"
 
-# Terminal / Logging
-tinylog = "2.5.0"
-jline = "3.21.0"
-
 # Performance / Data Structures
 caffeine = "3.1.2"
 fastutil = "8.5.9"
@@ -59,15 +55,6 @@ dependencyGetter = { group = "com.github.Minestom", name = "DependencyGetter", v
 minestomData = { group = "com.github.Minestom", name = "MinestomDataGenerator", version.ref = "minestomData" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
 
-# Logging
-tinylog-api = { group = "org.tinylog", name = "tinylog-api", version.ref = "tinylog" }
-tinylog-impl = { group = "org.tinylog", name = "tinylog-impl", version.ref = "tinylog" }
-tinylog-slf4j = { group = "org.tinylog", name = "slf4j-tinylog", version.ref = "tinylog" }
-
-# Terminal
-jline = { group = "org.jline", name = "jline", version.ref = "jline" }
-jline-jansi = { group = "org.jline", name = "jline-terminal-jansi", version.ref = "jline" }
-
 # Performance / Data Structures
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
@@ -102,5 +89,3 @@ jcstress-core = { group = "org.openjdk.jcstress", name = "jcstress-core", versio
 kotlin = ["kotlin-stdlib-jdk8", "kotlin-reflect"]
 flare = ["flare", "flare-fastutil"]
 adventure = ["adventure-api", "adventure-serializer-gson", "adventure-serializer-legacy", "adventure-serializer-plain", "adventure-text-logger-slf4j"]
-logging = ["tinylog-api", "tinylog-impl", "tinylog-slf4j"]
-terminal = ["jline", "jline-jansi"]

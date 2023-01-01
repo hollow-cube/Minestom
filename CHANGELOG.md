@@ -8,3 +8,4 @@ Some of these are pending, some deserve PRs, others are just minor tweaks
 * Change `Entity#getInstance` to @UnknownNullability
 * Support custom component translator for serverside translation
 * **breaking** Replace permission system with a simple user pluggable alternative
+* **breaking** Remove tinylog and MinestomTerminal implementation

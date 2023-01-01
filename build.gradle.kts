@@ -47,12 +47,6 @@ dependencies {
     // Only here to ensure J9 module support for extensions and our classloaders
     testCompileOnly(libs.mockito.core)
 
-
-    // Logging
-    implementation(libs.bundles.logging)
-    // Libraries required for the terminal
-    implementation(libs.bundles.terminal)
-
     // Performance improving libraries
     implementation(libs.caffeine)
     api(libs.fastutil)
