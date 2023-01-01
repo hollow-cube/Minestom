@@ -57,15 +57,13 @@ dependencies {
     implementation(libs.jcTools)
     // Path finding
     api(libs.hydrazine)
+    implementation("org.slf4j:slf4j-api:2.0.6")
 
     // Adventure, for user-interface
     api(libs.bundles.adventure)
 
     // Kotlin Libraries
     api(libs.bundles.kotlin)
-
-    // Extension Management System dependency handler.
-    api(libs.dependencyGetter)
 
     // Minestom Data (From MinestomDataGenerator)
     implementation(libs.minestomData)
