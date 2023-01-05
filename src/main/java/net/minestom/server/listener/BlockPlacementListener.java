@@ -150,22 +150,10 @@ public class BlockPlacementListener {
             return;
         }
 
-        // BlockPlacementRule check
-        Block resultBlock = playerBlockPlaceEvent.getBlock();
-//        final BlockPlacementRule blockPlacementRule = BLOCK_MANAGER.getBlockPlacementRule(resultBlock);
-//        if (blockPlacementRule != null && playerBlockPlaceEvent.shouldDoBlockUpdates()) {
-            // Get id from block placement rule instead of the event
-//            resultBlock = blockPlacementRule.blockPlace(new BlockPlacementRule.PlacementState(
-//                    instance, resultBlock, blockFace,
-//                    placementPosition, cursorPosition,
-//                    player.getPosition(), usedItem.meta(), player.isSneaking())
-//            );
-//        }
-//        if (resultBlock == null) {
-//            refresh(player, chunk);
-//            return;
-//        }
+        if(placementPosition.y() >= instance.getDimensionType().getMaxY()) return;
+
         // Place the block
+        Block resultBlock = playerBlockPlaceEvent.getBlock();
         player.sendPacket(new AcknowledgeBlockChangePacket(packet.sequence()));
         instance.placeBlock(new BlockHandler.PlayerPlacement(resultBlock, instance, placementPosition, player, hand, blockFace,
                 packet.cursorPositionX(), packet.cursorPositionY(), packet.cursorPositionZ()), playerBlockPlaceEvent.shouldDoBlockUpdates());
