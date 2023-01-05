@@ -90,6 +90,7 @@ public class BlockPlacementListener {
             canPlaceBlock = usedItem.meta().canPlaceOn(interactedBlock);
         }
 
+
         // Get the newly placed block position
         //todo it feels like it should be possible to have better replacement rules than this, feels pretty scuffed.
         Point placementPosition = blockPosition;
@@ -110,6 +111,8 @@ public class BlockPlacementListener {
                 canPlaceBlock = false;
             }
         }
+
+        if(placementPosition.y() >= instance.getDimensionType().getMaxY()) return;
 
         if (!canPlaceBlock) {
             // Send a block change with the real block in the instance to keep the client in sync,
@@ -149,8 +152,6 @@ public class BlockPlacementListener {
             refresh(player, chunk);
             return;
         }
-
-        if(placementPosition.y() >= instance.getDimensionType().getMaxY()) return;
 
         // Place the block
         Block resultBlock = playerBlockPlaceEvent.getBlock();
