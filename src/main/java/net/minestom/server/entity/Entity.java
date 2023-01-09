@@ -1717,7 +1717,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         Optional<Entity> nearby = instance.getNearbyEntities(position, range).stream()
                 .filter(finalPredicate)
-                .min(Comparator.comparingDouble(e -> e.getDistance(this.position)));
+                .min(Comparator.comparingDouble(e -> e.getDistanceSquared(this)));
 
         return nearby.orElse(null);
     }
