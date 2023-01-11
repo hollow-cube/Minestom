@@ -112,7 +112,8 @@ public class BlockPlacementListener {
             }
         }
 
-        if(placementPosition.y() >= instance.getDimensionType().getMaxY()) return;
+        if(placementPosition.y() >= instance.getDimensionType().getMaxY()
+                || placementPosition.y() <= instance.getDimensionType().getMinY()) return;
 
         if (!canPlaceBlock) {
             // Send a block change with the real block in the instance to keep the client in sync,
