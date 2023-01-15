@@ -11,19 +11,51 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static net.minestom.server.network.NetworkBuffer.*;
 
-public record PlayerInfoUpdatePacket(@NotNull EnumSet<@NotNull Action> actions,
-                                     @NotNull List<@NotNull Entry> entries) implements ServerPacket {
-    public PlayerInfoUpdatePacket(@NotNull Action action, @NotNull Entry entry) {
-        this(EnumSet.of(action), List.of(entry));
+public final class PlayerInfoUpdatePacket implements ServerPacket {
+    private final @NotNull EnumSet<@NotNull Action> actions;
+    private final @NotNull List<@NotNull Entry> entries;
+
+    public PlayerInfoUpdatePacket(@NotNull EnumSet<@NotNull Action> actions, @NotNull List<@NotNull Entry> entries) {
+        this.actions = EnumSet.copyOf(actions);
+        this.entries = List.copyOf(entries);
     }
 
-    public PlayerInfoUpdatePacket {
-        actions = EnumSet.copyOf(actions);
-        entries = List.copyOf(entries);
+    public PlayerInfoUpdatePacket(@NotNull Action action, @NotNull Entry entry) {
+        this.actions = EnumSet.of(action);
+        this.entries = List.of(entry);
+    }
+
+    public PlayerInfoUpdatePacket(@NotNull NetworkBuffer reader) {
+        this.actions = reader.readEnumSet(Action.class);
+        this.entries = reader.readCollection(buffer -> {
+            UUID uuid = buffer.read(NetworkBuffer.UUID);
+            String username = "";
+            List<Property> properties = List.of();
+            boolean listed = false;
+            int latency = 0;
+            GameMode gameMode = GameMode.SURVIVAL;
+            Component displayName = null;
+            ChatSession chatSession = null;
+            for (Action action : actions) {
+                switch (action) {
+                    case ADD_PLAYER -> {
+                        username = reader.read(STRING);
+                        properties = reader.readCollection(Property::new);
+                    }
+                    case INITIALIZE_CHAT -> chatSession = new ChatSession(reader);
+                    case UPDATE_GAME_MODE -> gameMode = reader.readEnum(GameMode.class);
+                    case UPDATE_LISTED -> listed = reader.read(BOOLEAN);
+                    case UPDATE_LATENCY -> latency = reader.read(VAR_INT);
+                    case UPDATE_DISPLAY_NAME -> displayName = reader.read(COMPONENT);
+                }
+            }
+            return new Entry(uuid, username, properties, listed, latency, gameMode, displayName, chatSession);
+        });
     }
 
     @Override
@@ -40,6 +72,35 @@ public record PlayerInfoUpdatePacket(@NotNull EnumSet<@NotNull Action> actions,
     @Override
     public int getId() {
         return ServerPacketIdentifier.PLAYER_INFO_UPDATE;
+    }
+
+    public @NotNull EnumSet<Action> actions() {
+        return actions;
+    }
+
+    public @NotNull List<Entry> entries() {
+        return entries;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PlayerInfoUpdatePacket that = (PlayerInfoUpdatePacket) o;
+        return actions.equals(that.actions) && entries.equals(that.entries);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(actions, entries);
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerInfoUpdatePacket{" +
+                "actions=" + actions +
+                ", entries=" + entries +
+                '}';
     }
 
     public record Entry(UUID uuid, String username, List<Property> properties,

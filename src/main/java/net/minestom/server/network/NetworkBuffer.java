@@ -209,6 +209,18 @@ public final class NetworkBuffer {
         writeFixedBitSet(bitSet, values.length);
     }
 
+    public <E extends Enum<E>> @NotNull EnumSet<E> readEnumSet(Class<E> enumType) {
+        final E[] values = enumType.getEnumConstants();
+        BitSet bitSet = readFixedBitSet(values.length);
+        EnumSet<E> enumSet = EnumSet.noneOf(enumType);
+        for (int i = 0; i < values.length; ++i) {
+            if (bitSet.get(i)) {
+                enumSet.add(values[i]);
+            }
+        }
+        return enumSet;
+    }
+
     private void writeFixedBitSet(BitSet set, int length) {
         final int setLength = set.length();
         if (setLength > length) {
@@ -217,6 +229,11 @@ public final class NetworkBuffer {
             final byte[] array = set.toByteArray();
             write(RAW_BYTES, array);
         }
+    }
+
+    private @NotNull BitSet readFixedBitSet(int length) {
+        final byte[] array = readBytes((length + 7) / 8);
+        return BitSet.valueOf(array);
     }
 
     public byte[] readBytes(int length) {
