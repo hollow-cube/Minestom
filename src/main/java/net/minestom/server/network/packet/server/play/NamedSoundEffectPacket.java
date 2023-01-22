@@ -6,13 +6,14 @@ import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static net.minestom.server.network.NetworkBuffer.*;
 
-public record NamedSoundEffectPacket(String soundName, Source source, int x, int y, int z,
+public record NamedSoundEffectPacket(String soundName, @Nullable Float range, Source source, int x, int y, int z,
                                      float volume, float pitch, long seed) implements ServerPacket {
     public NamedSoundEffectPacket(@NotNull NetworkBuffer reader) {
-        this(reader.read(STRING), Source.values()[reader.read(VAR_INT)],
+        this(reader.read(STRING), reader.readOptional(FLOAT), Source.values()[reader.read(VAR_INT)],
                 reader.read(INT) / 8, reader.read(INT) / 8, reader.read(INT) / 8,
                 reader.read(FLOAT), reader.read(FLOAT), reader.read(LONG));
     }
@@ -20,6 +21,7 @@ public record NamedSoundEffectPacket(String soundName, Source source, int x, int
     @Override
     public void write(@NotNull NetworkBuffer writer) {
         writer.write(STRING, soundName);
+        writer.writeOptional(FLOAT, range);
         writer.write(VAR_INT, AdventurePacketConvertor.getSoundSourceValue(source));
         writer.write(INT, x * 8);
         writer.write(INT, y * 8);
