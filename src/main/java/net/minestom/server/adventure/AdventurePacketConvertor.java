@@ -111,7 +111,7 @@ public class AdventurePacketConvertor {
     public static @NotNull ServerPacket createSoundPacket(@NotNull Sound sound, double x, double y, double z) {
         final SoundEvent minestomSound = SoundEvent.fromNamespaceId(sound.name().asString());
         if (minestomSound == null) {
-            return new NamedSoundEffectPacket(sound.name().asString(), sound.source(),
+            return new NamedSoundEffectPacket(sound.name().asString(), null, sound.source(),
                     (int) x, (int) y, (int) z, sound.volume(), sound.pitch(), 0);
         } else {
             return new SoundEffectPacket(minestomSound.id(), sound.source(),
@@ -138,7 +138,7 @@ public class AdventurePacketConvertor {
             return new EntitySoundEffectPacket(minestomSound.id(), sound.source(), entity.getEntityId(), sound.volume(), sound.pitch(), 0);
         } else {
             final Pos pos = entity.getPosition();
-            return new NamedSoundEffectPacket(sound.name().asString(), sound.source(),
+            return new NamedSoundEffectPacket(sound.name().asString(), null, sound.source(),
                     (int) pos.x(), (int) pos.y(), (int) pos.z(), sound.volume(), sound.pitch(), 0);
         }
     }
