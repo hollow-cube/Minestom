@@ -8,27 +8,77 @@ import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
 import net.minestom.server.sound.SoundEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static net.minestom.server.network.NetworkBuffer.*;
 
-public record SoundEffectPacket(int soundId, @NotNull Source source,
-                                int x, int y, int z,
-                                float volume, float pitch, long seed) implements ServerPacket {
+public class SoundEffectPacket implements ServerPacket {
+    private final SoundEvent soundEvent; // only one of soundEvent and soundName may be present
+    private final String soundName;
+    private final Float range; // optional
+    private final Source source;
+    private final int x;
+    private final int y;
+    private final int z;
+    private final float volume;
+    private final float pitch;
+    private final long seed;
+
     public SoundEffectPacket(@NotNull NetworkBuffer reader) {
-        this(reader.read(VAR_INT), reader.readEnum(Source.class),
-                reader.read(INT) * 8, reader.read(INT) * 8, reader.read(INT) * 8,
-                reader.read(FLOAT), reader.read(FLOAT), reader.read(LONG));
+        int soundId = reader.read(VAR_INT);
+        if (soundId == 0) {
+            this.soundEvent = null;
+            this.soundName = reader.read(STRING);
+        } else {
+            this.soundEvent = SoundEvent.fromId(soundId - 1);
+            this.soundName = null;
+        }
+        this.range = reader.readOptional(FLOAT);
+        this.source = reader.readEnum(Source.class);
+        this.x = reader.read(INT) * 8;
+        this.y = reader.read(INT) * 8;
+        this.z = reader.read(INT) * 8;
+        this.volume = reader.read(FLOAT);
+        this.pitch = reader.read(FLOAT);
+        this.seed = reader.read(LONG);
     }
 
-    public SoundEffectPacket(@NotNull SoundEvent sound, @NotNull Source source,
-                             @NotNull Point position, float volume, float pitch) {
-        this(sound.id(), source, (int) position.x(), (int) position.y(), (int) position.z(),
-                volume, pitch, 0);
+    public SoundEffectPacket(@NotNull SoundEvent soundEvent, @Nullable Float range, @NotNull Source source,
+                             @NotNull Point position, float volume, float pitch, long seed) {
+        this.soundEvent = soundEvent;
+        this.soundName = null;
+        this.range = range;
+        this.source = source;
+        this.x = (int) position.x();
+        this.y = (int) position.y();
+        this.z = (int) position.z();
+        this.volume = volume;
+        this.pitch = pitch;
+        this.seed = seed;
+    }
+
+    public SoundEffectPacket(@NotNull String soundName, @Nullable Float range, @NotNull Source source,
+                             @NotNull Point position, float volume, float pitch, long seed) {
+        this.soundEvent = null;
+        this.soundName = soundName;
+        this.range = range;
+        this.source = source;
+        this.x = (int) position.x();
+        this.y = (int) position.y();
+        this.z = (int) position.z();
+        this.volume = volume;
+        this.pitch = pitch;
+        this.seed = seed;
     }
 
     @Override
     public void write(@NotNull NetworkBuffer writer) {
-        writer.write(VAR_INT, soundId);
+        if (soundEvent != null) {
+            writer.write(VAR_INT, soundEvent.id() + 1);
+        } else {
+            writer.write(STRING, soundName);
+        }
+        writer.writeOptional(FLOAT, range);
         writer.write(VAR_INT, AdventurePacketConvertor.getSoundSourceValue(source));
         writer.write(INT, x * 8);
         writer.write(INT, y * 8);
@@ -41,5 +91,45 @@ public record SoundEffectPacket(int soundId, @NotNull Source source,
     @Override
     public int getId() {
         return ServerPacketIdentifier.SOUND_EFFECT;
+    }
+
+    public @Nullable SoundEvent soundEvent() {
+        return soundEvent;
+    }
+
+    public @Nullable String soundName() {
+        return soundName;
+    }
+
+    public @Nullable Float range() {
+        return range;
+    }
+
+    public @NotNull Source source() {
+        return source;
+    }
+
+    public int x() {
+        return x;
+    }
+
+    public int y() {
+        return y;
+    }
+
+    public int z() {
+        return z;
+    }
+
+    public float volume() {
+        return volume;
+    }
+
+    public float pitch() {
+        return pitch;
+    }
+
+    public long seed() {
+        return seed;
     }
 }

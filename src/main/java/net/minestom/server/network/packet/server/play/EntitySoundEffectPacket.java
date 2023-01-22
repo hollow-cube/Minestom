@@ -18,7 +18,8 @@ public record EntitySoundEffectPacket(int soundId, Sound.Source source, int enti
 
     @Override
     public void write(@NotNull NetworkBuffer writer) {
-        writer.write(VAR_INT, soundId);
+        writer.write(VAR_INT, soundId + 1);
+        writer.writeOptional(FLOAT, null);
         writer.write(VAR_INT, AdventurePacketConvertor.getSoundSourceValue(source));
         writer.write(VAR_INT, entityId);
         writer.write(FLOAT, volume);
