@@ -52,11 +52,14 @@ public final class NetworkBuffer {
     public static final Type<Point> OPT_BLOCK_POSITION = NetworkBufferTypes.OPT_BLOCK_POSITION;
     public static final Type<Direction> DIRECTION = NetworkBufferTypes.DIRECTION;
     public static final Type<UUID> OPT_UUID = NetworkBufferTypes.OPT_UUID;
-    public static final Type<Integer> OPT_BLOCK_ID = NetworkBufferTypes.OPT_BLOCK_ID;
+    public static final Type<Integer> BLOCK_STATE = NetworkBufferTypes.BLOCK_STATE;
+    public static final Type<Integer> OPT_BLOCK_STATE = NetworkBufferTypes.OPT_BLOCK_STATE;
     public static final Type<int[]> VILLAGER_DATA = NetworkBufferTypes.VILLAGER_DATA;
     public static final Type<Integer> OPT_VAR_INT = NetworkBufferTypes.OPT_VAR_INT;
     public static final Type<Entity.Pose> POSE = NetworkBufferTypes.POSE;
     public static final Type<DeathLocation> DEATH_LOCATION = NetworkBufferTypes.DEATH_LOCATION;
+    public static final Type<Point> VECTOR3 = NetworkBufferTypes.VECTOR3;
+    public static final Type<float[]> QUATERNION = NetworkBufferTypes.QUATERNION;
 
     ByteBuffer nioBuffer;
     final boolean resizable;
