@@ -17,7 +17,7 @@ public record EntitySoundEffectPacket(
         // only one of soundEvent and soundName may be present
         @Nullable SoundEvent soundEvent,
         @Nullable String soundName,
-        @Nullable Float range,
+        @Nullable Float range, // Only allowed with soundName
         @NotNull Sound.Source source,
         int entityId,
         float volume,
@@ -52,9 +52,11 @@ public record EntitySoundEffectPacket(
         int soundId = reader.read(VAR_INT);
         SoundEvent soundEvent;
         String soundName;
+        Float range = null;
         if (soundId == 0) {
             soundEvent = null;
             soundName = reader.read(STRING);
+            range = reader.readOptional(FLOAT);
         } else {
             soundEvent = SoundEvent.fromId(soundId - 1);
             soundName = null;
@@ -62,7 +64,7 @@ public record EntitySoundEffectPacket(
         return new EntitySoundEffectPacket(
                 soundEvent,
                 soundName,
-                reader.readOptional(FLOAT),
+                range,
                 reader.readEnum(Sound.Source.class),
                 reader.read(VAR_INT),
                 reader.read(FLOAT),
@@ -76,9 +78,10 @@ public record EntitySoundEffectPacket(
         if (soundEvent != null) {
             writer.write(VAR_INT, soundEvent.id() + 1);
         } else {
+            writer.write(VAR_INT, 0);
             writer.write(STRING, soundName);
+            writer.writeOptional(FLOAT, null);
         }
-        writer.writeOptional(FLOAT, null);
         writer.write(VAR_INT, AdventurePacketConvertor.getSoundSourceValue(source));
         writer.write(VAR_INT, entityId);
         writer.write(FLOAT, volume);

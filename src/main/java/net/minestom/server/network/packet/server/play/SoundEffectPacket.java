@@ -16,7 +16,7 @@ public record SoundEffectPacket(
         // only one of soundEvent and soundName may be present
         @Nullable SoundEvent soundEvent,
         @Nullable String soundName,
-        @Nullable Float range,
+        @Nullable Float range, // Only allowed with soundName
         @NotNull Source source,
         int x,
         int y,
@@ -29,9 +29,11 @@ public record SoundEffectPacket(
         int soundId = reader.read(VAR_INT);
         SoundEvent soundEvent;
         String soundName;
+        Float range = null;
         if (soundId == 0) {
             soundEvent = null;
             soundName = reader.read(STRING);
+            range = reader.readOptional(FLOAT);
         } else {
             soundEvent = SoundEvent.fromId(soundId - 1);
             soundName = null;
@@ -39,7 +41,7 @@ public record SoundEffectPacket(
         return new SoundEffectPacket(
                 soundEvent,
                 soundName,
-                reader.readOptional(FLOAT),
+                range,
                 reader.readEnum(Source.class),
                 reader.read(INT) * 8,
                 reader.read(INT) * 8,
@@ -74,9 +76,10 @@ public record SoundEffectPacket(
         if (soundEvent != null) {
             writer.write(VAR_INT, soundEvent.id() + 1);
         } else {
+            writer.write(VAR_INT, 0);
             writer.write(STRING, soundName);
+            writer.writeOptional(FLOAT, range);
         }
-        writer.writeOptional(FLOAT, range);
         writer.write(VAR_INT, AdventurePacketConvertor.getSoundSourceValue(source));
         writer.write(INT, x * 8);
         writer.write(INT, y * 8);
