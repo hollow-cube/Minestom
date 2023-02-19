@@ -36,13 +36,13 @@ public record LastSeenMessages(@NotNull List<@NotNull MessageSignature> entries)
 
     public record Update(int offset, @NotNull BitSet acknowledged) implements NetworkBuffer.Writer {
         public Update(@NotNull NetworkBuffer reader) {
-            this(reader.read(VAR_INT), null);
+            this(reader.read(VAR_INT), reader.readFixedBitSet(20));
         }
 
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(VAR_INT, offset);
-            //writer.writeFixedBitSet(acknowledged);
+            writer.writeFixedBitSet(acknowledged, 20);
         }
     }
 }

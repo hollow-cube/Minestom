@@ -221,7 +221,7 @@ public final class NetworkBuffer {
         return enumSet;
     }
 
-    private void writeFixedBitSet(BitSet set, int length) {
+    public void writeFixedBitSet(BitSet set, int length) {
         final int setLength = set.length();
         if (setLength > length) {
             throw new IllegalArgumentException("BitSet is larger than expected size (" + setLength + ">" + length + ")");
@@ -231,7 +231,8 @@ public final class NetworkBuffer {
         }
     }
 
-    private @NotNull BitSet readFixedBitSet(int length) {
+    @NotNull
+    public BitSet readFixedBitSet(int length) {
         final byte[] array = readBytes((length + 7) / 8);
         return BitSet.valueOf(array);
     }
