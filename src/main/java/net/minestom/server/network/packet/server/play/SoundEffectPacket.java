@@ -12,63 +12,61 @@ import org.jetbrains.annotations.Nullable;
 
 import static net.minestom.server.network.NetworkBuffer.*;
 
-public class SoundEffectPacket implements ServerPacket {
-    private final SoundEvent soundEvent; // only one of soundEvent and soundName may be present
-    private final String soundName;
-    private final Float range; // optional
-    private final Source source;
-    private final int x;
-    private final int y;
-    private final int z;
-    private final float volume;
-    private final float pitch;
-    private final long seed;
-
-    public SoundEffectPacket(@NotNull NetworkBuffer reader) {
+public record SoundEffectPacket(
+        // only one of soundEvent and soundName may be present
+        @Nullable SoundEvent soundEvent,
+        @Nullable String soundName,
+        @Nullable Float range,
+        @NotNull Source source,
+        int x,
+        int y,
+        int z,
+        float volume,
+        float pitch,
+        long seed
+) implements ServerPacket {
+    private static @NotNull SoundEffectPacket fromReader(@NotNull NetworkBuffer reader) {
         int soundId = reader.read(VAR_INT);
+        SoundEvent soundEvent;
+        String soundName;
         if (soundId == 0) {
-            this.soundEvent = null;
-            this.soundName = reader.read(STRING);
+            soundEvent = null;
+            soundName = reader.read(STRING);
         } else {
-            this.soundEvent = SoundEvent.fromId(soundId - 1);
-            this.soundName = null;
+            soundEvent = SoundEvent.fromId(soundId - 1);
+            soundName = null;
         }
-        this.range = reader.readOptional(FLOAT);
-        this.source = reader.readEnum(Source.class);
-        this.x = reader.read(INT) * 8;
-        this.y = reader.read(INT) * 8;
-        this.z = reader.read(INT) * 8;
-        this.volume = reader.read(FLOAT);
-        this.pitch = reader.read(FLOAT);
-        this.seed = reader.read(LONG);
+        return new SoundEffectPacket(
+                soundEvent,
+                soundName,
+                reader.readOptional(FLOAT),
+                reader.readEnum(Source.class),
+                reader.read(INT) * 8,
+                reader.read(INT) * 8,
+                reader.read(INT) * 8,
+                reader.read(FLOAT),
+                reader.read(FLOAT),
+                reader.read(LONG)
+        );
     }
 
     public SoundEffectPacket(@NotNull SoundEvent soundEvent, @Nullable Float range, @NotNull Source source,
                              @NotNull Point position, float volume, float pitch, long seed) {
-        this.soundEvent = soundEvent;
-        this.soundName = null;
-        this.range = range;
-        this.source = source;
-        this.x = (int) position.x();
-        this.y = (int) position.y();
-        this.z = (int) position.z();
-        this.volume = volume;
-        this.pitch = pitch;
-        this.seed = seed;
+        this(soundEvent, null, range, source, position.blockX(), position.blockY(), position.blockZ(), volume, pitch, seed);
     }
 
     public SoundEffectPacket(@NotNull String soundName, @Nullable Float range, @NotNull Source source,
                              @NotNull Point position, float volume, float pitch, long seed) {
-        this.soundEvent = null;
-        this.soundName = soundName;
-        this.range = range;
-        this.source = source;
-        this.x = (int) position.x();
-        this.y = (int) position.y();
-        this.z = (int) position.z();
-        this.volume = volume;
-        this.pitch = pitch;
-        this.seed = seed;
+        this(null, soundName, range, source, position.blockX(), position.blockY(), position.blockZ(), volume, pitch, seed);
+    }
+
+    public SoundEffectPacket(@NotNull NetworkBuffer reader) {
+        this(fromReader(reader));
+    }
+
+    private SoundEffectPacket(@NotNull SoundEffectPacket packet) {
+        this(packet.soundEvent, packet.soundName, packet.range, packet.source,
+                packet.x, packet.y, packet.z, packet.volume, packet.pitch, packet.seed);
     }
 
     @Override
@@ -93,43 +91,4 @@ public class SoundEffectPacket implements ServerPacket {
         return ServerPacketIdentifier.SOUND_EFFECT;
     }
 
-    public @Nullable SoundEvent soundEvent() {
-        return soundEvent;
-    }
-
-    public @Nullable String soundName() {
-        return soundName;
-    }
-
-    public @Nullable Float range() {
-        return range;
-    }
-
-    public @NotNull Source source() {
-        return source;
-    }
-
-    public int x() {
-        return x;
-    }
-
-    public int y() {
-        return y;
-    }
-
-    public int z() {
-        return z;
-    }
-
-    public float volume() {
-        return volume;
-    }
-
-    public float pitch() {
-        return pitch;
-    }
-
-    public long seed() {
-        return seed;
-    }
 }
