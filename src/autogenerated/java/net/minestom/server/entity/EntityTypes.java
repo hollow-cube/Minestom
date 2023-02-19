@@ -21,11 +21,15 @@ interface EntityTypes {
 
     EntityType BLAZE = EntityTypeImpl.get("minecraft:blaze");
 
+    EntityType BLOCK_DISPLAY = EntityTypeImpl.get("minecraft:block_display");
+
     EntityType BOAT = EntityTypeImpl.get("minecraft:boat");
 
     EntityType CHEST_BOAT = EntityTypeImpl.get("minecraft:chest_boat");
 
     EntityType CAT = EntityTypeImpl.get("minecraft:cat");
+
+    EntityType CAMEL = EntityTypeImpl.get("minecraft:camel");
 
     EntityType CAVE_SPIDER = EntityTypeImpl.get("minecraft:cave_spider");
 
@@ -94,6 +98,8 @@ interface EntityTypes {
     EntityType IRON_GOLEM = EntityTypeImpl.get("minecraft:iron_golem");
 
     EntityType ITEM = EntityTypeImpl.get("minecraft:item");
+
+    EntityType ITEM_DISPLAY = EntityTypeImpl.get("minecraft:item_display");
 
     EntityType ITEM_FRAME = EntityTypeImpl.get("minecraft:item_frame");
 
@@ -190,6 +196,8 @@ interface EntityTypes {
     EntityType STRIDER = EntityTypeImpl.get("minecraft:strider");
 
     EntityType TADPOLE = EntityTypeImpl.get("minecraft:tadpole");
+
+    EntityType TEXT_DISPLAY = EntityTypeImpl.get("minecraft:text_display");
 
     EntityType EGG = EntityTypeImpl.get("minecraft:egg");
 

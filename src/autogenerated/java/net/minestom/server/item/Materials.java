@@ -65,9 +65,13 @@ interface Materials {
 
     Material MANGROVE_PLANKS = MaterialImpl.get("minecraft:mangrove_planks");
 
+    Material BAMBOO_PLANKS = MaterialImpl.get("minecraft:bamboo_planks");
+
     Material CRIMSON_PLANKS = MaterialImpl.get("minecraft:crimson_planks");
 
     Material WARPED_PLANKS = MaterialImpl.get("minecraft:warped_planks");
+
+    Material BAMBOO_MOSAIC = MaterialImpl.get("minecraft:bamboo_mosaic");
 
     Material OAK_SAPLING = MaterialImpl.get("minecraft:oak_sapling");
 
@@ -235,6 +239,8 @@ interface Materials {
 
     Material WARPED_STEM = MaterialImpl.get("minecraft:warped_stem");
 
+    Material BAMBOO_BLOCK = MaterialImpl.get("minecraft:bamboo_block");
+
     Material STRIPPED_OAK_LOG = MaterialImpl.get("minecraft:stripped_oak_log");
 
     Material STRIPPED_SPRUCE_LOG = MaterialImpl.get("minecraft:stripped_spruce_log");
@@ -270,6 +276,8 @@ interface Materials {
     Material STRIPPED_CRIMSON_HYPHAE = MaterialImpl.get("minecraft:stripped_crimson_hyphae");
 
     Material STRIPPED_WARPED_HYPHAE = MaterialImpl.get("minecraft:stripped_warped_hyphae");
+
+    Material STRIPPED_BAMBOO_BLOCK = MaterialImpl.get("minecraft:stripped_bamboo_block");
 
     Material OAK_WOOD = MaterialImpl.get("minecraft:oak_wood");
 
@@ -447,6 +455,10 @@ interface Materials {
 
     Material MANGROVE_SLAB = MaterialImpl.get("minecraft:mangrove_slab");
 
+    Material BAMBOO_SLAB = MaterialImpl.get("minecraft:bamboo_slab");
+
+    Material BAMBOO_MOSAIC_SLAB = MaterialImpl.get("minecraft:bamboo_mosaic_slab");
+
     Material CRIMSON_SLAB = MaterialImpl.get("minecraft:crimson_slab");
 
     Material WARPED_SLAB = MaterialImpl.get("minecraft:warped_slab");
@@ -496,6 +508,8 @@ interface Materials {
     Material BRICKS = MaterialImpl.get("minecraft:bricks");
 
     Material BOOKSHELF = MaterialImpl.get("minecraft:bookshelf");
+
+    Material CHISELED_BOOKSHELF = MaterialImpl.get("minecraft:chiseled_bookshelf");
 
     Material MOSSY_COBBLESTONE = MaterialImpl.get("minecraft:mossy_cobblestone");
 
@@ -554,6 +568,8 @@ interface Materials {
     Material DARK_OAK_FENCE = MaterialImpl.get("minecraft:dark_oak_fence");
 
     Material MANGROVE_FENCE = MaterialImpl.get("minecraft:mangrove_fence");
+
+    Material BAMBOO_FENCE = MaterialImpl.get("minecraft:bamboo_fence");
 
     Material CRIMSON_FENCE = MaterialImpl.get("minecraft:crimson_fence");
 
@@ -694,6 +710,10 @@ interface Materials {
     Material DARK_OAK_STAIRS = MaterialImpl.get("minecraft:dark_oak_stairs");
 
     Material MANGROVE_STAIRS = MaterialImpl.get("minecraft:mangrove_stairs");
+
+    Material BAMBOO_STAIRS = MaterialImpl.get("minecraft:bamboo_stairs");
+
+    Material BAMBOO_MOSAIC_STAIRS = MaterialImpl.get("minecraft:bamboo_mosaic_stairs");
 
     Material CRIMSON_STAIRS = MaterialImpl.get("minecraft:crimson_stairs");
 
@@ -1287,6 +1307,8 @@ interface Materials {
 
     Material MANGROVE_BUTTON = MaterialImpl.get("minecraft:mangrove_button");
 
+    Material BAMBOO_BUTTON = MaterialImpl.get("minecraft:bamboo_button");
+
     Material CRIMSON_BUTTON = MaterialImpl.get("minecraft:crimson_button");
 
     Material WARPED_BUTTON = MaterialImpl.get("minecraft:warped_button");
@@ -1313,6 +1335,8 @@ interface Materials {
 
     Material MANGROVE_PRESSURE_PLATE = MaterialImpl.get("minecraft:mangrove_pressure_plate");
 
+    Material BAMBOO_PRESSURE_PLATE = MaterialImpl.get("minecraft:bamboo_pressure_plate");
+
     Material CRIMSON_PRESSURE_PLATE = MaterialImpl.get("minecraft:crimson_pressure_plate");
 
     Material WARPED_PRESSURE_PLATE = MaterialImpl.get("minecraft:warped_pressure_plate");
@@ -1332,6 +1356,8 @@ interface Materials {
     Material DARK_OAK_DOOR = MaterialImpl.get("minecraft:dark_oak_door");
 
     Material MANGROVE_DOOR = MaterialImpl.get("minecraft:mangrove_door");
+
+    Material BAMBOO_DOOR = MaterialImpl.get("minecraft:bamboo_door");
 
     Material CRIMSON_DOOR = MaterialImpl.get("minecraft:crimson_door");
 
@@ -1353,6 +1379,8 @@ interface Materials {
 
     Material MANGROVE_TRAPDOOR = MaterialImpl.get("minecraft:mangrove_trapdoor");
 
+    Material BAMBOO_TRAPDOOR = MaterialImpl.get("minecraft:bamboo_trapdoor");
+
     Material CRIMSON_TRAPDOOR = MaterialImpl.get("minecraft:crimson_trapdoor");
 
     Material WARPED_TRAPDOOR = MaterialImpl.get("minecraft:warped_trapdoor");
@@ -1370,6 +1398,8 @@ interface Materials {
     Material DARK_OAK_FENCE_GATE = MaterialImpl.get("minecraft:dark_oak_fence_gate");
 
     Material MANGROVE_FENCE_GATE = MaterialImpl.get("minecraft:mangrove_fence_gate");
+
+    Material BAMBOO_FENCE_GATE = MaterialImpl.get("minecraft:bamboo_fence_gate");
 
     Material CRIMSON_FENCE_GATE = MaterialImpl.get("minecraft:crimson_fence_gate");
 
@@ -1428,6 +1458,10 @@ interface Materials {
     Material MANGROVE_BOAT = MaterialImpl.get("minecraft:mangrove_boat");
 
     Material MANGROVE_CHEST_BOAT = MaterialImpl.get("minecraft:mangrove_chest_boat");
+
+    Material BAMBOO_RAFT = MaterialImpl.get("minecraft:bamboo_raft");
+
+    Material BAMBOO_CHEST_RAFT = MaterialImpl.get("minecraft:bamboo_chest_raft");
 
     Material STRUCTURE_BLOCK = MaterialImpl.get("minecraft:structure_block");
 
@@ -1627,9 +1661,31 @@ interface Materials {
 
     Material MANGROVE_SIGN = MaterialImpl.get("minecraft:mangrove_sign");
 
+    Material BAMBOO_SIGN = MaterialImpl.get("minecraft:bamboo_sign");
+
     Material CRIMSON_SIGN = MaterialImpl.get("minecraft:crimson_sign");
 
     Material WARPED_SIGN = MaterialImpl.get("minecraft:warped_sign");
+
+    Material OAK_HANGING_SIGN = MaterialImpl.get("minecraft:oak_hanging_sign");
+
+    Material SPRUCE_HANGING_SIGN = MaterialImpl.get("minecraft:spruce_hanging_sign");
+
+    Material BIRCH_HANGING_SIGN = MaterialImpl.get("minecraft:birch_hanging_sign");
+
+    Material JUNGLE_HANGING_SIGN = MaterialImpl.get("minecraft:jungle_hanging_sign");
+
+    Material ACACIA_HANGING_SIGN = MaterialImpl.get("minecraft:acacia_hanging_sign");
+
+    Material DARK_OAK_HANGING_SIGN = MaterialImpl.get("minecraft:dark_oak_hanging_sign");
+
+    Material MANGROVE_HANGING_SIGN = MaterialImpl.get("minecraft:mangrove_hanging_sign");
+
+    Material BAMBOO_HANGING_SIGN = MaterialImpl.get("minecraft:bamboo_hanging_sign");
+
+    Material CRIMSON_HANGING_SIGN = MaterialImpl.get("minecraft:crimson_hanging_sign");
+
+    Material WARPED_HANGING_SIGN = MaterialImpl.get("minecraft:warped_hanging_sign");
 
     Material BUCKET = MaterialImpl.get("minecraft:bucket");
 
@@ -1841,6 +1897,8 @@ interface Materials {
 
     Material CAT_SPAWN_EGG = MaterialImpl.get("minecraft:cat_spawn_egg");
 
+    Material CAMEL_SPAWN_EGG = MaterialImpl.get("minecraft:camel_spawn_egg");
+
     Material CAVE_SPIDER_SPAWN_EGG = MaterialImpl.get("minecraft:cave_spider_spawn_egg");
 
     Material CHICKEN_SPAWN_EGG = MaterialImpl.get("minecraft:chicken_spawn_egg");
@@ -1858,6 +1916,8 @@ interface Materials {
     Material DROWNED_SPAWN_EGG = MaterialImpl.get("minecraft:drowned_spawn_egg");
 
     Material ELDER_GUARDIAN_SPAWN_EGG = MaterialImpl.get("minecraft:elder_guardian_spawn_egg");
+
+    Material ENDER_DRAGON_SPAWN_EGG = MaterialImpl.get("minecraft:ender_dragon_spawn_egg");
 
     Material ENDERMAN_SPAWN_EGG = MaterialImpl.get("minecraft:enderman_spawn_egg");
 
@@ -1882,6 +1942,8 @@ interface Materials {
     Material HORSE_SPAWN_EGG = MaterialImpl.get("minecraft:horse_spawn_egg");
 
     Material HUSK_SPAWN_EGG = MaterialImpl.get("minecraft:husk_spawn_egg");
+
+    Material IRON_GOLEM_SPAWN_EGG = MaterialImpl.get("minecraft:iron_golem_spawn_egg");
 
     Material LLAMA_SPAWN_EGG = MaterialImpl.get("minecraft:llama_spawn_egg");
 
@@ -1929,6 +1991,8 @@ interface Materials {
 
     Material SLIME_SPAWN_EGG = MaterialImpl.get("minecraft:slime_spawn_egg");
 
+    Material SNOW_GOLEM_SPAWN_EGG = MaterialImpl.get("minecraft:snow_golem_spawn_egg");
+
     Material SPIDER_SPAWN_EGG = MaterialImpl.get("minecraft:spider_spawn_egg");
 
     Material SQUID_SPAWN_EGG = MaterialImpl.get("minecraft:squid_spawn_egg");
@@ -1956,6 +2020,8 @@ interface Materials {
     Material WARDEN_SPAWN_EGG = MaterialImpl.get("minecraft:warden_spawn_egg");
 
     Material WITCH_SPAWN_EGG = MaterialImpl.get("minecraft:witch_spawn_egg");
+
+    Material WITHER_SPAWN_EGG = MaterialImpl.get("minecraft:wither_spawn_egg");
 
     Material WITHER_SKELETON_SPAWN_EGG = MaterialImpl.get("minecraft:wither_skeleton_spawn_egg");
 
@@ -2008,6 +2074,8 @@ interface Materials {
     Material CREEPER_HEAD = MaterialImpl.get("minecraft:creeper_head");
 
     Material DRAGON_HEAD = MaterialImpl.get("minecraft:dragon_head");
+
+    Material PIGLIN_HEAD = MaterialImpl.get("minecraft:piglin_head");
 
     Material NETHER_STAR = MaterialImpl.get("minecraft:nether_star");
 
@@ -2308,4 +2376,28 @@ interface Materials {
     Material FROGSPAWN = MaterialImpl.get("minecraft:frogspawn");
 
     Material ECHO_SHARD = MaterialImpl.get("minecraft:echo_shard");
+
+    Material NETHERITE_UPGRADE_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:netherite_upgrade_smithing_template");
+
+    Material SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:sentry_armor_trim_smithing_template");
+
+    Material DUNE_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:dune_armor_trim_smithing_template");
+
+    Material COAST_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:coast_armor_trim_smithing_template");
+
+    Material WILD_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:wild_armor_trim_smithing_template");
+
+    Material WARD_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:ward_armor_trim_smithing_template");
+
+    Material EYE_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:eye_armor_trim_smithing_template");
+
+    Material VEX_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:vex_armor_trim_smithing_template");
+
+    Material TIDE_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:tide_armor_trim_smithing_template");
+
+    Material SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:snout_armor_trim_smithing_template");
+
+    Material RIB_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:rib_armor_trim_smithing_template");
+
+    Material SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE = MaterialImpl.get("minecraft:spire_armor_trim_smithing_template");
 }

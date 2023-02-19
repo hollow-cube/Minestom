@@ -199,6 +199,36 @@ interface SoundEvents {
 
     SoundEvent BLOCK_BAMBOO_SAPLING_PLACE = SoundEventImpl.get("minecraft:block.bamboo_sapling.place");
 
+    SoundEvent BLOCK_BAMBOO_WOOD_BREAK = SoundEventImpl.get("minecraft:block.bamboo_wood.break");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_FALL = SoundEventImpl.get("minecraft:block.bamboo_wood.fall");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HIT = SoundEventImpl.get("minecraft:block.bamboo_wood.hit");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_PLACE = SoundEventImpl.get("minecraft:block.bamboo_wood.place");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_STEP = SoundEventImpl.get("minecraft:block.bamboo_wood.step");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_DOOR_CLOSE = SoundEventImpl.get("minecraft:block.bamboo_wood_door.close");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_DOOR_OPEN = SoundEventImpl.get("minecraft:block.bamboo_wood_door.open");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_TRAPDOOR_CLOSE = SoundEventImpl.get("minecraft:block.bamboo_wood_trapdoor.close");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_TRAPDOOR_OPEN = SoundEventImpl.get("minecraft:block.bamboo_wood_trapdoor.open");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_BUTTON_CLICK_OFF = SoundEventImpl.get("minecraft:block.bamboo_wood_button.click_off");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_BUTTON_CLICK_ON = SoundEventImpl.get("minecraft:block.bamboo_wood_button.click_on");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_PRESSURE_PLATE_CLICK_OFF = SoundEventImpl.get("minecraft:block.bamboo_wood_pressure_plate.click_off");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_PRESSURE_PLATE_CLICK_ON = SoundEventImpl.get("minecraft:block.bamboo_wood_pressure_plate.click_on");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_FENCE_GATE_CLOSE = SoundEventImpl.get("minecraft:block.bamboo_wood_fence_gate.close");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_FENCE_GATE_OPEN = SoundEventImpl.get("minecraft:block.bamboo_wood_fence_gate.open");
+
     SoundEvent BLOCK_BARREL_CLOSE = SoundEventImpl.get("minecraft:block.barrel.close");
 
     SoundEvent BLOCK_BARREL_OPEN = SoundEventImpl.get("minecraft:block.barrel.open");
@@ -359,6 +389,28 @@ interface SoundEvents {
 
     SoundEvent BLOCK_CALCITE_FALL = SoundEventImpl.get("minecraft:block.calcite.fall");
 
+    SoundEvent ENTITY_CAMEL_AMBIENT = SoundEventImpl.get("minecraft:entity.camel.ambient");
+
+    SoundEvent ENTITY_CAMEL_DASH = SoundEventImpl.get("minecraft:entity.camel.dash");
+
+    SoundEvent ENTITY_CAMEL_DASH_READY = SoundEventImpl.get("minecraft:entity.camel.dash_ready");
+
+    SoundEvent ENTITY_CAMEL_DEATH = SoundEventImpl.get("minecraft:entity.camel.death");
+
+    SoundEvent ENTITY_CAMEL_EAT = SoundEventImpl.get("minecraft:entity.camel.eat");
+
+    SoundEvent ENTITY_CAMEL_HURT = SoundEventImpl.get("minecraft:entity.camel.hurt");
+
+    SoundEvent ENTITY_CAMEL_SADDLE = SoundEventImpl.get("minecraft:entity.camel.saddle");
+
+    SoundEvent ENTITY_CAMEL_SIT = SoundEventImpl.get("minecraft:entity.camel.sit");
+
+    SoundEvent ENTITY_CAMEL_STAND = SoundEventImpl.get("minecraft:entity.camel.stand");
+
+    SoundEvent ENTITY_CAMEL_STEP = SoundEventImpl.get("minecraft:entity.camel.step");
+
+    SoundEvent ENTITY_CAMEL_STEP_SAND = SoundEventImpl.get("minecraft:entity.camel.step_sand");
+
     SoundEvent BLOCK_CAMPFIRE_CRACKLE = SoundEventImpl.get("minecraft:block.campfire.crackle");
 
     SoundEvent BLOCK_CANDLE_AMBIENT = SoundEventImpl.get("minecraft:block.candle.ambient");
@@ -430,6 +482,24 @@ interface SoundEvents {
     SoundEvent ENTITY_CHICKEN_HURT = SoundEventImpl.get("minecraft:entity.chicken.hurt");
 
     SoundEvent ENTITY_CHICKEN_STEP = SoundEventImpl.get("minecraft:entity.chicken.step");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_BREAK = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.break");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_FALL = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.fall");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_HIT = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.hit");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_INSERT = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.insert");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_INSERT_ENCHANTED = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.insert.enchanted");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_STEP = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.step");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_PICKUP = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.pickup");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_PICKUP_ENCHANTED = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.pickup.enchanted");
+
+    SoundEvent BLOCK_CHISELED_BOOKSHELF_PLACE = SoundEventImpl.get("minecraft:block.chiseled_bookshelf.place");
 
     SoundEvent BLOCK_CHORUS_FLOWER_DEATH = SoundEventImpl.get("minecraft:block.chorus_flower.death");
 
@@ -1019,6 +1089,36 @@ interface SoundEvents {
 
     SoundEvent BLOCK_HANGING_ROOTS_STEP = SoundEventImpl.get("minecraft:block.hanging_roots.step");
 
+    SoundEvent BLOCK_HANGING_SIGN_STEP = SoundEventImpl.get("minecraft:block.hanging_sign.step");
+
+    SoundEvent BLOCK_HANGING_SIGN_BREAK = SoundEventImpl.get("minecraft:block.hanging_sign.break");
+
+    SoundEvent BLOCK_HANGING_SIGN_FALL = SoundEventImpl.get("minecraft:block.hanging_sign.fall");
+
+    SoundEvent BLOCK_HANGING_SIGN_HIT = SoundEventImpl.get("minecraft:block.hanging_sign.hit");
+
+    SoundEvent BLOCK_HANGING_SIGN_PLACE = SoundEventImpl.get("minecraft:block.hanging_sign.place");
+
+    SoundEvent BLOCK_NETHER_WOOD_HANGING_SIGN_STEP = SoundEventImpl.get("minecraft:block.nether_wood_hanging_sign.step");
+
+    SoundEvent BLOCK_NETHER_WOOD_HANGING_SIGN_BREAK = SoundEventImpl.get("minecraft:block.nether_wood_hanging_sign.break");
+
+    SoundEvent BLOCK_NETHER_WOOD_HANGING_SIGN_FALL = SoundEventImpl.get("minecraft:block.nether_wood_hanging_sign.fall");
+
+    SoundEvent BLOCK_NETHER_WOOD_HANGING_SIGN_HIT = SoundEventImpl.get("minecraft:block.nether_wood_hanging_sign.hit");
+
+    SoundEvent BLOCK_NETHER_WOOD_HANGING_SIGN_PLACE = SoundEventImpl.get("minecraft:block.nether_wood_hanging_sign.place");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HANGING_SIGN_STEP = SoundEventImpl.get("minecraft:block.bamboo_wood_hanging_sign.step");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HANGING_SIGN_BREAK = SoundEventImpl.get("minecraft:block.bamboo_wood_hanging_sign.break");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HANGING_SIGN_FALL = SoundEventImpl.get("minecraft:block.bamboo_wood_hanging_sign.fall");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HANGING_SIGN_HIT = SoundEventImpl.get("minecraft:block.bamboo_wood_hanging_sign.hit");
+
+    SoundEvent BLOCK_BAMBOO_WOOD_HANGING_SIGN_PLACE = SoundEventImpl.get("minecraft:block.bamboo_wood_hanging_sign.place");
+
     SoundEvent ITEM_HOE_TILL = SoundEventImpl.get("minecraft:item.hoe.till");
 
     SoundEvent ENTITY_HOGLIN_AMBIENT = SoundEventImpl.get("minecraft:entity.hoglin.ambient");
@@ -1451,6 +1551,36 @@ interface SoundEvents {
 
     SoundEvent ITEM_NETHER_WART_PLANT = SoundEventImpl.get("minecraft:item.nether_wart.plant");
 
+    SoundEvent BLOCK_NETHER_WOOD_BREAK = SoundEventImpl.get("minecraft:block.nether_wood.break");
+
+    SoundEvent BLOCK_NETHER_WOOD_FALL = SoundEventImpl.get("minecraft:block.nether_wood.fall");
+
+    SoundEvent BLOCK_NETHER_WOOD_HIT = SoundEventImpl.get("minecraft:block.nether_wood.hit");
+
+    SoundEvent BLOCK_NETHER_WOOD_PLACE = SoundEventImpl.get("minecraft:block.nether_wood.place");
+
+    SoundEvent BLOCK_NETHER_WOOD_STEP = SoundEventImpl.get("minecraft:block.nether_wood.step");
+
+    SoundEvent BLOCK_NETHER_WOOD_DOOR_CLOSE = SoundEventImpl.get("minecraft:block.nether_wood_door.close");
+
+    SoundEvent BLOCK_NETHER_WOOD_DOOR_OPEN = SoundEventImpl.get("minecraft:block.nether_wood_door.open");
+
+    SoundEvent BLOCK_NETHER_WOOD_TRAPDOOR_CLOSE = SoundEventImpl.get("minecraft:block.nether_wood_trapdoor.close");
+
+    SoundEvent BLOCK_NETHER_WOOD_TRAPDOOR_OPEN = SoundEventImpl.get("minecraft:block.nether_wood_trapdoor.open");
+
+    SoundEvent BLOCK_NETHER_WOOD_BUTTON_CLICK_OFF = SoundEventImpl.get("minecraft:block.nether_wood_button.click_off");
+
+    SoundEvent BLOCK_NETHER_WOOD_BUTTON_CLICK_ON = SoundEventImpl.get("minecraft:block.nether_wood_button.click_on");
+
+    SoundEvent BLOCK_NETHER_WOOD_PRESSURE_PLATE_CLICK_OFF = SoundEventImpl.get("minecraft:block.nether_wood_pressure_plate.click_off");
+
+    SoundEvent BLOCK_NETHER_WOOD_PRESSURE_PLATE_CLICK_ON = SoundEventImpl.get("minecraft:block.nether_wood_pressure_plate.click_on");
+
+    SoundEvent BLOCK_NETHER_WOOD_FENCE_GATE_CLOSE = SoundEventImpl.get("minecraft:block.nether_wood_fence_gate.close");
+
+    SoundEvent BLOCK_NETHER_WOOD_FENCE_GATE_OPEN = SoundEventImpl.get("minecraft:block.nether_wood_fence_gate.open");
+
     SoundEvent BLOCK_PACKED_MUD_BREAK = SoundEventImpl.get("minecraft:block.packed_mud.break");
 
     SoundEvent BLOCK_PACKED_MUD_FALL = SoundEventImpl.get("minecraft:block.packed_mud.fall");
@@ -1572,6 +1702,18 @@ interface SoundEvents {
     SoundEvent BLOCK_NOTE_BLOCK_BIT = SoundEventImpl.get("minecraft:block.note_block.bit");
 
     SoundEvent BLOCK_NOTE_BLOCK_BANJO = SoundEventImpl.get("minecraft:block.note_block.banjo");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_ZOMBIE = SoundEventImpl.get("minecraft:block.note_block.imitate.zombie");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_SKELETON = SoundEventImpl.get("minecraft:block.note_block.imitate.skeleton");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_CREEPER = SoundEventImpl.get("minecraft:block.note_block.imitate.creeper");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_ENDER_DRAGON = SoundEventImpl.get("minecraft:block.note_block.imitate.ender_dragon");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_WITHER_SKELETON = SoundEventImpl.get("minecraft:block.note_block.imitate.wither_skeleton");
+
+    SoundEvent BLOCK_NOTE_BLOCK_IMITATE_PIGLIN = SoundEventImpl.get("minecraft:block.note_block.imitate.piglin");
 
     SoundEvent ENTITY_OCELOT_HURT = SoundEventImpl.get("minecraft:entity.ocelot.hurt");
 

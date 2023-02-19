@@ -72,7 +72,7 @@ public record EntitySoundEffectPacket(
                 reader.read(LONG)
         );
     }
-
+    
     @Override
     public void write(@NotNull NetworkBuffer writer) {
         if (soundEvent != null) {
