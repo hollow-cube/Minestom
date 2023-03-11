@@ -15,9 +15,11 @@ import net.minestom.server.network.packet.client.play.ClientCommandChatPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 
 public class ChatMessageListener {
+    private static final boolean ASYNC_COMMANDS = Boolean.getBoolean("minestom.async-commands");
 
     private static final CommandManager COMMAND_MANAGER = MinecraftServer.getCommandManager();
     private static final ConnectionManager CONNECTION_MANAGER = MinecraftServer.getConnectionManager();
@@ -25,7 +27,11 @@ public class ChatMessageListener {
     public static void commandChatListener(ClientCommandChatPacket packet, Player player) {
         final String command = packet.message();
         if (Messenger.canReceiveCommand(player)) {
-            COMMAND_MANAGER.execute(player, command);
+            if (ASYNC_COMMANDS) {
+                ForkJoinPool.commonPool().submit(() -> COMMAND_MANAGER.execute(player, command));
+            } else {
+                COMMAND_MANAGER.execute(player, command);
+            }
         } else {
             Messenger.sendRejectionMessage(player);
         }
