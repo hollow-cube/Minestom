@@ -310,7 +310,8 @@ final class TagHandlerImpl implements TagHandler {
                     nbt = entry.updatedNbt();
                 }
 
-                tmp.put(tag.getKey(), nbt);
+                if (nbt != null)
+                    tmp.put(tag.getKey(), nbt);
                 entries.put(tag.index, valueToEntry(result, tag, value));
             });
             if (tmp.isEmpty() && parent != null)
