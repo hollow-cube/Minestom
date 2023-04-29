@@ -3,7 +3,7 @@
 
 # Minestom
 
-[![license](https://img.shields.io/github/license/Minestom/Minestom?style=for-the-badge&color=b2204c)](../LICENSE)
+[![license](https://img.shields.io/github/license/MinestomCommunity/Minestom?style=for-the-badge&color=b2204c)](../LICENSE)
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=for-the-badge)](https://github.com/RichardLitt/standard-readme)  
 [![javadocs](https://img.shields.io/badge/documentation-javadocs-4d7a97?style=for-the-badge)](https://minestom.github.io/Minestom/)
 [![wiki](https://img.shields.io/badge/documentation-wiki-74aad6?style=for-the-badge)](https://wiki.minestom.net/)
@@ -33,7 +33,7 @@ This means you need to add Minestom as a dependency, add your code and compile b
 
 For adding the required repositories and dependencies, [check this out](https://wiki.minestom.net/setup/dependencies)
 
-The newest version can be found [here: ![](https://jitpack.io/v/Minestom/Minestom.svg)](https://jitpack.io/#Minestom/Minestom)
+The newest version can be found [here: ![](https://jitpack.io/v/MinestomCommunity/Minestom.svg)](https://jitpack.io/#MinestomCommunity/Minestom)
 
 > Our own WIP implementation for Vanilla can be found [here](https://github.com/Minestom/VanillaReimplementation).
 
@@ -90,7 +90,7 @@ It is a field where Minecraft evolved a lot, inventories are now used a lot as c
 Commands are the simplest way of communication between clients and server. Since 1.13 Minecraft has incorporated a new library denominated "Brigadier", we then integrated an API designed to use the full potential of args types.
 
 # Credits
-* The [contributors](https://github.com/Minestom/Minestom/graphs/contributors) of the project
+* The [contributors](https://github.com/MinestomCommunity/Minestom/graphs/contributors) of the project
 * [The Minecraft Coalition](https://wiki.vg/) and [`#mcdevs`](https://github.com/mcdevs) -
    protocol and file formats research.
 * [The Minecraft Wiki](https://minecraft.gamepedia.com/Minecraft_Wiki) for all their useful info
