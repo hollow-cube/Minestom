@@ -6,7 +6,7 @@ metadata.format.version = "1.1"
 adventure = "4.12.0"
 kotlin = "1.7.22"
 hydrazine = "1.7.2"
-minestomData = "53e0da5be1"
+minestomData = "e88a0ede48"
 hephaistos = "2.5.3"
 jetbrainsAnnotations = "23.0.0"
 
@@ -53,7 +53,7 @@ kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk
 
 # Miscellaneous
 hydrazine = { group = "com.github.MadMartian", name = "hydrazine-path-finding", version.ref = "hydrazine" }
-minestomData = { group = "com.github.Minestom", name = "MinestomDataGenerator", version.ref = "minestomData" }
+minestomData = { group = "com.github.MinestomCommunity", name = "MinestomDataGenerator", version.ref = "minestomData" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
 
 # Performance / Data Structures
