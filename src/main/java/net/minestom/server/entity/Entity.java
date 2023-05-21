@@ -301,6 +301,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             this.position = position;
             refreshCoordinate(position);
             synchronizePosition(true);
+            setView(position.yaw(), position.pitch());
         };
 
         if (chunks != null && chunks.length > 0) {
