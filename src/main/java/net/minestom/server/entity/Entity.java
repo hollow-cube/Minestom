@@ -667,6 +667,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     private void touchTick() {
+        if (!hasPhysics) return;
+
         // TODO do not call every tick (it is pretty expensive)
         final Pos position = this.position;
         final BoundingBox boundingBox = this.boundingBox;
