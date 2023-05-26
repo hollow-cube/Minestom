@@ -47,6 +47,8 @@ public class LightingChunk extends DynamicChunk {
             Block.CHORUS_PLANT.namespace(),
             Block.CHORUS_FLOWER.namespace(),
             Block.FROSTED_ICE.namespace(),
+            Block.SEAGRASS.namespace(),
+            Block.TALL_SEAGRASS.namespace(),
             Block.LAVA.namespace()
     );
 

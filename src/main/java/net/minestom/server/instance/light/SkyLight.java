@@ -85,10 +85,6 @@ final class SkyLight implements Light {
             }
         }
 
-        if (lightSources.size() > SECTION_SIZE * SECTION_SIZE * SECTION_SIZE) {
-            System.out.println("Light sources size: " + lightSources.size());
-        }
-
         return lightSources;
     }
 
