@@ -15,7 +15,7 @@ import static net.minestom.server.network.NetworkBuffer.*;
 public record DamageEventPacket(int targetEntityId, int damageTypeId, int sourceEntityId, int sourceDirectId, @Nullable Point sourcePos) implements ServerPacket {
 
     public DamageEventPacket(@NotNull NetworkBuffer reader) {
-        this(reader.read(VAR_INT), reader.read(VAR_INT), reader.read(VAR_INT), reader.read(VAR_INT), reader.readOptional(VECTOR3));
+        this(reader.read(VAR_INT), reader.read(VAR_INT), reader.read(VAR_INT), reader.read(VAR_INT), reader.readOptional(VECTOR3D));
     }
 
     @Override
@@ -29,6 +29,6 @@ public record DamageEventPacket(int targetEntityId, int damageTypeId, int source
         writer.write(VAR_INT, damageTypeId);
         writer.write(VAR_INT, sourceEntityId);
         writer.write(VAR_INT, sourceDirectId);
-        writer.writeOptional(VECTOR3, sourcePos);
+        writer.writeOptional(VECTOR3D, sourcePos);
     }
 }
