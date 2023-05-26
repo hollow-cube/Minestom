@@ -25,9 +25,10 @@ public class LightParityTest {
 
     // TODO: This test is currently disabled because the tested vanilla world has incorrect lighting.
     // When a vanilla world with valid lighting is found it can be put here
-    // @Test
+    @Test
     public void test(Env env) throws URISyntaxException, IOException, AnvilException {
         Map<Vec, SectionEntry> sections = retrieveSections();
+        System.out.println("Loaded chunks");
         // Generate our own light
         Map<Vec, LightCompute.Result> results = new HashMap<>();
         for (var entry : sections.entrySet()) {
@@ -36,70 +37,33 @@ public class LightParityTest {
             results.put(vec, LightCompute.compute(palette));
         }
 
-        InstanceContainer instance = (InstanceContainer) env.createFlatInstance();
-        instance.setChunkLoader(new AnvilLoader(Path.of("./src/test/resources/net/minestom/server/instance/anvil_loader")));
-
-        System.out.println("Waiting for chunks to load...");
-
-        int end = 31;
-        // Load the chunks
-        for (int x = 0; x < end; x++) {
-            for (int z = 0; z < end; z++) {
-                instance.loadChunk(x, z).join();
-            }
-        }
-
-        System.out.println("Loaded chunks");
-
-        LightingChunk.relight(instance, instance.getChunks());
-
         System.out.println("Relighting done");
 
         int differences = 0;
         int differencesZero = 0;
         int blocks = 0;
 
-        Set<Vec> invalidChunks = new HashSet<>();
+        Set<Vec> invalidVec = new HashSet<>();
 
-        for (Chunk chunk : instance.getChunks()) {
-            if (chunk.getChunkX() == 0 || chunk.getChunkZ() == 0) {
-                continue;
-            }
+        for (var result : results.entrySet()) {
+            for (int x = 0; x < 16; ++x) {
+                for (int y = 0; y < 16; ++y) {
+                    for (int z = 0; z < 16; ++z) {
+                        int index = x | (z << 4) | (y << 8);
 
-            if (chunk.getChunkX() == end - 1 || chunk.getChunkZ() == end - 1) {
-                continue;
-            }
+                        var mca = sections.get(result.getKey());
 
-            for (int sectionIndex = chunk.getMinSection(); sectionIndex < chunk.getMaxSection(); sectionIndex++) {
-                Section section = chunk.getSection(sectionIndex);
+                        int serverValue = LightCompute.getLight(result.getValue().light(), index);
+                        int mcaValue = mca.block.length == 0 ? 0 : LightCompute.getLight(mca.block, index);
 
-                Light sectionLight = section.blockLight();
-                SectionEntry sectionEntry = sections.get(new Vec(chunk.getChunkX(), sectionIndex, chunk.getChunkZ()));
-                if (sectionEntry == null) {
-                    continue;
-                }
-
-                byte[] server = sectionLight.array();
-                byte[] mca = sectionEntry.block;
-
-                for (int x = 0; x < 16; ++x) {
-                    for (int y = 0; y < 16; ++y) {
-                        for (int z = 0; z < 16; ++z) {
-                            int index = x | (z << 4) | (y << 8);
-
-                            int serverValue = LightCompute.getLight(server, index);
-                            int mcaValue = mca.length == 0 ? 0 : LightCompute.getLight(mca, index);
-
-                            if (serverValue != mcaValue) {
-                                if (serverValue == 0) {
-                                    differencesZero++;
-                                } else {
-                                    differences++;
-
-                                    System.out.println("Difference at " + x + " " + y + " " + z + " in chunk " + chunk.getChunkX() + " " + chunk.getChunkZ() + " section " + sectionIndex + " server: " + serverValue + " mca: " + mcaValue);
-                                }
-                                blocks++;
+                        if (serverValue != mcaValue) {
+                            if (serverValue == 0) {
+                                differencesZero++;
+                            } else {
+                                differences++;
+                                System.out.println("Difference at " + (x + result.getKey().x() * 16) + " " + y + " " + (z + result.getKey().z() * 16) + " in chunk " + result.getKey().x() + " " + result.getKey().z() + " section " + result.getKey().y() + " server: " + serverValue + " mca: " + mcaValue);
                             }
+                            blocks++;
                         }
                     }
                 }
@@ -110,7 +74,7 @@ public class LightParityTest {
         System.out.println("DifferencesZero: " + differencesZero);
         System.out.println("Blocks: " + blocks);
 
-        for (Vec chunk : invalidChunks) {
+        for (Vec chunk : invalidVec) {
             System.out.println("Invalid chunk: " + chunk.blockX() + ", " + chunk.blockY() + ", " + chunk.blockZ());
         }
     }
@@ -119,7 +83,7 @@ public class LightParityTest {
     }
 
     private static Map<Vec, SectionEntry> retrieveSections() throws IOException, URISyntaxException, AnvilException {
-        URL defaultImage = LightParityTest.class.getResource("/region.mca");
+        URL defaultImage = LightParityTest.class.getResource("/net/minestom/server/instance/lighting/r.0.0.mca");
         assert defaultImage != null;
         File imageFile = new File(defaultImage.toURI());
         var regionFile = new RegionFile(new RandomAccessFile(imageFile, "rw"),
@@ -128,8 +92,8 @@ public class LightParityTest {
         Map<Vec, SectionEntry> sections = new HashMap<>();
         // Read from anvil
         // TODO: read all 32x32 chunks
-        for (int x = 0; x < 31; x++) {
-            for (int z = 0; z < 31; z++) {
+        for (int x = 1; x < 31; x++) {
+            for (int z = 1; z < 31; z++) {
                 var chunk = regionFile.getChunk(x, z);
                 if (chunk == null) continue;
 

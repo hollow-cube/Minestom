@@ -110,6 +110,7 @@ final class LightCompute {
     }
 
     static int getLight(byte[] light, int index) {
+        if (index >>> 1 >= light.length) return 0;
         final int value = light[index >>> 1];
         return ((value >>> ((index & 1) << 2)) & 0xF);
     }

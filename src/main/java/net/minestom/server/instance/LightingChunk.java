@@ -23,7 +23,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class LightingChunk extends DynamicChunk {
-    private static final Boolean lock = true;
     private int[] heightmap;
     final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
     boolean sendNeighbours = true;
@@ -109,15 +108,17 @@ public class LightingChunk extends DynamicChunk {
         int minY = instance.getDimensionType().getMinY();
         int maxY = instance.getDimensionType().getMinY() + instance.getDimensionType().getHeight();
 
-        for (int x = 0; x < CHUNK_SIZE_X; x++) {
-            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                int height = maxY;
-                while (height > minY) {
-                    Block block = getBlock(x, height, z, Condition.TYPE);
-                    if (checkSkyOcclusion(block)) break;
-                    height--;
+        synchronized (this) {
+            for (int x = 0; x < CHUNK_SIZE_X; x++) {
+                for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                    int height = maxY;
+                    while (height > minY) {
+                        Block block = getBlock(x, height, z, Condition.TYPE);
+                        if (checkSkyOcclusion(block)) break;
+                        height--;
+                    }
+                    heightmap[z << 4 | x] = (height + 1);
                 }
-                heightmap[z << 4 | x] = (height + 1);
             }
         }
 
@@ -267,10 +268,8 @@ public class LightingChunk extends DynamicChunk {
                     return new Vec(chunk.getChunkX(), section, chunk.getChunkZ());
                 }).collect(Collectors.toSet());
 
-        synchronized (lock) {
-            relight(instance, toPropagate, true);
-            relight(instance, toPropagate, false);
-        }
+        relight(instance, toPropagate, true);
+        relight(instance, toPropagate, false);
     }
 
     private static Set<Point> getNearbyRequired(Instance instance, Point point) {
@@ -331,9 +330,7 @@ public class LightingChunk extends DynamicChunk {
         Set<Point> collected = collectRequiredNearby(instance, new Vec(chunkX, sectionY, chunkZ));
         // System.out.println("Calculating " + chunkX + " " + sectionY + " " + chunkZ + " | " + collected.size());
 
-        synchronized (lock) {
-            relight(instance, collected, block);
-        }
+        relight(instance, collected, block);
     }
 
     private static void relight(Instance instance, Set<Point> sections, boolean block) {

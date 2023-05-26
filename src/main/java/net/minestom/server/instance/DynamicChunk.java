@@ -182,7 +182,7 @@ public class DynamicChunk extends Chunk {
         this.entries.clear();
     }
 
-    private synchronized @NotNull ChunkDataPacket createChunkPacket() {
+    private @NotNull ChunkDataPacket createChunkPacket() {
         final NBTCompound heightmapsNBT;
         // TODO: don't hardcode heightmaps
         // Heightmap
@@ -202,16 +202,21 @@ public class DynamicChunk extends Chunk {
                     "WORLD_SURFACE", NBT.LongArray(encodeBlocks(worldSurface, bitsForHeight))));
         }
         // Data
-        final byte[] data = ObjectPool.PACKET_POOL.use(buffer ->
-                NetworkBuffer.makeArray(networkBuffer -> {
-                    for (Section section : sections) networkBuffer.write(section);
-                }));
+
+        final byte[] data;
+        synchronized (this) {
+            data = ObjectPool.PACKET_POOL.use(buffer ->
+                    NetworkBuffer.makeArray(networkBuffer -> {
+                        for (Section section : sections) networkBuffer.write(section);
+                    }));
+        }
+
         return new ChunkDataPacket(chunkX, chunkZ,
                 new ChunkData(heightmapsNBT, data, entries),
                 createLightData(true));
     }
 
-    synchronized @NotNull UpdateLightPacket createLightPacket() {
+    @NotNull UpdateLightPacket createLightPacket() {
         return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
     }
 
