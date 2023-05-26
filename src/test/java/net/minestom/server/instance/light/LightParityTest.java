@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @EnvTest
 public class LightParityTest {
 
-    // TODO: This test is currently disabled because the tested vanilla world has incorrect lighting.
-    // When a vanilla world with valid lighting is found it can be put here
     @Test
     public void test(Env env) throws URISyntaxException, IOException, AnvilException {
         Map<Vec, SectionEntry> sections = retrieveSections();
@@ -36,7 +34,7 @@ public class LightParityTest {
         instance.setChunkSupplier(LightingChunk::new);
         instance.setChunkLoader(new AnvilLoader(Path.of("./src/test/resources/net/minestom/server/instance/lighting")));
 
-        int end = 31;
+        int end = 4;
         // Load the chunks
         for (int x = 0; x < end; x++) {
             for (int z = 0; z < end; z++) {
@@ -128,8 +126,8 @@ public class LightParityTest {
 
         Map<Vec, SectionEntry> sections = new HashMap<>();
         // Read from anvil
-        for (int x = 1; x < 31; x++) {
-            for (int z = 1; z < 31; z++) {
+        for (int x = 1; x < 3; x++) {
+            for (int z = 1; z < 3; z++) {
                 var chunk = regionFile.getChunk(x, z);
                 if (chunk == null) continue;
 

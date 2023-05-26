@@ -19,6 +19,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven("https://reposilite.worldseed.online/public")
     }
 
     configurations.all {

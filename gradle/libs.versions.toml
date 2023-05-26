@@ -53,7 +53,7 @@ kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk
 hydrazine = { group = "com.github.MadMartian", name = "hydrazine-path-finding", version.ref = "hydrazine" }
 minestomData = { group = "dev.hollowcube", name = "minestom-ce-data", version.ref = "data" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
-hephaistos-common = { group = "io.github.jglrxavpok.hephaistos", name = "common", version.ref = "hephaistos" }
+hephaistos-common = { group = "org.jglrxavpok.hephaistos", name = "common", version.ref = "hephaistos" }
 hephaistos-gson = { group = "io.github.jglrxavpok.hephaistos", name = "gson", version.ref = "hephaistos" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j"}
 
