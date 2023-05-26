@@ -112,7 +112,7 @@ final class ShapeImpl implements Shape {
     }
 
     static ShapeImpl parseBlockFromRegistry(String collision, String occlusion, Registry.BlockEntry blockEntry) {
-        BoundingBox[] collisionBoundingBoxes = blockEntry.isSolid() ? parseRegistryBoundingBoxString(collision) : new BoundingBox[0];
+        BoundingBox[] collisionBoundingBoxes = parseRegistryBoundingBoxString(collision);
         BoundingBox[] occlusionBoundingBoxes = blockEntry.occludes() ? parseRegistryBoundingBoxString(occlusion) : new BoundingBox[0];
         return new ShapeImpl(collisionBoundingBoxes, occlusionBoundingBoxes, blockEntry);
     }
