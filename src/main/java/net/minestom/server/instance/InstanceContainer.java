@@ -334,7 +334,6 @@ public class InstanceContainer extends Instance {
                                     } else if (forkChunk instanceof DynamicChunk dynamicChunk) {
                                         dynamicChunk.chunkCache.invalidate();
                                     }
-
                                     forkChunk.sendChunk();
                                 } else {
                                     final long index = ChunkUtils.getChunkIndex(start);

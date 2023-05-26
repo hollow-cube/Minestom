@@ -39,7 +39,7 @@ import static net.minestom.server.utils.chunk.ChunkUtils.toSectionRelativeCoordi
  */
 public class DynamicChunk extends Chunk {
 
-    List<Section> sections;
+    protected List<Section> sections;
 
     // Key = ChunkUtils#getBlockIndex
     protected final Int2ObjectOpenHashMap<Block> entries = new Int2ObjectOpenHashMap<>(0);

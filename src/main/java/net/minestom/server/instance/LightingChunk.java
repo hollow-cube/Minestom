@@ -27,6 +27,11 @@ public class LightingChunk extends DynamicChunk {
     final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
     boolean sendNeighbours = true;
 
+    enum LightType {
+        SKY,
+        BLOCK
+    }
+
     private static final Set<NamespaceID> DIFFUSE_SKY_LIGHT = Set.of(
             Block.COBWEB.namespace(),
             Block.ICE.namespace(),
@@ -143,7 +148,7 @@ public class LightingChunk extends DynamicChunk {
             boolean wasUpdatedSky = false;
 
             if (section.blockLight().requiresUpdate()) {
-                relightSection(instance, this.chunkX, index + minSection, chunkZ, true);
+                relightSection(instance, this.chunkX, index + minSection, chunkZ, LightType.BLOCK);
                 wasUpdatedBlock = true;
             }
 
@@ -152,7 +157,7 @@ public class LightingChunk extends DynamicChunk {
             }
 
             if (section.skyLight().requiresUpdate()) {
-                relightSection(instance, this.chunkX, index + minSection, chunkZ, false);
+                relightSection(instance, this.chunkX, index + minSection, chunkZ, LightType.SKY);
                 wasUpdatedSky = true;
             }
 
@@ -228,14 +233,14 @@ public class LightingChunk extends DynamicChunk {
         }
     }
 
-    private static void flushQueue(Instance instance, Set<Point> queue, boolean block) {
+    private static void flushQueue(Instance instance, Set<Point> queue, LightType type) {
         var updateQueue =
                 queue.parallelStream()
                         .map(sectionLocation -> {
                             Chunk chunk = instance.getChunk(sectionLocation.blockX(), sectionLocation.blockZ());
                             if (chunk == null) return null;
 
-                            if (block) {
+                            if (type == LightType.BLOCK) {
                                 return chunk.getSection(sectionLocation.blockY()).blockLight()
                                         .calculateExternal(instance, chunk, sectionLocation.blockY());
                             } else {
@@ -250,7 +255,7 @@ public class LightingChunk extends DynamicChunk {
                         .collect(Collectors.toSet());
 
         if (updateQueue.size() > 0) {
-            flushQueue(instance, updateQueue, block);
+            flushQueue(instance, updateQueue, type);
         }
     }
 
@@ -270,8 +275,8 @@ public class LightingChunk extends DynamicChunk {
                     return new Vec(chunk.getChunkX(), section, chunk.getChunkZ());
                 }).collect(Collectors.toSet());
 
-        relight(instance, toPropagate, true);
-        relight(instance, toPropagate, false);
+        relight(instance, toPropagate, LightType.BLOCK);
+        relight(instance, toPropagate, LightType.SKY);
     }
 
     private static Set<Point> getNearbyRequired(Instance instance, Point point) {
@@ -321,21 +326,21 @@ public class LightingChunk extends DynamicChunk {
     }
 
     static void relightSection(Instance instance, int chunkX, int sectionY, int chunkZ) {
-        relightSection(instance, chunkX, sectionY, chunkZ, true);
-        relightSection(instance, chunkX, sectionY, chunkZ, false);
+        relightSection(instance, chunkX, sectionY, chunkZ, LightType.BLOCK);
+        relightSection(instance, chunkX, sectionY, chunkZ, LightType.SKY);
     }
 
-    private static void relightSection(Instance instance, int chunkX, int sectionY, int chunkZ, boolean block) {
+    private static void relightSection(Instance instance, int chunkX, int sectionY, int chunkZ, LightType type) {
         Chunk c = instance.getChunk(chunkX, chunkZ);
         if (c == null) return;
 
         Set<Point> collected = collectRequiredNearby(instance, new Vec(chunkX, sectionY, chunkZ));
         // System.out.println("Calculating " + chunkX + " " + sectionY + " " + chunkZ + " | " + collected.size());
 
-        relight(instance, collected, block);
+        relight(instance, collected, type);
     }
 
-    private static void relight(Instance instance, Set<Point> sections, boolean block) {
+    private static void relight(Instance instance, Set<Point> sections, LightType type) {
         Set<Point> toPropagate = sections
                 .parallelStream()
                 // .stream()
@@ -343,7 +348,7 @@ public class LightingChunk extends DynamicChunk {
                     final Chunk chunk = instance.getChunk(chunkIndex.blockX(), chunkIndex.blockZ());
                     final int section = chunkIndex.blockY();
                     if (chunk == null) return null;
-                    if (block) return chunk.getSection(section).blockLight().calculateInternal(chunk.getInstance(), chunk.getChunkX(), section, chunk.getChunkZ());
+                    if (type == LightType.BLOCK) return chunk.getSection(section).blockLight().calculateInternal(chunk.getInstance(), chunk.getChunkX(), section, chunk.getChunkZ());
                     else return chunk.getSection(section).skyLight().calculateInternal(chunk.getInstance(), chunk.getChunkX(), section, chunk.getChunkZ());
                 }).filter(Objects::nonNull)
                 .flatMap(lightSet -> lightSet.flip().stream())
@@ -355,13 +360,13 @@ public class LightingChunk extends DynamicChunk {
                     final int section = sectionLocation.blockY();
                     if (chunk == null) return Stream.empty();
 
-                    final Light light = block ? chunk.getSection(section).blockLight() : chunk.getSection(section).skyLight();
+                    final Light light = type == LightType.BLOCK ? chunk.getSection(section).blockLight() : chunk.getSection(section).skyLight();
                     light.calculateExternal(chunk.getInstance(), chunk, section);
 
                     return light.flip().stream();
                 }).collect(Collectors.toSet());
 
-        flushQueue(instance, toPropagate, block);
+        flushQueue(instance, toPropagate, type);
     }
 
     @Override
