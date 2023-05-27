@@ -36,7 +36,7 @@ final class LightCompute {
 
         var lightSources = new LinkedList<Integer>();
 
-        while(!lightPre.isEmpty()) {
+        while (!lightPre.isEmpty()) {
             int index = lightPre.dequeueInt();
 
             final int x = index & 15;

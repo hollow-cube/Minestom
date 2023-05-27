@@ -80,6 +80,7 @@ public class LightingChunk extends DynamicChunk {
 
                 if (neighborChunk instanceof LightingChunk lightingChunk) {
                     lightingChunk.lightCache.invalidate();
+                    lightingChunk.chunkCache.invalidate();
                 }
 
                 for (int k = -1; k <= 1; k++) {
@@ -134,7 +135,7 @@ public class LightingChunk extends DynamicChunk {
     }
 
     @Override
-    LightData createLightData(boolean sendAll) {
+    protected LightData createLightData(boolean sendAll) {
         BitSet skyMask = new BitSet();
         BitSet blockMask = new BitSet();
         BitSet emptySkyMask = new BitSet();
@@ -150,18 +151,14 @@ public class LightingChunk extends DynamicChunk {
             if (section.blockLight().requiresUpdate()) {
                 relightSection(instance, this.chunkX, index + minSection, chunkZ, LightType.BLOCK);
                 wasUpdatedBlock = true;
-            }
-
-            if (section.blockLight().requiresSend()) {
+            } else if (section.blockLight().requiresSend()) {
                 wasUpdatedBlock = true;
             }
 
             if (section.skyLight().requiresUpdate()) {
                 relightSection(instance, this.chunkX, index + minSection, chunkZ, LightType.SKY);
                 wasUpdatedSky = true;
-            }
-
-            if (section.skyLight().requiresSend()) {
+            } else if (section.skyLight().requiresSend()) {
                 wasUpdatedSky = true;
             }
 
@@ -169,6 +166,8 @@ public class LightingChunk extends DynamicChunk {
 
             final byte[] skyLight = section.skyLight().array();
             final byte[] blockLight = section.blockLight().array();
+
+            // System.out.println("Relit sky: " + wasUpdatedSky + " block: " + wasUpdatedBlock + " for section " + (index + minSection) + " in chunk " + chunkX + " " + chunkZ);
 
             if ((wasUpdatedSky || sendAll) && this.instance.getDimensionType().isSkylightEnabled()) {
                 if (skyLight.length != 0) {
@@ -228,6 +227,8 @@ public class LightingChunk extends DynamicChunk {
                         f.sendLighting();
                         sendQueue.remove(f);
                     }
+
+                    f.chunkCache.invalidate();
                 }
             }, TaskSchedule.tick(5), TaskSchedule.stop(), ExecutionType.ASYNC);
         }
@@ -275,8 +276,10 @@ public class LightingChunk extends DynamicChunk {
                     return new Vec(chunk.getChunkX(), section, chunk.getChunkZ());
                 }).collect(Collectors.toSet());
 
-        relight(instance, toPropagate, LightType.BLOCK);
-        relight(instance, toPropagate, LightType.SKY);
+        synchronized (instance) {
+            relight(instance, toPropagate, LightType.BLOCK);
+            relight(instance, toPropagate, LightType.SKY);
+        }
     }
 
     private static Set<Point> getNearbyRequired(Instance instance, Point point) {
@@ -337,7 +340,9 @@ public class LightingChunk extends DynamicChunk {
         Set<Point> collected = collectRequiredNearby(instance, new Vec(chunkX, sectionY, chunkZ));
         // System.out.println("Calculating " + chunkX + " " + sectionY + " " + chunkZ + " | " + collected.size());
 
-        relight(instance, collected, type);
+        synchronized (instance) {
+            relight(instance, collected, type);
+        }
     }
 
     private static void relight(Instance instance, Set<Point> sections, LightType type) {

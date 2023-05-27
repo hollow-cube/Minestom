@@ -220,7 +220,7 @@ public class DynamicChunk extends Chunk {
         return new UpdateLightPacket(chunkX, chunkZ, createLightData(false));
     }
 
-    LightData createLightData(boolean sendAll) {
+    protected LightData createLightData(boolean sendAll) {
         BitSet skyMask = new BitSet();
         BitSet blockMask = new BitSet();
         BitSet emptySkyMask = new BitSet();

@@ -16,7 +16,7 @@ import static java.util.Map.entry;
 import static net.minestom.server.instance.BlockLightMergeIntegrationTest.assertLightInstance;
 
 @EnvTest
-public class WorldRelight {
+public class WorldRelightIntegrationTest {
     private @NotNull Instance createLightingInstance(@NotNull ServerProcess process) {
         var instance = process.instance().createInstanceContainer();
         instance.setGenerator(unit -> {

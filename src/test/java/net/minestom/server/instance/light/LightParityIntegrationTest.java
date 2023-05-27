@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @EnvTest
-public class LightParityTest {
+public class LightParityIntegrationTest {
 
     @Test
     public void test(Env env) throws URISyntaxException, IOException, AnvilException {
@@ -121,7 +121,7 @@ public class LightParityTest {
     }
 
     private static Map<Vec, SectionEntry> retrieveSections() throws IOException, URISyntaxException, AnvilException {
-        URL defaultImage = LightParityTest.class.getResource("/net/minestom/server/instance/lighting/region/r.0.0.mca");
+        URL defaultImage = LightParityIntegrationTest.class.getResource("/net/minestom/server/instance/lighting/region/r.0.0.mca");
         assert defaultImage != null;
         File imageFile = new File(defaultImage.toURI());
         var regionFile = new RegionFile(new RandomAccessFile(imageFile, "rw"),
