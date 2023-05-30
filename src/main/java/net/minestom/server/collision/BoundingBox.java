@@ -173,12 +173,12 @@ public final class BoundingBox implements Shape {
         private final int minX, minY, minZ, maxX, maxY, maxZ;
 
         public PointIterator(BoundingBox boundingBox, Point p) {
-            minX = (int)Math.floor(boundingBox.minX() + p.x());
-            minY = (int)Math.floor(boundingBox.minY() + p.y());
-            minZ = (int)Math.floor(boundingBox.minZ() + p.z());
-            maxX = (int)Math.floor(boundingBox.maxX() + p.x());
-            maxY = (int)Math.floor(boundingBox.maxY() + p.y());
-            maxZ = (int)Math.floor(boundingBox.maxZ() + p.z());
+            minX = (int) Math.floor(boundingBox.minX() + p.x());
+            minY = (int) Math.floor(boundingBox.minY() + p.y());
+            minZ = (int) Math.floor(boundingBox.minZ() + p.z());
+            maxX = (int) Math.floor(boundingBox.maxX() + p.x());
+            maxY = (int) Math.floor(boundingBox.maxY() + p.y());
+            maxZ = (int) Math.floor(boundingBox.maxZ() + p.z());
             x = minX;
             y = minY;
             z = minZ;
