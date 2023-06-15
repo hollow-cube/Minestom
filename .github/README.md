@@ -17,6 +17,7 @@ However, we have a complete API which is designed to allow you to make anything 
 This is a developer API not meant to be used by end-users. Replacing Bukkit/Forge/Sponge with this **will not work** since we do not implement any of their APIs.
 
 > **Warning**
+> 
 > `minestom-ce` is a fork with breaking changes from `Minestom/Minestom`. The list of changes can be found [here](/CHANGELOG.md).
 
 # Table of contents
