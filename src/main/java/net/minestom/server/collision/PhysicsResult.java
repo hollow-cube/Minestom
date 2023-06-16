@@ -30,6 +30,6 @@ public record PhysicsResult(
         @NotNull Point[] collisionPoints,
         @NotNull Shape[] collisionShapes,
         boolean hasCollision,
-        double percentage
+        SweepResult res
 ) {
 }
