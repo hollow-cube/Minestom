@@ -244,9 +244,9 @@ public class LightingChunk extends DynamicChunk {
             queuedChunks.clear();
             queueLock.unlock();
 
-            if (copy.size() != 0) {
-                System.out.println("Sending lighting for " + copy.size() + " chunks");
-            }
+            // if (copy.size() != 0) {
+            //     System.out.println("Sending lighting for " + copy.size() + " chunks");
+            // }
 
             int count = 0;
 
