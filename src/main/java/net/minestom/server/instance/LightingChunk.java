@@ -130,15 +130,17 @@ public class LightingChunk extends DynamicChunk {
         int minY = instance.getDimensionType().getMinY();
         int maxY = instance.getDimensionType().getMinY() + instance.getDimensionType().getHeight();
 
-        for (int x = 0; x < CHUNK_SIZE_X; x++) {
-            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                int height = maxY;
-                while (height > minY) {
-                    Block block = getBlock(x, height, z, Condition.TYPE);
-                    if (checkSkyOcclusion(block)) break;
-                    height--;
+        synchronized (this) {
+            for (int x = 0; x < CHUNK_SIZE_X; x++) {
+                for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                    int height = maxY;
+                    while (height > minY) {
+                        Block block = getBlock(x, height, z, Condition.TYPE);
+                        if (checkSkyOcclusion(block)) break;
+                        height--;
+                    }
+                    heightmap[z << 4 | x] = (height + 1);
                 }
-                heightmap[z << 4 | x] = (height + 1);
             }
         }
 
