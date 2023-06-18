@@ -217,7 +217,7 @@ public class DynamicChunk extends Chunk {
                         new ChunkData(heightmapsNBT, data, entries),
                         createLightData(true));
             } else {
-                System.out.println("Regenerating light for chunk " + chunkX + " " + chunkZ);
+                // System.out.println("Regenerating light for chunk " + chunkX + " " + chunkZ);
                 LightingChunk.updateAfterGeneration(light);
                 return new ChunkDataPacket(chunkX, chunkZ,
                         new ChunkData(heightmapsNBT, data, entries),

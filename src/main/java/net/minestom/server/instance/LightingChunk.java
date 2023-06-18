@@ -275,7 +275,7 @@ public class LightingChunk extends DynamicChunk {
                 count++;
 
                 if (count % LIGHTING_CHUNKS_PER_SEND == 0) {
-                    System.out.println("Sent " + count + " lighting chunks " + (count * 100 / copy.size()) + "%");
+                    // System.out.println("Sent " + count + " lighting chunks " + (count * 100 / copy.size()) + "%");
                     try {
                         Thread.sleep(LIGHTING_CHUNKS_SEND_DELAY);
                     } catch (InterruptedException e) {
