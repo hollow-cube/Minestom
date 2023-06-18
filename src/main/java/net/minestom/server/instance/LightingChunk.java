@@ -234,6 +234,10 @@ public class LightingChunk extends DynamicChunk {
             sendQueue.clear();
             queueLock.unlock();
 
+            if (copy.size() != 0) {
+                System.out.println("Sending lighting for " + copy.size() + " chunks");
+            }
+
             int count = 0;
 
             for (LightingChunk f : copy) {
@@ -253,14 +257,13 @@ public class LightingChunk extends DynamicChunk {
 
             for (LightingChunk f : copy) {
                 if (f.isLoaded()) {
-                    f.lightCache.body();
                     f.sendLighting();
                 }
                 count++;
 
-                if (count % 100 == 0) {
+                if (count % 5 == 0) {
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
