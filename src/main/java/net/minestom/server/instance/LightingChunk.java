@@ -269,12 +269,13 @@ public class LightingChunk extends DynamicChunk {
             // Send it slowly
             for (LightingChunk f : copy) {
                 if (f.isLoaded()) {
-                    f.lightCache.body();
                     f.sendLighting();
+                    if (f.getViewers().size() == 0) return;
                 }
                 count++;
 
                 if (count % LIGHTING_CHUNKS_PER_SEND == 0) {
+                    System.out.println("Sent " + count + " lighting chunks " + (count * 100 / copy.size()) + "%");
                     try {
                         Thread.sleep(LIGHTING_CHUNKS_SEND_DELAY);
                     } catch (InterruptedException e) {
