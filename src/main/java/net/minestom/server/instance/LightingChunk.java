@@ -1,5 +1,7 @@
 package net.minestom.server.instance;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.Shape;
 import net.minestom.server.coordinate.Point;
@@ -17,7 +19,6 @@ import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,6 +27,10 @@ import java.util.stream.Stream;
 import static net.minestom.server.instance.light.LightCompute.emptyContent;
 
 public class LightingChunk extends DynamicChunk {
+
+    private static final int LIGHTING_CHUNKS_PER_SEND = Integer.getInteger("minestom.lighting.chunks-per-send", 10);
+    private static final int LIGHTING_CHUNKS_SEND_DELAY = Integer.getInteger("minestom.lighting.chunks-send-delay", 100);
+
     private int[] heightmap;
     final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
     boolean sendNeighbours = true;
@@ -203,7 +208,8 @@ public class LightingChunk extends DynamicChunk {
                 skyLights, blockLights);
     }
 
-    private static final Set<LightingChunk> sendQueue = ConcurrentHashMap.newKeySet();
+    private static final LongSet queuedChunks = new LongOpenHashSet();
+    private static final List<LightingChunk> sendQueue = new ArrayList<>();
     private static Task sendingTask = null;
     private static final ReentrantLock lightLock = new ReentrantLock();
     private static final ReentrantLock queueLock = new ReentrantLock();
@@ -216,7 +222,10 @@ public class LightingChunk extends DynamicChunk {
 
                 if (neighborChunk instanceof LightingChunk lightingChunk) {
                     queueLock.lock();
-                    sendQueue.add(lightingChunk);
+
+                    if (queuedChunks.add(ChunkUtils.getChunkIndex(lightingChunk.chunkX, lightingChunk.chunkZ))) {
+                        sendQueue.add(lightingChunk);
+                    }
                     queueLock.unlock();
                 }
             }
@@ -232,6 +241,7 @@ public class LightingChunk extends DynamicChunk {
             queueLock.lock();
             var copy = new ArrayList<>(sendQueue);
             sendQueue.clear();
+            queuedChunks.clear();
             queueLock.unlock();
 
             if (copy.size() != 0) {
@@ -249,21 +259,24 @@ public class LightingChunk extends DynamicChunk {
                 f.lightCache.invalidate();
             }
 
+            // Load all the lighting
             for (LightingChunk f : copy) {
                 if (f.isLoaded()) {
                     f.lightCache.body();
                 }
             }
 
+            // Send it slowly
             for (LightingChunk f : copy) {
                 if (f.isLoaded()) {
+                    f.lightCache.body();
                     f.sendLighting();
                 }
                 count++;
 
-                if (count % 5 == 0) {
+                if (count % LIGHTING_CHUNKS_PER_SEND == 0) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(LIGHTING_CHUNKS_SEND_DELAY);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
