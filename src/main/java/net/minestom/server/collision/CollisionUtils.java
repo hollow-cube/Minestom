@@ -14,6 +14,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 @ApiStatus.Internal
 @ApiStatus.Experimental
 public final class CollisionUtils {
@@ -47,21 +49,22 @@ public final class CollisionUtils {
      * @return the closest entity we collide with
      */
     public static PhysicsResult checkEntityCollisions(@NotNull Entity entity, @NotNull Vec entityVelocity) {
-        return checkEntityCollisions(entity, entity.getPosition(), entityVelocity, 3, null);
+        final Instance instance = entity.getInstance();
+        assert instance != null;
+        return checkEntityCollisions(instance, entity.getBoundingBox(), entity.getPosition(), entityVelocity, 3, e -> true, null);
     }
 
     /**
      *
-     * @param entity the entity to move
-     * @param entityVelocity the velocity of the entity
+     * @param velocity the velocity of the entity
      * @param extendRadius the largest entity bounding box we can collide with
      *                     Measured from bottom center to top corner
      *                     This is used to extend the search radius for entities we collide with
      *                     For players this is (0.3^2 + 0.3^2 + 1.8^2) ^ (1/3) ~= 1.51
      * @return the closest entity we collide with
      */
-    public static PhysicsResult checkEntityCollisions(@NotNull Entity entity, Point pos, @NotNull Vec entityVelocity, double extendRadius, PhysicsResult blockResult) {
-        return EntityCollision.checkCollision(entity, pos, entityVelocity, extendRadius, blockResult);
+    public static PhysicsResult checkEntityCollisions(@NotNull Instance instance, BoundingBox boundingBox, Point pos, @NotNull Vec velocity, double extendRadius, Function<Entity, Boolean> entityFilter, PhysicsResult blockResult) {
+        return EntityCollision.checkCollision(instance, boundingBox, pos, velocity, extendRadius, entityFilter, blockResult);
     }
 
     /**

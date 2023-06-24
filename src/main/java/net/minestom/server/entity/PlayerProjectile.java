@@ -145,7 +145,7 @@ public class PlayerProjectile extends LivingEntity {
             cooldown = System.currentTimeMillis();
         }
 
-        PhysicsResult collided = CollisionUtils.checkEntityCollisions(this, posBefore, diff, 3, result);
+        PhysicsResult collided = CollisionUtils.checkEntityCollisions(instance, this.getBoundingBox(), posBefore, diff, 3, (e) -> e != this, result);
         if (collided != null && collided.collisionShapes()[0] != shooter) {
             if (collided.collisionShapes()[0] instanceof Entity entity) {
                 var e = new ProjectileCollideWithEntityEvent(this, collided.newPosition(), entity);
