@@ -25,7 +25,7 @@ final class EntityCollision {
             if (!e.hasCollision()) continue;
 
             // Overlapping with entity, math can't be done we return the entity
-            if (e.getBoundingBox().intersectBox(point.sub(e.getPosition()), boundingBox)) {
+            if (e.getBoundingBox().intersectBox(e.getPosition().sub(point), boundingBox)) {
                 var p = Pos.fromPoint(point);
 
                 return new PhysicsResult(p,
