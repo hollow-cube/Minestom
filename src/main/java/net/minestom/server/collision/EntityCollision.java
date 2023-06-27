@@ -21,7 +21,7 @@ final class EntityCollision {
         double projectileDistance = entityVelocity.length();
 
         for (Entity e : instance.getNearbyEntities(point, extendRadius + maxDistance + projectileDistance)) {
-            if (entityFilter.apply(e)) continue;
+            if (!entityFilter.apply(e)) continue;
             if (!e.hasCollision()) continue;
 
             // Overlapping with entity, math can't be done we return the entity
