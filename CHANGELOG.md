@@ -6,7 +6,7 @@ Some of these are pending, some deserve PRs, others are just minor tweaks
 * **breaking** Block face in digging events (`mworzala/Minestom` @ `block_break_face`)
 * Change `Entity#getInstance` to @UnknownNullability
 * Support custom component translator for serverside translation
-* **breaking** Remove tinylog and MinestomTerminal implementation
+* **breaking** Remove tinylog and MinestomTerminal implementationa
 * Add `Tag.Transient`
 * Optionally allow multiple parents in event nodes
 * **breaking** Add sender to argument parsing chain
@@ -15,3 +15,4 @@ Some of these are pending, some deserve PRs, others are just minor tweaks
     Support has been maintained for the old argument map signature, so only completely custom arguments will be affected.
 * **breaking** [Placement rule api changes](https://github.com/hollow-cube/minestom-ce/pull/20)
 * Optionally use reworked chunk sending algorithm (`minestom.use-new-chunk-sending` system property)
+* Add an API to check for swept entity collisions. Used in the new PlayerProjectile class
