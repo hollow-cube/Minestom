@@ -189,7 +189,7 @@ record EntityTypeImpl(Registry.EntityEntry registry) implements EntityType {
                 entry("minecraft:villager", VillagerMeta::new),
                 entry("minecraft:vindicator", VindicatorMeta::new),
                 entry("minecraft:wandering_trader", WanderingTraderMeta::new),
-                entry("minecraft:warden", EntityMeta::new), // TODO dedicated metadata
+                entry("minecraft:warden", WardenMeta::new),
                 entry("minecraft:witch", WitchMeta::new),
                 entry("minecraft:wither", WitherMeta::new),
                 entry("minecraft:wither_skeleton", WitherSkeletonMeta::new),
