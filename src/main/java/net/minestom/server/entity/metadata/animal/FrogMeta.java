@@ -3,6 +3,7 @@ package net.minestom.server.entity.metadata.animal;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Metadata;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FrogMeta extends AnimalMeta {
     public static final byte OFFSET = AnimalMeta.MAX_OFFSET;
@@ -25,8 +26,14 @@ public class FrogMeta extends AnimalMeta {
     }
 
     public void setTongueTarget(int value) {
+        //Backwards compat
+        setTongueTarget(Integer.valueOf(value));
+    }
+
+    public void setTongueTarget(@Nullable Integer value) {
         super.metadata.setIndex(OFFSET + 1, Metadata.OptVarInt(value));
     }
+
 
     public enum Variant {
         TEMPERATE,
