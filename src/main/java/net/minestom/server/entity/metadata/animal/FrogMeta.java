@@ -21,14 +21,10 @@ public class FrogMeta extends AnimalMeta {
         super.metadata.setIndex(OFFSET, Metadata.FrogVariant(value));
     }
 
-    public int getTongueTarget() {
-        return super.metadata.getIndex(OFFSET + 1, 0);
+    public @Nullable Integer getTongueTarget() {
+        return super.metadata.getIndex(OFFSET + 1, null);
     }
 
-    public void setTongueTarget(int value) {
-        //Backwards compat
-        setTongueTarget(Integer.valueOf(value));
-    }
 
     public void setTongueTarget(@Nullable Integer value) {
         super.metadata.setIndex(OFFSET + 1, Metadata.OptVarInt(value));
