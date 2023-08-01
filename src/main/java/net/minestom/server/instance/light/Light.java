@@ -53,11 +53,11 @@ public interface Light {
     void set(byte[] copyArray);
 
     @ApiStatus.Internal
-    static Map<BlockFace, Point> getNeighbors(Chunk chunk, int sectionY) {
+    static Point[] getNeighbors(Chunk chunk, int sectionY) {
         int chunkX = chunk.getChunkX();
         int chunkZ = chunk.getChunkZ();
 
-        Map<BlockFace, Point> links = new HashMap<>();
+        Point[] links = new Vec[BlockFace.values().length];
 
         for (BlockFace face : BlockFace.values()) {
             Direction direction = face.toDirection();
@@ -70,7 +70,7 @@ public interface Light {
             if (foundChunk == null) continue;
             if (y - foundChunk.getMinSection() > foundChunk.getMaxSection() || y - foundChunk.getMinSection() < 0) continue;
 
-            links.put(face, new Vec(foundChunk.getChunkX(), y, foundChunk.getChunkZ()));
+            links[face.ordinal()] = new Vec(foundChunk.getChunkX(), y, foundChunk.getChunkZ());
         }
 
         return links;

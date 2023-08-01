@@ -83,16 +83,17 @@ final class SkyLight implements Light {
         return Block.fromStateId((short)palette.get(x, y, z));
     }
 
-    private ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Map<BlockFace, Point> neighbors, byte[] content) {
+    private ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Point[] neighbors, byte[] content) {
         ShortArrayFIFOQueue lightSources = new ShortArrayFIFOQueue();
 
-        for (BlockFace face : BlockFace.values()) {
+        for (int i = 0; i < neighbors.length; i++) {
+            var face = BlockFace.values()[i];
+            Point neighborSection = neighbors[i];
+            if (neighborSection == null) continue;
+
             Section otherSection = neighborSections[face.ordinal()];
 
             if (otherSection == null) {
-                Point neighborSection = neighbors.get(face);
-                if (neighborSection == null) continue;
-
                 Chunk chunk = instance.getChunk(neighborSection.blockX(), neighborSection.blockZ());
                 if (chunk == null) continue;
 
@@ -126,7 +127,7 @@ final class SkyLight implements Light {
                         if (lightEmission <= internalEmission) continue;
                     }
 
-                    final Block blockTo = switch(face) {
+                    final Block blockTo = switch (face) {
                         case NORTH, SOUTH -> getBlock(blockPalette, bx, by, k);
                         case WEST, EAST -> getBlock(blockPalette, k, bx, by);
                         default -> getBlock(blockPalette, bx, k, by);
@@ -259,7 +260,7 @@ final class SkyLight implements Light {
     public Light calculateExternal(Instance instance, Chunk chunk, int sectionY) {
         if (!isValidBorders) clearCache();
 
-        Map<BlockFace, Point> neighbors = Light.getNeighbors(chunk, sectionY);
+        Point[] neighbors = Light.getNeighbors(chunk, sectionY);
         Set<Point> toUpdate = new HashSet<>();
 
         ShortArrayFIFOQueue queue;
@@ -277,9 +278,11 @@ final class SkyLight implements Light {
         }
 
         // Propagate changes to neighbors and self
-        for (var entry : neighbors.entrySet()) {
-            var neighbor = entry.getValue();
-            var face = entry.getKey();
+        for (int i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+            if (neighbor == null) continue;
+
+            var face = BlockFace.values()[i];
 
             if (!Light.compareBorders(content, contentPropagation, contentPropagationTemp, face)) {
                 toUpdate.add(neighbor);

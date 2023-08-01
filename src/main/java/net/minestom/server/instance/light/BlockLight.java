@@ -67,16 +67,17 @@ final class BlockLight implements Light {
         return Block.fromStateId((short)palette.get(x, y, z));
     }
 
-    private ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Map<BlockFace, Point> neighbors, byte[] content) {
+    private ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Point[] neighbors, byte[] content) {
         ShortArrayFIFOQueue lightSources = new ShortArrayFIFOQueue();
 
-        for (BlockFace face : BlockFace.values()) {
+        for (int i = 0; i < neighbors.length; i++) {
+            var face = BlockFace.values()[i];
+            Point neighborSection = neighbors[i];
+            if (neighborSection == null) continue;
+
             Section otherSection = neighborSections[face.ordinal()];
 
             if (otherSection == null) {
-                Point neighborSection = neighbors.get(face);
-                if (neighborSection == null) continue;
-
                 Chunk chunk = instance.getChunk(neighborSection.blockX(), neighborSection.blockZ());
                 if (chunk == null) continue;
 
@@ -232,7 +233,7 @@ final class BlockLight implements Light {
     public Light calculateExternal(Instance instance, Chunk chunk, int sectionY) {
         if (!isValidBorders) clearCache();
 
-        Map<BlockFace, Point> neighbors = Light.getNeighbors(chunk, sectionY);
+        Point[] neighbors = Light.getNeighbors(chunk, sectionY);
 
         ShortArrayFIFOQueue queue = buildExternalQueue(instance, blockPalette, neighbors, content);
         LightCompute.Result result = LightCompute.compute(blockPalette, queue);
@@ -244,9 +245,10 @@ final class BlockLight implements Light {
         Set<Point> toUpdate = new HashSet<>();
 
         // Propagate changes to neighbors and self
-        for (var entry : neighbors.entrySet()) {
-            var neighbor = entry.getValue();
-            var face = entry.getKey();
+        for (int i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+            if (neighbor == null) continue;
+            var face = BlockFace.values()[i];
 
             if (!Light.compareBorders(content, contentPropagation, contentPropagationTemp, face)) {
                 toUpdate.add(neighbor);
