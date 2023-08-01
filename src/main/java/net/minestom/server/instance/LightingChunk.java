@@ -101,6 +101,7 @@ public class LightingChunk extends DynamicChunk {
                     light.lightCache.invalidate();
                     light.chunkCache.invalidate();
                 }
+
                 for (int k = -1; k <= 1; k++) {
                     if (k + coordinate < neighborChunk.getMinSection() || k + coordinate >= neighborChunk.getMaxSection()) continue;
                     neighborChunk.getSection(k + coordinate).blockLight().invalidate();

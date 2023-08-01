@@ -50,11 +50,7 @@ public class LightParityIntegrationTest {
             future.join();
         }
 
-        long currentTime = System.currentTimeMillis();
-        for (int x = 0; x < 100; ++x) {
-            LightingChunk.relight(instance, instance.getChunks());
-        }
-        System.out.println("Lighting took " + (System.currentTimeMillis() - currentTime) + "ms");
+        LightingChunk.relight(instance, instance.getChunks());
 
         int differences = 0;
         int differencesZero = 0;
@@ -93,10 +89,6 @@ public class LightParityIntegrationTest {
                         for (int z = 0; z < 16; ++z) {
                             int index = x | (z << 4) | (y << 8);
 
-                            int blockX = x + chunk.getChunkX()*16;
-                            int blockY = y + (sectionIndex + chunk.getMinSection()) * 16;
-                            int blockZ = z + chunk.getChunkZ()*16;
-
                             {
                                 int serverBlockValue = LightCompute.getLight(serverBlock, index);
                                 int mcaBlockValue = mcaBlock.length == 0 ? 0 : LightCompute.getLight(mcaBlock, index);
@@ -105,7 +97,6 @@ public class LightParityIntegrationTest {
                                     if (serverBlockValue == 0) differencesZero++;
                                     else differences++;
                                     blocks++;
-                                    System.out.println("Block light difference at " + blockX + " " + blockY + " " + blockZ + " " + serverBlockValue + " " + mcaBlockValue);
                                 }
                             }
 
@@ -118,12 +109,6 @@ public class LightParityIntegrationTest {
                                     if (serverSkyValue == 0) differencesZero++;
                                     else differences++;
                                     sky++;
-
-                                    // if (mcaSkyValue != 0) {
-                                    //     System.out.println("Sky light difference at " + blockX + " " + blockY + " " + blockZ + " " + serverSkyValue + " " + mcaSkyValue);
-                                    //     System.out.println(chunk.getChunkX() + " " + chunk.getChunkZ() + " " + sectionIndex);
-                                    //     System.out.println(x + " " + y + " " + z);
-                                    // }
                                 }
                             }
                         }
