@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static net.minestom.server.instance.light.LightCompute.*;
 
@@ -30,6 +31,7 @@ final class SkyLight implements Light {
     private boolean needsSend = true;
 
     private Set<Point> toUpdateSet = new HashSet<>();
+    private final Section[] neighborSections = new Section[BlockFace.values().length];
 
     private boolean fullyLit = false;
     private static final byte[] contentFullyLit = new byte[LIGHT_LENGTH];
@@ -81,22 +83,27 @@ final class SkyLight implements Light {
         return Block.fromStateId((short)palette.get(x, y, z));
     }
 
-    private static ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Map<BlockFace, Point> neighbors, byte[] content) {
+    private ShortArrayFIFOQueue buildExternalQueue(Instance instance, Palette blockPalette, Map<BlockFace, Point> neighbors, byte[] content) {
         ShortArrayFIFOQueue lightSources = new ShortArrayFIFOQueue();
 
         for (BlockFace face : BlockFace.values()) {
-            Point neighborSection = neighbors.get(face);
-            if (neighborSection == null) continue;
+            Section otherSection = neighborSections[face.ordinal()];
 
-            Chunk chunk = instance.getChunk(neighborSection.blockX(), neighborSection.blockZ());
-            if (chunk == null) continue;
+            if (otherSection == null) {
+                Point neighborSection = neighbors.get(face);
+                if (neighborSection == null) continue;
 
-            Section otherSection = chunk.getSection(neighborSection.blockY());
+                Chunk chunk = instance.getChunk(neighborSection.blockX(), neighborSection.blockZ());
+                if (chunk == null) continue;
+
+                otherSection = chunk.getSection(neighborSection.blockY());
+                neighborSections[face.ordinal()] = otherSection;
+            }
+
             var otherLight = otherSection.skyLight();
 
             for (int bx = 0; bx < 16; bx++) {
                 for (int by = 0; by < 16; by++) {
-                    final int borderIndex = bx * SECTION_SIZE + by;
                     final int k = switch (face) {
                         case WEST, BOTTOM, NORTH -> 0;
                         case EAST, TOP, SOUTH -> 15;
