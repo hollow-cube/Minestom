@@ -78,20 +78,28 @@ final class BlockLight implements Light {
             byte[] neighborFace = chunk.getSection(neighborSection.blockY()).blockLight().getBorderPropagation(face.getOppositeFace());
             if (neighborFace == null) continue;
 
+            Section otherSection = chunk.getSection(neighborSection.blockY());
+            var otherLight = otherSection.blockLight();
+
             for (int bx = 0; bx < 16; bx++) {
                 for (int by = 0; by < 16; by++) {
                     final int borderIndex = bx * SECTION_SIZE + by;
-                    byte lightEmission = neighborFace[borderIndex];
-
-                    if (content != null) {
-                        final int internalEmission = computeBorders(content, face)[borderIndex];
-                        if (lightEmission <= internalEmission) continue;
-                    }
 
                     final int k = switch (face) {
                         case WEST, BOTTOM, NORTH -> 0;
                         case EAST, TOP, SOUTH -> 15;
                     };
+
+                    final byte lightEmission = (byte) Math.max(switch (face) {
+                            case NORTH, SOUTH -> (byte) otherLight.getLevel(bx, by, 15 - k);
+                            case WEST, EAST -> (byte) otherLight.getLevel(15 - k, bx, by);
+                            default -> (byte) otherLight.getLevel(bx, 15 - k, by);
+                        } - 1, 0);
+
+                    if (content != null) {
+                        final int internalEmission = computeBorders(content, face)[borderIndex];
+                        if (lightEmission <= internalEmission) continue;
+                    }
 
                     final int posTo = switch (face) {
                         case NORTH, SOUTH -> bx | (k << 4) | (by << 8);
@@ -104,8 +112,6 @@ final class BlockLight implements Light {
                         case WEST, EAST -> getBlock(blockPalette, k, bx, by);
                         default -> getBlock(blockPalette, bx, k, by);
                     };
-
-                    Section otherSection = chunk.getSection(neighborSection.blockY());
 
                     final Block blockFrom = (switch (face) {
                         case NORTH, SOUTH -> getBlock(otherSection.blockPalette(), bx, by, 15 - k);
@@ -330,9 +336,12 @@ final class BlockLight implements Light {
 
     @Override
     public int getLevel(int x, int y, int z) {
-        var array = array();
+        if (!isValidBorders) clearCache();
+
+        if (content == null) return 0;
         int index = x | (z << 4) | (y << 8);
-        return LightCompute.getLight(array, index);
+        if (contentPropagation == null) return LightCompute.getLight(content, index);
+        return Math.max(LightCompute.getLight(contentPropagation, index), LightCompute.getLight(content, index));
     }
 
     private byte[] combineBorders(byte[] b1, byte[] b2) {
