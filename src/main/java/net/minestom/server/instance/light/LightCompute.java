@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayDeque;
 import java.util.Objects;
 
+import static net.minestom.server.instance.light.BlockLight.buildInternalQueue;
+
 public final class LightCompute {
     static final BlockFace[] FACES = BlockFace.values();
     static final int LIGHT_LENGTH = 16 * 16 * 16 / 2;
@@ -18,7 +20,7 @@ public final class LightCompute {
     public static final byte[] emptyContent = new byte[LIGHT_LENGTH];
 
     static @NotNull Result compute(Palette blockPalette) {
-        return LightCompute.compute(blockPalette, new ShortArrayFIFOQueue());
+        return LightCompute.compute(blockPalette, buildInternalQueue(blockPalette));
     }
 
     static @NotNull Result compute(Palette blockPalette, ShortArrayFIFOQueue lightPre) {
