@@ -22,10 +22,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @EnvTest
 public class LightParityIntegrationTest {
+    private static final int REGION_SIZE = 3;
 
     @Test
     public void test(Env env) throws URISyntaxException, IOException, AnvilException {
@@ -38,7 +38,7 @@ public class LightParityIntegrationTest {
 
         List<CompletableFuture<Chunk>> futures = new ArrayList<>();
 
-        int end = 3;
+        int end = REGION_SIZE;
         // Load the chunks
         for (int x = 0; x < end; x++) {
             for (int z = 0; z < end; z++) {
@@ -50,7 +50,11 @@ public class LightParityIntegrationTest {
             future.join();
         }
 
-        LightingChunk.relight(instance, instance.getChunks());
+        long currentTime = System.currentTimeMillis();
+        for (int x = 0; x < 100; ++x) {
+            LightingChunk.relight(instance, instance.getChunks());
+        }
+        System.out.println("Lighting took " + (System.currentTimeMillis() - currentTime) + "ms");
 
         int differences = 0;
         int differencesZero = 0;
@@ -67,7 +71,7 @@ public class LightParityIntegrationTest {
             }
 
             for (int sectionIndex = chunk.getMinSection(); sectionIndex < chunk.getMaxSection(); sectionIndex++) {
-                if (sectionIndex > 6) continue;
+                if (sectionIndex > 6) break;
 
                 Section section = chunk.getSection(sectionIndex);
 
@@ -89,6 +93,10 @@ public class LightParityIntegrationTest {
                         for (int z = 0; z < 16; ++z) {
                             int index = x | (z << 4) | (y << 8);
 
+                            int blockX = x + chunk.getChunkX()*16;
+                            int blockY = y + (sectionIndex + chunk.getMinSection()) * 16;
+                            int blockZ = z + chunk.getChunkZ()*16;
+
                             {
                                 int serverBlockValue = LightCompute.getLight(serverBlock, index);
                                 int mcaBlockValue = mcaBlock.length == 0 ? 0 : LightCompute.getLight(mcaBlock, index);
@@ -97,9 +105,11 @@ public class LightParityIntegrationTest {
                                     if (serverBlockValue == 0) differencesZero++;
                                     else differences++;
                                     blocks++;
+                                    System.out.println("Block light difference at " + blockX + " " + blockY + " " + blockZ + " " + serverBlockValue + " " + mcaBlockValue);
                                 }
                             }
 
+                            // Mojang's sky lighting is wrong
                             {
                                 int serverSkyValue = LightCompute.getLight(serverSky, index);
                                 int mcaSkyValue = mcaSky.length == 0 ? 0 : LightCompute.getLight(mcaSky, index);
@@ -108,6 +118,12 @@ public class LightParityIntegrationTest {
                                     if (serverSkyValue == 0) differencesZero++;
                                     else differences++;
                                     sky++;
+
+                                    // if (mcaSkyValue != 0) {
+                                    //     System.out.println("Sky light difference at " + blockX + " " + blockY + " " + blockZ + " " + serverSkyValue + " " + mcaSkyValue);
+                                    //     System.out.println(chunk.getChunkX() + " " + chunk.getChunkZ() + " " + sectionIndex);
+                                    //     System.out.println(x + " " + y + " " + z);
+                                    // }
                                 }
                             }
                         }
@@ -116,10 +132,10 @@ public class LightParityIntegrationTest {
             }
         }
 
-        assertEquals(0, differences);
-        assertEquals(0, differencesZero);
         assertEquals(0, blocks);
         assertEquals(0, sky);
+        assertEquals(0, differences);
+        assertEquals(0, differencesZero);
     }
 
     record SectionEntry(Palette blocks, byte[] sky, byte[] block) {
@@ -134,8 +150,8 @@ public class LightParityIntegrationTest {
 
         Map<Vec, SectionEntry> sections = new HashMap<>();
         // Read from anvil
-        for (int x = 1; x < 3; x++) {
-            for (int z = 1; z < 3; z++) {
+        for (int x = 1; x < REGION_SIZE - 1; x++) {
+            for (int z = 1; z < REGION_SIZE - 1; z++) {
                 var chunk = regionFile.getChunk(x, z);
                 if (chunk == null) continue;
 
