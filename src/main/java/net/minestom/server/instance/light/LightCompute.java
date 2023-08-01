@@ -10,19 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayDeque;
 import java.util.Objects;
 
-import static net.minestom.server.instance.light.BlockLight.buildInternalQueue;
-
 public final class LightCompute {
     static final BlockFace[] FACES = BlockFace.values();
     static final int LIGHT_LENGTH = 16 * 16 * 16 / 2;
-    static final int SIDE_LENGTH = 16 * 16;
     static final int SECTION_SIZE = 16;
 
-    public static final byte[][] emptyBorders = new byte[FACES.length][SIDE_LENGTH];
     public static final byte[] emptyContent = new byte[LIGHT_LENGTH];
 
     static @NotNull Result compute(Palette blockPalette) {
-        return LightCompute.compute(blockPalette, buildInternalQueue(blockPalette));
+        return LightCompute.compute(blockPalette, new ShortArrayFIFOQueue());
     }
 
     static @NotNull Result compute(Palette blockPalette, ShortArrayFIFOQueue lightPre) {
