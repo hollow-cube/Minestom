@@ -45,6 +45,11 @@ public class LightingChunk extends DynamicChunk {
         BLOCK
     }
 
+    private enum QueueType {
+        INTERNAL,
+        EXTERNAL
+    }
+
     private static final Set<NamespaceID> DIFFUSE_SKY_LIGHT = Set.of(
             Block.COBWEB.namespace(),
             Block.ICE.namespace(),
@@ -293,11 +298,6 @@ public class LightingChunk extends DynamicChunk {
             }
         }, TaskSchedule.immediate(), TaskSchedule.tick(20), ExecutionType.ASYNC);
         lightLock.unlock();
-    }
-
-    private enum QueueType {
-        INTERNAL,
-        EXTERNAL
     }
 
     private static void flushQueue(Instance instance, Set<Point> queue, LightType type, QueueType queueType) {
