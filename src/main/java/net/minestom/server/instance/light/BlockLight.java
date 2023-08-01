@@ -291,8 +291,6 @@ final class BlockLight implements Light {
 
     @Override
     public int getLevel(int x, int y, int z) {
-        if (!isValidBorders) clearCache();
-
         if (content == null) return 0;
         int index = x | (z << 4) | (y << 8);
         if (contentPropagation == null) return LightCompute.getLight(content, index);

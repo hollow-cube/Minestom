@@ -39,6 +39,7 @@ public class LightingChunk extends DynamicChunk {
     private int[] heightmap;
     final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
     boolean sendNeighbours = true;
+    boolean chunkLoaded = false;
 
     enum LightType {
         SKY,
@@ -118,9 +119,10 @@ public class LightingChunk extends DynamicChunk {
 
         // Invalidate neighbor chunks, since they can be updated by this block change
         int coordinate = ChunkUtils.getChunkCoordinate(y);
-        invalidateSection(coordinate);
-
-        this.lightCache.invalidate();
+        if (chunkLoaded) {
+            invalidateSection(coordinate);
+            this.lightCache.invalidate();
+        }
     }
 
     public void sendLighting() {
@@ -131,6 +133,7 @@ public class LightingChunk extends DynamicChunk {
     @Override
     protected void onLoad() {
         // Prefetch the chunk packet so that lazy lighting is computed
+        chunkLoaded = true;
         updateAfterGeneration(this);
     }
 
