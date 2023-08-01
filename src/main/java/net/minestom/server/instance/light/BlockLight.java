@@ -93,16 +93,16 @@ final class BlockLight implements Light {
                             default -> (byte) otherLight.getLevel(bx, 15 - k, by);
                         } - 1, 0);
 
-                    if (content != null) {
-                        final int internalEmission = computeBorders(content, face)[borderIndex];
-                        if (lightEmission <= internalEmission) continue;
-                    }
-
                     final int posTo = switch (face) {
                         case NORTH, SOUTH -> bx | (k << 4) | (by << 8);
                         case WEST, EAST -> k | (by << 4) | (bx << 8);
                         default -> bx | (by << 4) | (k << 8);
                     };
+
+                    if (content != null) {
+                        final int internalEmission = (byte) (Math.max(getLight(content, posTo) - 1, 0));
+                        if (lightEmission <= internalEmission) continue;
+                    }
 
                     final Block blockTo = switch(face) {
                         case NORTH, SOUTH -> getBlock(blockPalette, bx, by, k);
@@ -185,29 +185,6 @@ final class BlockLight implements Light {
         return this;
     }
 
-    private static byte[] computeBorders(byte[] content, BlockFace face) {
-        byte[] border = new byte[SECTION_SIZE * SECTION_SIZE];
-
-        final int k = switch (face) {
-            case WEST, BOTTOM, NORTH -> 0;
-            case EAST, TOP, SOUTH -> 15;
-        };
-
-        for (int bx = 0; bx < SECTION_SIZE; ++bx) {
-            for (int by = 0; by < SECTION_SIZE; ++by) {
-                final int posTo = switch (face) {
-                    case NORTH, SOUTH -> bx | (k << 4) | (by << 8);
-                    case WEST, EAST -> k | (by << 4) | (bx << 8);
-                    default -> bx | (by << 4) | (k << 8);
-                };
-
-                border[bx * SECTION_SIZE + by] = (byte) (Math.max(getLight(content, posTo) - 1, 0));
-            }
-        }
-
-        return border;
-    }
-
     @Override
     public void invalidate() {
         invalidatePropagation();
@@ -265,7 +242,7 @@ final class BlockLight implements Light {
             var neighbor = entry.getValue();
             var face = entry.getKey();
 
-            if (!compareBorders(content, contentPropagation, contentPropagationTemp, face)) {
+            if (!Light.compareBorders(content, contentPropagation, contentPropagationTemp, face)) {
                 toUpdate.add(neighbor);
             }
         }
@@ -297,37 +274,6 @@ final class BlockLight implements Light {
             lightMax[i] = (byte) (lower | (upper << 4));
         }
         return lightMax;
-    }
-
-    private boolean compareBorders(byte[] content, byte[] contentPropagation, byte[] contentPropagationTemp, BlockFace face) {
-        if (content == null && contentPropagation == null && contentPropagationTemp == null) return true;
-
-        final int k = switch (face) {
-            case WEST, BOTTOM, NORTH -> 0;
-            case EAST, TOP, SOUTH -> 15;
-        };
-
-        for (int bx = 0; bx < SECTION_SIZE; bx++) {
-            for (int by = 0; by < SECTION_SIZE; by++) {
-                final int posFrom = switch (face) {
-                    case NORTH, SOUTH -> bx | (k << 4) | (by << 8);
-                    case WEST, EAST -> k | (by << 4) | (bx << 8);
-                    default -> bx | (by << 4) | (k << 8);
-                };
-
-                int valueFrom;
-
-                if (content == null && contentPropagation == null) valueFrom = 0;
-                else if (content != null && contentPropagation == null) valueFrom = getLight(content, posFrom);
-                else if (content == null && contentPropagation != null) valueFrom = getLight(contentPropagation, posFrom);
-                else valueFrom = Math.max(getLight(content, posFrom), getLight(contentPropagation, posFrom));
-
-                int valueTo = getLight(contentPropagationTemp, posFrom);
-
-                if (valueFrom < valueTo) return false;
-            }
-        }
-        return true;
     }
 
     @Override
