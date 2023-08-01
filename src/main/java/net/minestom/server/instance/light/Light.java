@@ -35,8 +35,6 @@ public interface Light {
     @ApiStatus.Internal
     Light calculateExternal(Instance instance, Chunk chunk, int sectionY);
 
-    byte[] getBorderPropagation(BlockFace face);
-
     @ApiStatus.Internal
     void invalidatePropagation();
 

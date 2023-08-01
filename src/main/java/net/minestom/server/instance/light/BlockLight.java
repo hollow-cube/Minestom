@@ -75,9 +75,6 @@ final class BlockLight implements Light {
             Chunk chunk = instance.getChunk(neighborSection.blockX(), neighborSection.blockZ());
             if (chunk == null) continue;
 
-            byte[] neighborFace = chunk.getSection(neighborSection.blockY()).blockLight().getBorderPropagation(face.getOppositeFace());
-            if (neighborFace == null) continue;
-
             Section otherSection = chunk.getSection(neighborSection.blockY());
             var otherLight = otherSection.blockLight();
 
@@ -248,17 +245,6 @@ final class BlockLight implements Light {
         return res;
     }
 
-    private boolean compareBorders(byte[] a, byte[] b) {
-        if (b == null && a == null) return true;
-        if (b == null || a == null) return false;
-
-        if (a.length != b.length) return false;
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] > b[i]) return false;
-        }
-        return true;
-    }
-
     @Override
     public Light calculateExternal(Instance instance, Chunk chunk, int sectionY) {
         if (!isValidBorders) clearCache();
@@ -279,10 +265,7 @@ final class BlockLight implements Light {
             var neighbor = entry.getValue();
             var face = entry.getKey();
 
-            byte[] next = computeBorders(contentPropagationTemp, face);
-            byte[] current = getBorderPropagation(face);
-
-            if (!compareBorders(next, current)) {
+            if (!compareBorders(content, contentPropagation, contentPropagationTemp, face)) {
                 toUpdate.add(neighbor);
             }
         }
@@ -316,15 +299,35 @@ final class BlockLight implements Light {
         return lightMax;
     }
 
-    @Override
-    public byte[] getBorderPropagation(BlockFace face) {
-        if (!isValidBorders) clearCache();
+    private boolean compareBorders(byte[] content, byte[] contentPropagation, byte[] contentPropagationTemp, BlockFace face) {
+        if (content == null && contentPropagation == null && contentPropagationTemp == null) return true;
 
-        if (content == null && contentPropagation == null) return new byte[SIDE_LENGTH];
-        if (content == null) return computeBorders(contentPropagation, face);
-        if (contentPropagation == null) return computeBorders(content, face);
+        final int k = switch (face) {
+            case WEST, BOTTOM, NORTH -> 0;
+            case EAST, TOP, SOUTH -> 15;
+        };
 
-        return combineBorders(computeBorders(contentPropagation, face), computeBorders(content, face));
+        for (int bx = 0; bx < SECTION_SIZE; bx++) {
+            for (int by = 0; by < SECTION_SIZE; by++) {
+                final int posFrom = switch (face) {
+                    case NORTH, SOUTH -> bx | (k << 4) | (by << 8);
+                    case WEST, EAST -> k | (by << 4) | (bx << 8);
+                    default -> bx | (by << 4) | (k << 8);
+                };
+
+                int valueFrom;
+
+                if (content == null && contentPropagation == null) valueFrom = 0;
+                else if (content != null && contentPropagation == null) valueFrom = getLight(content, posFrom);
+                else if (content == null && contentPropagation != null) valueFrom = getLight(contentPropagation, posFrom);
+                else valueFrom = Math.max(getLight(content, posFrom), getLight(contentPropagation, posFrom));
+
+                int valueTo = getLight(contentPropagationTemp, posFrom);
+
+                if (valueFrom < valueTo) return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -342,15 +345,5 @@ final class BlockLight implements Light {
         int index = x | (z << 4) | (y << 8);
         if (contentPropagation == null) return LightCompute.getLight(content, index);
         return Math.max(LightCompute.getLight(contentPropagation, index), LightCompute.getLight(content, index));
-    }
-
-    private byte[] combineBorders(byte[] b1, byte[] b2) {
-        byte[] newBorder = new byte[SIDE_LENGTH];
-        for (int i = 0; i < newBorder.length; i++) {
-            var previous = b2[i];
-            var current = b1[i];
-            newBorder[i] = (byte) Math.max(previous, current);
-        }
-        return newBorder;
     }
 }
