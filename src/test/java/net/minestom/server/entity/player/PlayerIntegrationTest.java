@@ -1,8 +1,11 @@
 package net.minestom.server.entity.player;
 
+import net.minestom.server.event.player.PlayerGameModeChangeEvent;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.message.ChatMessageType;
 import net.minestom.server.network.packet.client.play.ClientSettingsPacket;
+import net.minestom.server.event.player.PlayerGameModeChangeEvent;
 import net.minestom.testing.Collector;
 import net.minestom.testing.Env;
 import net.minestom.testing.EnvTest;
@@ -26,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PlayerIntegrationTest {
 
     /**
-     * Test to see whether player abilities are updated correctly when changing gamemodes
+     * Test to see whether player abilities are updated correctly and events
+     * are handled properly when changing gamemode.
      */
     @Test
     public void gamemodeTest(Env env) {
@@ -35,16 +39,38 @@ public class PlayerIntegrationTest {
         var player = connection.connect(instance, new Pos(0, 42, 0)).join();
         assertEquals(instance, player.getInstance());
 
-        player.setGameMode(GameMode.CREATIVE);
-        assertAbilities(player, true, false, true, true);
-        player.setGameMode(GameMode.SPECTATOR);
-        assertAbilities(player, true, true, true, false);
-        player.setGameMode(GameMode.CREATIVE);
-        assertAbilities(player, true, true, true, true);
-        player.setGameMode(GameMode.ADVENTURE);
-        assertAbilities(player, false, false, false, false);
-        player.setGameMode(GameMode.SURVIVAL);
-        assertAbilities(player, false, false, false, false);
+        // Abilities
+        {
+            player.setGameMode(GameMode.CREATIVE);
+            assertAbilities(player, true, false, true, true);
+            player.setGameMode(GameMode.SPECTATOR);
+            assertAbilities(player, true, true, true, false);
+            player.setGameMode(GameMode.CREATIVE);
+            assertAbilities(player, true, true, true, true);
+            player.setGameMode(GameMode.ADVENTURE);
+            assertAbilities(player, false, false, false, false);
+            player.setGameMode(GameMode.SURVIVAL);
+            assertAbilities(player, false, false, false, false);
+        }
+
+        var listener = env.listen(PlayerGameModeChangeEvent.class);
+        // Normal change
+        {
+            listener.followup();
+            assertTrue(player.setGameMode(GameMode.ADVENTURE));
+        }
+        // Change target gamemode event
+        {
+            listener.followup(event -> event.setNewGameMode(GameMode.SPECTATOR));
+            assertTrue(player.setGameMode(GameMode.CREATIVE));
+            assertEquals(GameMode.SPECTATOR, player.getGameMode());
+        }
+        // Cancel event
+        {
+            listener.followup(event -> event.setCancelled(true));
+            assertFalse(player.setGameMode(GameMode.CREATIVE));
+            assertEquals(GameMode.SPECTATOR, player.getGameMode());
+        }
     }
 
     @Test
@@ -164,9 +190,42 @@ public class PlayerIntegrationTest {
 
         assertNull(player.getDeathLocation());
         player.damage(DamageType.VOID, 30);
-        
+
         assertNotNull(player.getDeathLocation());
         assertEquals(dimensionNamespace, player.getDeathLocation().dimension());
         assertEquals(5, player.getDeathLocation().position().x());
+    }
+
+    @Test
+    public void displayNameTest(Env env) {
+        var instance = env.createFlatInstance();
+        var connection = env.createConnection();
+        var tracker = connection.trackIncoming(PlayerInfoUpdatePacket.class);
+        var player = connection.connect(instance, new Pos(0, 42, 0)).join();
+
+        player.setDisplayName(Component.text("Display Name!"));
+
+        var connection2 = env.createConnection();
+        var tracker2 = connection2.trackIncoming(PlayerInfoUpdatePacket.class);
+        connection2.connect(instance, new Pos(0, 42, 0)).join();
+
+        var displayNamePackets = tracker2.collect().stream().filter((packet) ->
+                packet.actions().stream().anyMatch((act) -> act == PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME))
+                .count();
+        assertEquals(1, displayNamePackets);
+
+        var tracker3 = connection2.trackIncoming(PlayerInfoUpdatePacket.class);
+
+        player.setDisplayName(Component.text("Other Name!"));
+
+        var displayNamePackets2 = tracker3.collect().stream().filter((packet) ->
+                packet.actions().stream().anyMatch((act) -> act == PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME))
+                .count();
+        assertEquals(1, displayNamePackets2);
+
+        var displayNamePackets3 = tracker.collect().stream().filter((packet) ->
+                packet.actions().stream().anyMatch((act) -> act == PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME))
+                .count();
+        assertEquals(2, displayNamePackets3);
     }
 }

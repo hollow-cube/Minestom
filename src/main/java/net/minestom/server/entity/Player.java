@@ -313,8 +313,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.skin = skinInitEvent.getSkin();
         // FIXME: when using Geyser, this line remove the skin of the client
         PacketUtils.broadcastPacket(getAddPlayerToList());
+        
         for (var player : MinecraftServer.getConnectionManager().getOnlinePlayers()) {
-            if (player != this) sendPacket(player.getAddPlayerToList());
+            if (player != this) {
+                sendPacket(player.getAddPlayerToList());
+                if (player.displayName != null) {
+                    sendPacket(new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, player.infoEntry()));
+                }
+            }
         }
 
         //Teams
@@ -1366,8 +1372,18 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * Changes the player {@link GameMode}
      *
      * @param gameMode the new player GameMode
+     * @return true if the gamemode was changed successfully, false otherwise (cancelled by event)
      */
-    public void setGameMode(@NotNull GameMode gameMode) {
+    public boolean setGameMode(@NotNull GameMode gameMode) {
+        PlayerGameModeChangeEvent playerGameModeChangeEvent = new PlayerGameModeChangeEvent(this, gameMode);
+        EventDispatcher.call(playerGameModeChangeEvent);
+        if (playerGameModeChangeEvent.isCancelled()) {
+            // Abort
+            return false;
+        }
+
+        gameMode = playerGameModeChangeEvent.getNewGameMode();
+
         this.gameMode = gameMode;
         // Condition to prevent sending the packets before spawning the player
         if (isActive()) {
@@ -1399,6 +1415,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         if (isActive()) {
             refreshAbilities();
         }
+
+        return true;
     }
 
     /**
@@ -1471,13 +1489,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public byte getHeldSlot() {
         return heldSlot;
-    }
-
-    public void setTeam(Team team) {
-        super.setTeam(team);
-        if (team != null) {
-            PacketUtils.broadcastPacket(team.createTeamsCreationPacket());
-        }
     }
 
     /**
@@ -2030,10 +2041,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         connection.sendPacket(getEquipmentsPacket());
         if (hasPassenger()) {
             connection.sendPacket(getPassengersPacket());
-        }
-        // Team
-        if (this.getTeam() != null) {
-            connection.sendPacket(this.getTeam().createTeamsCreationPacket());
         }
         connection.sendPacket(new EntityHeadLookPacket(getEntityId(), position.yaw()));
     }
