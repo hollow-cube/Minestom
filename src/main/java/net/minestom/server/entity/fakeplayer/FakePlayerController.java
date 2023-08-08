@@ -20,7 +20,6 @@ import net.minestom.server.network.packet.server.configuration.FinishConfigurati
 import net.minestom.server.network.packet.server.play.PlayerPositionAndLookPacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.utils.MathUtils;
-import net.minestom.server.utils.inventory.PlayerInventoryUtils;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,8 +55,6 @@ public class FakePlayerController {
         Inventory inventory = playerInventory ? null : fakePlayer.getOpenInventory();
         AbstractInventory abstractInventory = inventory == null ? fakePlayer.getInventory() : inventory;
         playerInventory = abstractInventory instanceof PlayerInventory;
-
-        slot = playerInventory ? (short) PlayerInventoryUtils.convertToPacketSlot(slot) : slot;
 
         ItemStack itemStack = abstractInventory.getItemStack(slot);
 
