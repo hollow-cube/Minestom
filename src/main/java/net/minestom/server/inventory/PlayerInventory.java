@@ -7,12 +7,8 @@ import net.minestom.server.event.item.EntityEquipEvent;
 import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.inventory.click.InventoryClickResult;
 import net.minestom.server.item.ItemStack;
-import net.minestom.server.network.packet.server.play.SetSlotPacket;
-import net.minestom.server.network.packet.server.play.WindowItemsPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Represents the inventory of a {@link Player}, retrieved with {@link Player#getInventory()}.
@@ -48,9 +44,7 @@ public non-sealed class PlayerInventory extends AbstractInventory {
     }
 
     @Override
-    protected void UNSAFE_itemInsert(int slot, @NotNull ItemStack itemStack, boolean sendPacket) {
-        this.itemStacks[slot] = itemStack;
-
+    protected void UNSAFE_itemInsert(int slot, @NotNull ItemStack itemStack) {
         for (var player : getViewers()) {
             final EquipmentSlot equipmentSlot = fromSlotIndex(slot, player.getHeldSlot());
 
@@ -58,16 +52,21 @@ public non-sealed class PlayerInventory extends AbstractInventory {
                 EntityEquipEvent entityEquipEvent = new EntityEquipEvent(player, itemStack, equipmentSlot);
                 EventDispatcher.call(entityEquipEvent);
                 itemStack = entityEquipEvent.getEquippedItem();
-
-                if (sendPacket) {
-                    player.syncEquipment(equipmentSlot);
-                }
             }
-
         }
 
-        if (sendPacket) {
-            sendSlotRefresh((short) slot, itemStack);
+        super.UNSAFE_itemInsert(slot, itemStack);
+    }
+
+    @Override
+    public void refreshSlot(int slot, @NotNull ItemStack itemStack) {
+        super.refreshSlot(slot, itemStack);
+
+        for (var player : getViewers()) {
+            var equipmentSlot = fromSlotIndex(slot, player.getHeldSlot());
+            if (equipmentSlot == null) continue;
+
+            player.syncEquipment(equipmentSlot, itemStack);
         }
     }
 
@@ -101,16 +100,6 @@ public non-sealed class PlayerInventory extends AbstractInventory {
     @Override
     public byte getWindowId() {
         return 0;
-    }
-
-    /**
-     * Refreshes an inventory slot.
-     *
-     * @param slot      the packet slot
-     * @param itemStack the item stack in the slot
-     */
-    protected void sendSlotRefresh(short slot, ItemStack itemStack) {
-        sendPacketsToViewers(new SetSlotPacket((byte) 0, 0, slot, itemStack));
     }
 
     @Override
