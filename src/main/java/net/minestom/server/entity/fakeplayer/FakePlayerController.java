@@ -5,7 +5,6 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.inventory.AbstractInventory;
-import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.client.ClientPacket;
@@ -52,7 +51,7 @@ public class FakePlayerController {
      * @param clickType       The click type
      */
     public void clickWindow(boolean playerInventory, short slot, byte button, ClientClickWindowPacket.ClickType clickType) {
-        Inventory inventory = playerInventory ? null : fakePlayer.getOpenInventory();
+        AbstractInventory inventory = playerInventory ? null : fakePlayer.getOpenInventory();
         AbstractInventory abstractInventory = inventory == null ? fakePlayer.getInventory() : inventory;
         playerInventory = abstractInventory instanceof PlayerInventory;
 
@@ -67,7 +66,7 @@ public class FakePlayerController {
      * Closes the current opened inventory if there is any.
      */
     public void closeWindow() {
-        Inventory openInventory = fakePlayer.getOpenInventory();
+        AbstractInventory openInventory = fakePlayer.getOpenInventory();
         addToQueue(new ClientCloseWindowPacket(openInventory == null ? 0 : openInventory.getWindowId()));
     }
 
