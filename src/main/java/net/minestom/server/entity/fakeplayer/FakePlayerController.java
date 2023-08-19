@@ -4,8 +4,8 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.BlockFace;
-import net.minestom.server.inventory.AbstractInventory;
 import net.minestom.server.inventory.Inventory;
+import net.minestom.server.inventory.ContainerInventory;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.client.ClientPacket;
@@ -52,12 +52,12 @@ public class FakePlayerController {
      * @param clickType       The click type
      */
     public void clickWindow(boolean playerInventory, short slot, byte button, ClientClickWindowPacket.ClickType clickType) {
-        AbstractInventory inventory = playerInventory ? null : fakePlayer.getOpenInventory();
-        AbstractInventory abstractInventory = inventory == null ? fakePlayer.getInventory() : inventory;
+        Inventory inventory = playerInventory ? null : fakePlayer.getOpenInventory();
+        Inventory abstractInventory = inventory == null ? fakePlayer.getInventory() : inventory;
 
         ItemStack itemStack = abstractInventory.getItemStack(slot);
 
-        var id = abstractInventory instanceof Inventory openInventory ? openInventory.getWindowId() : 0;
+        var id = abstractInventory instanceof ContainerInventory openInventory ? openInventory.getWindowId() : 0;
 
         addToQueue(new ClientClickWindowPacket(id, 0, slot, button, clickType, List.of(), itemStack));
     }
@@ -66,8 +66,8 @@ public class FakePlayerController {
      * Closes the current opened inventory if there is any.
      */
     public void closeWindow() {
-        AbstractInventory openInventory = fakePlayer.getOpenInventory();
-        var id = openInventory instanceof Inventory inventory ? inventory.getWindowId() : 0;
+        Inventory openInventory = fakePlayer.getOpenInventory();
+        var id = openInventory instanceof ContainerInventory inventory ? inventory.getWindowId() : 0;
         addToQueue(new ClientCloseWindowPacket(id));
     }
 
