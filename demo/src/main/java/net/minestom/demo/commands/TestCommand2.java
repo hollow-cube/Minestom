@@ -2,7 +2,6 @@ package net.minestom.demo.commands;
 
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
-import org.jetbrains.annotations.NotNull;
 
 public class TestCommand2 extends Command {
     public TestCommand2() {
@@ -16,6 +15,6 @@ public class TestCommand2 extends Command {
         }, argA);
         addSyntax((sender, context) -> {
             sender.sendMessage("a and b");
-        }, argA, argB);
+        }, argB, argA);
     }
 }
