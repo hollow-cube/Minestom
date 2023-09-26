@@ -1492,8 +1492,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void remove() {
         if (isRemoved()) return;
 
+        EventDispatcher.call(new EntityDespawnEvent(this));
         try {
-            EventDispatcher.call(new EntityDespawnEvent(this));
             despawn();
         } catch (Throwable t) {
             MinecraftServer.getExceptionManager().handleException(t);
