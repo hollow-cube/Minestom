@@ -273,7 +273,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     /**
      * Called right before an entity is removed
      */
-    public void despawn() {
+    protected void despawn() {
 
     }
 
