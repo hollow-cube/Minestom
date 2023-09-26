@@ -293,7 +293,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             TMeta casted = metaClass.cast(entityMeta);
             editor.accept(casted);
         } catch (Throwable t) {
-            throw new RuntimeException("Error editing entity " + id + " " + entityMeta + " meta", t);
+            throw new RuntimeException("Error editing entity " + id + " " + entityType.name() + " meta", t);
         }
         entityMeta.setNotifyAboutChanges(true);
     }
