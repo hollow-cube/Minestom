@@ -28,7 +28,7 @@ jcstress = "0.16"
 javaPoet = "1.13.0"
 
 # Log impl (for demo & codegen)
-logback = "1.4.5"
+logback = "1.4.11"
 
 # Gradle plugins
 blossom = "1.3.0"
