@@ -19,7 +19,7 @@ gson = "2.10.1"
 jcTools = "4.0.1"
 
 # Quality
-junit-jupiter = "5.9.3"
+junit-jupiter = "5.10.0"
 junit-platform = "1.9.3"
 jmh = "1.37"
 jcstress = "0.16"
