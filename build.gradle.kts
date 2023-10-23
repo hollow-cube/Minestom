@@ -73,7 +73,6 @@ dependencies {
 
     // Testing
     testImplementation(libs.bundles.junit)
-    testImplementation(project(":testing"))
 }
 
 tasks {
