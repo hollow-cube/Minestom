@@ -31,9 +31,7 @@ javaPoet = "1.13.0"
 logback = "1.4.11"
 
 # Gradle plugins
-blossom = "1.3.0"
 shadow = "8.1.1"
-nexuspublish = "1.3.0"
 
 [libraries]
 
@@ -93,6 +91,4 @@ logback = ["logback-core", "logback-classic"]
 
 [plugins]
 
-blossom = { id = "net.kyori.blossom", version.ref = "blossom" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
-nexuspublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexuspublish" }
