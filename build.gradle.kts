@@ -76,19 +76,6 @@ dependencies {
 }
 
 tasks {
-    withType<Javadoc> {
-        (options as? StandardJavadocDocletOptions)?.apply {
-            encoding = "UTF-8"
-
-            // Custom options
-            addBooleanOption("html5", true)
-            addStringOption("-release", "17")
-            // Links to external javadocs
-            links("https://docs.oracle.com/en/java/javase/17/docs/api/")
-            links("https://jd.adventure.kyori.net/api/${libs.versions.adventure.get()}/")
-        }
-    }
-
     blossom {
         val gitFile = "src/main/java/net/minestom/server/Git.java"
 
