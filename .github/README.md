@@ -63,61 +63,6 @@ The name "community edition" is not a reflection of an intentional rift between 
 a few people that stuck. I (@mworzala) am very happy for changes in `minestom-ce` to be merged back to `Minestom/Minestom`, I
 just do not necessarily have the time to do so myself.
 
-# Why Minestom?
-Minecraft has evolved a lot since its release, most of the servers today do not take advantage of vanilla features and even have to struggle because of them.
-Our target audience is those who want to make a server that benefits little from vanilla features. e.g. creative, kitpvp.
-The goal is to offer more performance for those who need it.
-In other words, it makes sense to use Minestom when it takes less time to implement every missing vanilla feature you want than removing every vanilla feature that will slow you down.
-
-# Advantages and Disadvantages
-Minestom isn't perfect, our choices make it much better for some cases, worse for some others.
-
-## Advantages
-* Remove the overhead of vanilla features
-* Multi-threaded
-* Instance system (Collections of blocks and entities) which is much more scalable than worlds
-* Open-source
-* Modern API
-* No more legacy NMS
-
-## Disadvantages
-* Does not work with Bukkit/Forge/Sponge plugins or mods
-* Does not work with older clients (using a proxy with ViaBackwards is possible)
-* Bad for those who want a vanilla experience
-* Longer to develop something playable
-* Multi-threaded environments need extra consideration
-
-# API
-Even if we do not include anything by default in the game, we simplify the way you add them, here is a preview.
-
-## Instances
-It is our major concept, worlds are great for survival with friends, but when it scales up it can become unmanageable. The best examples can be found in Skyblock or minigames, not being able to separate each part properly and being forced to save everything in files, not to say the overhead caused by unnecessary data contained in them. Instances are a lightweight solution to it, being able to have every chunk in memory only, copying and sending it to another player in no time, with custom serialization and much more...
-
-Being able to create instances directly on the go is a must-have, we believe it can push many more projects forward.
-
-Instances also come with performance benefits, unlike some others which will be fully single-threaded or maybe using one thread per world we are using a set number of threads (pool) to manage all chunks independently from instances, meaning using more CPU power.
-
-## Blocks
-Minestom by default does not know what is a chest, you will have to tell him that it opens an inventory. 
-Every "special blocks" (which aren't only visual) need a specialized handler. After applying this handler, you have a block that can be placed anywhere simply.
-However, all blocks are visually there, they just won't have interaction by default.
-
-## Entities
-The terms "passive" or "aggressive" monsters do not exist, nobody stops you from making a flying chicken rushing into any players coming too close, doing so with NMS is a real mess because of obfuscation and the large inheritance.
-
-## Inventories
-It is a field where Minecraft evolved a lot, inventories are now used a lot as client<->server interface with clickable items and callback, we support these interactions natively without the need of programming your solution.
-
-## Commands
-Commands are the simplest way of communication between clients and server. Since 1.13 Minecraft has incorporated a new library denominated "Brigadier", we then integrated an API designed to use the full potential of args types.
-
-# Credits
-* The [contributors](https://github.com/hollow-cube/minestom-ce/graphs/contributors) of the project
-* [The Minecraft Coalition](https://wiki.vg/) and [`#mcdevs`](https://github.com/mcdevs) -
-   protocol and file formats research.
-* [The Minecraft Wiki](https://minecraft.gamepedia.com/Minecraft_Wiki) for all their useful info
-* [JProfiler](https://www.ej-technologies.com/products/jprofiler/overview.html) for their amazing Java profiler
-
 # Contributing
 See [the contributing file](CONTRIBUTING.md)!
 All WIP features are previewed as Draft PRs
