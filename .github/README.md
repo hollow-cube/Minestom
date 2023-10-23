@@ -1,5 +1,3 @@
-![banner](banner_dark.png#gh-dark-mode-only)
-![banner](banner_light.png#gh-light-mode-only)
 
 # Minestom
 
@@ -24,10 +22,6 @@ This is a developer API not meant to be used by end-users. Replacing Bukkit/Forg
 - [Install](#install)
 - [Usage](#usage)
 - [Why Minestom?](#why-minestom)
-- [Advantages & Disadvantages](#advantages-and-disadvantages)
-- [API](#api)
-- [Credits](#credits)
-- [Contributing](#contributing)
 - [License](#license)
 
 # Install
@@ -62,10 +56,6 @@ level goal of many changes are to make Minestom more of a library and less of a 
 The name "community edition" is not a reflection of an intentional rift between the two projects, it was just a joke between
 a few people that stuck. I (@mworzala) am very happy for changes in `minestom-ce` to be merged back to `Minestom/Minestom`, I
 just do not necessarily have the time to do so myself.
-
-# Contributing
-See [the contributing file](CONTRIBUTING.md)!
-All WIP features are previewed as Draft PRs
 
 # License
 This project is licensed under the [Apache License Version 2.0](../LICENSE).
