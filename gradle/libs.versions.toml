@@ -8,7 +8,7 @@ adventure = "4.12.0"
 kotlin = "1.9.10"
 hydrazine = "1.7.2"
 hephaistos = "2.6.1"
-jetbrainsAnnotations = "23.0.0"
+jetbrainsAnnotations = "24.0.1"
 slf4j = "2.0.7"
 
 # Performance / Data Structures
