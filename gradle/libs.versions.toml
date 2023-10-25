@@ -9,7 +9,7 @@ kotlin = "1.9.10"
 hydrazine = "1.8.1"
 hephaistos = "2.6.1"
 jetbrainsAnnotations = "24.0.1"
-slf4j = "2.0.7"
+slf4j = "2.0.9"
 
 # Performance / Data Structures
 caffeine = "3.1.8"
