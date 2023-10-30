@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(project(mapOf("path" to ":")))
 }
 
 kotlin {
