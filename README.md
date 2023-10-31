@@ -12,7 +12,8 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 - [ ] DefaultItem
 ## API
 - [x] FakePlayer handler
-- [ ] Instance handler solve the problem and todos
+- [x] Instance handler solve the problem and todos
+- [ ] Hologram handler
 - [ ] Block handler (state's from blocks)
 - [ ] Pre - Sub-fix api
 - [ ] ConfigPath
