@@ -13,6 +13,9 @@ class ByteServer(server: MinecraftServer) {
 
         server.start("127.0.0.1", 25565)
         println("[ByteServer] minestom server was started!")
+
+        // Just testing
+        //fakePlayerHandler.register("", PlayerSkin.fromUsername("FlxwDNS")!!, instanceHandler.getSpawnInstance(), Pos(0.0, 44.0, 0.0))
     }
 
     companion object {
