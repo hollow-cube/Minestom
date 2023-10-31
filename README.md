@@ -11,7 +11,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 - [ ] ClickableItem
 - [ ] DefaultItem
 ## API
-- [ ] FakePlayer handler
+- [x] FakePlayer handler
 - [ ] Instance handler solve the problem and todos
 - [ ] Block handler (state's from blocks)
 - [ ] Pre - Sub-fix api
