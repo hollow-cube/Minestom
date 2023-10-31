@@ -7,7 +7,7 @@ import net.minestom.server.instance.Instance
 class FakePlayerHandler {
     private val fakePlayers: HashMap<String, FakePlayerConstruct> = HashMap()
 
-    fun spawn(id: String, skin: PlayerSkin, instance: Instance, pos: Pos) {
+    fun register(id: String, skin: PlayerSkin, instance: Instance, pos: Pos) {
         val fakePlayer = FakePlayerConstruct(id, skin, instance, pos)
         fakePlayers[id] = fakePlayer
     }
