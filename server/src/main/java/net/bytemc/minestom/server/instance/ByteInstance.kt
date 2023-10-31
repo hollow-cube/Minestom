@@ -5,7 +5,10 @@ import net.minestom.server.instance.InstanceContainer
 import net.minestom.server.world.DimensionType
 import java.util.*
 
-class ByteInstance(var name: String, dimensionType: DimensionType, chunkLoader: IChunkLoader) : InstanceContainer(UUID.randomUUID(), dimensionType, chunkLoader) {
+class ByteInstance: InstanceContainer {
+
+    constructor(name: String, dimensionType: DimensionType) : super(UUID.randomUUID(), dimensionType)
+    constructor(name: String, dimensionType: DimensionType, loader: IChunkLoader) : super(UUID.randomUUID(), dimensionType, loader)
 
     fun save() {
         TODO("Not implemented yet.")
