@@ -1,9 +1,11 @@
 package net.minestom.server.entity.fakeplayer;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
 import net.minestom.server.event.Event;
@@ -80,6 +82,33 @@ public class FakePlayer extends Player implements NavigableEntity {
     public static void initPlayer(@NotNull UUID uuid, @NotNull String username,
                                   @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
         new FakePlayer(uuid, username, option, spawnCallback);
+    }
+
+    public static void initPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
+        var id = UUID.randomUUID();
+        var options = new FakePlayerOption().setInTabList(false).setRegistered(false);
+
+        initPlayer(id, id.toString(), options, fakePlayer -> {
+            if (instance == fakePlayer.instance) {
+                fakePlayer.refreshPosition(pos);
+            } else {
+                fakePlayer.setInstance(instance, pos).whenComplete((i, i2) -> {
+                    fakePlayer.teleport(pos);
+                });
+            }
+
+            // update design
+            var meta = fakePlayer.getEntityMeta();
+            meta.allowAllSkinLayers();
+
+            fakePlayer.setCustomName(Component.empty());
+            fakePlayer.setCustomNameVisible(false);
+            fakePlayer.setNoGravity(true);
+            fakePlayer.setInvulnerable(true);
+            fakePlayer.setSkin(skin);
+
+            spawnCallback.accept(fakePlayer);
+        });
     }
 
     /**
