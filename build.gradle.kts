@@ -59,6 +59,7 @@ dependencies {
     api(libs.hydrazine)
     api(libs.bundles.kotlin)
     api(libs.bundles.hephaistos)
+    api(libs.dependencyGetter)
     implementation(libs.minestomData)
     implementation(libs.caffeine)
     api(libs.fastutil)
