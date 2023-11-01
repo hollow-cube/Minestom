@@ -11,11 +11,20 @@ class ByteServer(server: MinecraftServer) {
     init {
         instance = this
 
+
+        println("[ByteServer] starting server with following configuration:")
+        println("[ByteServer]  - Address: 127.0.0.1")
+        println("[ByteServer]  - Port: 25565")
+        println("[ByteServer]  - Velocity: false")
+
         server.start("127.0.0.1", 25565)
         println("[ByteServer] minestom server was started!")
 
         // Just testing
-        //fakePlayerHandler.register("", PlayerSkin.fromUsername("FlxwDNS")!!, instanceHandler.getSpawnInstance(), Pos(0.0, 44.0, 0.0))
+        /*MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent::class.java) {
+            TestInventory().open(it.player)
+        }
+        fakePlayerHandler.register("", PlayerSkin.fromUsername("FlxwDNS")!!, instanceHandler.getSpawnInstance(), Pos(0.0, 44.0, 0.0))*/
     }
 
     companion object {
