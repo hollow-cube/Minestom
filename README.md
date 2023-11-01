@@ -5,11 +5,10 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 
 # [TODO]
 ## Inventory:
-- [ ] SimpleInventory abstract
+- [x] SimpleInventory abstract
 - [ ] PageableInventory abstract
 - [ ] AnvilInventory abstract
-- [ ] ClickableItem
-- [ ] DefaultItem
+- [x] ClickableItem
 ## API
 - [x] FakePlayer handler
 - [x] Instance handler solve the problem and todos
