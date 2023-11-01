@@ -1,12 +1,10 @@
 package net.bytemc.minestom.server
 
-import net.bytemc.minestom.server.extension.ExtensionHandler
 import net.bytemc.minestom.server.instance.InstanceHandler
 import net.minestom.server.MinecraftServer
 
 class ByteServer(server: MinecraftServer) {
     val instanceHandler = InstanceHandler()
-    val extensionHandler = ExtensionHandler()
 
     init {
         instance = this
