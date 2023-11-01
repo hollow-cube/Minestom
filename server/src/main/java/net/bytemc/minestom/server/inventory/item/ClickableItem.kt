@@ -1,4 +1,4 @@
-package net.bytemc.minestom.server.inventory
+package net.bytemc.minestom.server.inventory.item
 
 import net.minestom.server.entity.Player
 import net.minestom.server.item.ItemStack

@@ -1,8 +1,11 @@
 package net.bytemc.minestom.server.inventory
 
+import net.bytemc.minestom.server.inventory.item.ClickableItem
 import net.minestom.server.entity.Player
 import net.minestom.server.inventory.Inventory
 import net.minestom.server.inventory.InventoryType
+import net.minestom.server.item.ItemStack
+import net.minestom.server.item.Material
 
 abstract class SingletonInventory(var title: String, var type: InventoryType, var clickable: Boolean) {
     var inventory: Inventory = Inventory(type, title)
@@ -20,6 +23,15 @@ abstract class SingletonInventory(var title: String, var type: InventoryType, va
 
     fun open(player: Player) {
         player.openInventory(inventory)
+    }
+
+    fun fill(clickableItem: ClickableItem) {
+        for(i in 0 until inventory.size) {
+            if(inventory.itemStacks[i].material() == Material.AIR) {
+                fill(i, clickableItem)
+                break
+            }
+        }
     }
 
     fun fill(slot: Int, clickableItem: ClickableItem) {

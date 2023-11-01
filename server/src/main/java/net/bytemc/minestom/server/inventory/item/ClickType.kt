@@ -1,4 +1,4 @@
-package net.bytemc.minestom.server.inventory
+package net.bytemc.minestom.server.inventory.item
 
 enum class ClickType(var identifier: String) {
     ALL("ALL"),
