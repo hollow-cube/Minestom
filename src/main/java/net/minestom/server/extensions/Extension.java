@@ -21,9 +21,10 @@ public abstract class Extension {
      * List of extensions that depend on this extension.
      */
     protected final Set<String> dependents = new HashSet<>();
+    private final Path configPath;
 
     protected Extension() {
-
+        this.configPath = Path.of("extensions/" + getOrigin().getName()).toAbsolutePath();
     }
 
     public void preInitialize() {
@@ -44,6 +45,10 @@ public abstract class Extension {
 
     public void postTerminate() {
 
+    }
+
+    public Path getConfigPath() {
+        return configPath;
     }
 
     ExtensionClassLoader getExtensionClassLoader() {

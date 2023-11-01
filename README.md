@@ -23,18 +23,12 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 # Todo
 ## Inventory:
 - [x] SimpleInventory abstract
+- [x] ClickableItem
 - [ ] PageableInventory abstract
 - [ ] AnvilInventory abstract
-- [x] ClickableItem
 ## API
 - [x] Instance handler solve the problem and todos
+- [x] ConfigPath
 - [ ] Hologram handler
 - [ ] Block handler (state's from blocks)
 - [ ] Pre - Sub-fix api
-- [ ] ConfigPath
-## Extensions
-- [ ] Extension handler
-- [ ] Load extension
-- [ ] Inject dependencies into extensions
-- [ ] List jars
-- [ ] Implements json file reading (extension.json)
