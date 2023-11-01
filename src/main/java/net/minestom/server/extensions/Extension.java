@@ -48,6 +48,14 @@ public abstract class Extension {
     }
 
     public Path getConfigPath() {
+        if(!Files.exists(configPath)) {
+            try {
+                Files.createDirectory(configPath);
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
         return configPath;
     }
 

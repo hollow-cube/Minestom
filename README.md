@@ -18,7 +18,11 @@ Will be released soon as possible. The bytemc team is on the way to implements a
     // Disable time:
     Instance.disableTimeRotation();
     ```
-
+3. Extension
+    ```java
+   // Return path:
+   Extension.getConfigPath();
+    ```
 
 # Todo
 ## Inventory:
