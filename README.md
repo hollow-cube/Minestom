@@ -52,6 +52,9 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 5. Hologram
    ```kotlin
    Hologram(Instance, Point, List<String>)
+   // Methods
+   spawn()
+   destroy()
    ```
 
 # Todo
