@@ -6,27 +6,51 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 
 # Documentation
 1. FakePlayers
-    ```java
-    FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>);
+    ```kotlin
+    FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>)
     ```
     Also manipulate `FakePlayers` with skin layers:
-    ```java
-    fakePlayer.meta.allowAllSkinLayers(); 
+    ```kotlin
+    fakePlayer.meta.allowAllSkinLayers()
     ```
 2. Instance
-    ```java
+    ```kotlin
     // Disable time:
-    Instance.disableTimeRotation();
+    Instance.disableTimeRotation()
     ```
 3. Extension
-    ```java
+    ```kotlin
    // Return path:
-   Extension.getConfigPath();
+   Extension.getConfigPath()
     ```
+4. Inventory
+   ```kotlin
+   // ClickableItem
+   ClickableItem(ItemStack).subscribe(Consumer<Player>, ClickType)
+   
+   // Singleton inventory:
+   class Class: SingletonInventory(String, InventoryType, Boolean) { 
+        fill(ClickableItem)
+        fill(Int, ClickableItem)
+        fill(Int, Int, ClickableItem)
+    }
+   
+   // Pageable inventory:
+   class Class: PageableInventory<Object>(String, InventoryType, Boolean, List<Object>) { 
+        fill(ClickableItem)
+        fill(Int, ClickableItem)
+        fill(Int, Int, ClickableItem)
+        
+        override fun construct(Object): ClickableItem
+    }
+   
+   // Anvil inventory:
+   class Class: AnvilInventory(String, Player) { 
+        override fun onSubmit(Player, String)
+    }
+   ```
 
 # Todo
-## Inventory:
-- [ ] AnvilInventory abstract
 ## API
 - [ ] Hologram handler
 - [ ] Block handler (state's from blocks)
