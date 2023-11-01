@@ -49,8 +49,11 @@ Will be released soon as possible. The bytemc team is on the way to implements a
         override fun onSubmit(Player, String)
     }
    ```
+5. Hologram
+   ```kotlin
+   Hologram(Instance, Point, List<String>)
+   ```
 
 # Todo
 ## API
-- [ ] Hologram handler
 - [ ] Block handler (state's from blocks)
