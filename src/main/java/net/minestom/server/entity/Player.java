@@ -457,8 +457,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         refreshHealth();
 
         sendPacket(new RespawnPacket(getDimensionType().toString(), instance.getDimensionName(),
-                0, gameMode, gameMode, false, levelFlat, RespawnPacket.COPY_ALL,
-                deathLocation, portalCooldown));
+                0, gameMode, gameMode, false, levelFlat, deathLocation, portalCooldown, RespawnPacket.COPY_ALL));
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this);
         EventDispatcher.call(respawnEvent);
@@ -1010,8 +1009,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         final PlayerInfoUpdatePacket addPlayerPacket = getAddPlayerToList();
 
         RespawnPacket respawnPacket = new RespawnPacket(getDimensionType().toString(), instance.getDimensionName(),
-                0, gameMode, gameMode, false, levelFlat, RespawnPacket.COPY_ALL,
-                deathLocation, portalCooldown);
+                0, gameMode, gameMode, false, levelFlat, deathLocation, portalCooldown, RespawnPacket.COPY_ALL);
 
         sendPacket(removePlayerPacket);
         sendPacket(destroyEntitiesPacket);
@@ -1412,7 +1410,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.dimensionType = dimensionType;
         sendPacket(new RespawnPacket(dimensionType.toString(), dimensionName,
                 0, gameMode, gameMode, false, levelFlat,
-                RespawnPacket.COPY_ALL, deathLocation, portalCooldown));
+                deathLocation, portalCooldown, RespawnPacket.COPY_ALL));
         refreshClientStateAfterRespawn();
     }
 
