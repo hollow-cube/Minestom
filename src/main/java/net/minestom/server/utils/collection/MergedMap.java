@@ -20,7 +20,7 @@ public final class MergedMap<K, V> extends AbstractMap<K, V> {
 
     final Set<Entry<K, V>> entrySet = new AbstractSet<>() {
         @Override
-        public Iterator<Map.Entry<K, V>> iterator() {
+        public Iterator<Entry<K, V>> iterator() {
             return stream().iterator();
         }
 
@@ -32,7 +32,7 @@ public final class MergedMap<K, V> extends AbstractMap<K, V> {
         @Override
         public Stream<Entry<K, V>> stream() {
             return Stream.concat(first.entrySet().stream(), secondStream())
-                    .map(e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey(), e.getValue()));
+                    .map(e -> new SimpleImmutableEntry<>(e.getKey(), e.getValue()));
         }
 
         @Override
@@ -51,7 +51,7 @@ public final class MergedMap<K, V> extends AbstractMap<K, V> {
     }
 
     @Override
-    public Set<Map.Entry<K, V>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         return entrySet;
     }
 
