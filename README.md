@@ -57,6 +57,19 @@ Will be released soon as possible. The bytemc team is on the way to implements a
    destroy()
    ```
 
+6. Point
+``` java
+point.blockCenter() // return the middle of a block
+```
+
+7. Direction
+```java
+
+```
+
 # Todo
 ## API
-- [ ] Block handler (state's from blocks)
+- clickable block
+- clickable Item
+- clickable entities
+- Minecraft Colors
