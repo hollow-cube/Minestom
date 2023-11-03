@@ -58,17 +58,17 @@ Will be released soon as possible. The bytemc team is on the way to implements a
    ```
 
 6. Point
-``` java
-point.blockCenter() // return the middle of a block
-```
+    ``` java
+    point.blockCenter() // return the middle of a block
+    ```
 
 7. Direction
-```java
-Direction.NORTH.getChestFacing(); // get chest face direction
-Direction.NORTH.getSignFacing(); // get sign face direction
-Direction.NORTH.rotate(new Vec(0,0,0)); // rotate a direciton 
-Direction.NORTH.fromDirection(new Vec(0,0,0)); // translate a point to direction
-```
+    ```java
+    Direction.NORTH.getChestFacing(); // get chest face direction
+    Direction.NORTH.getSignFacing(); // get sign face direction
+    Direction.NORTH.rotate(new Vec(0,0,0)); // rotate a direciton 
+    Direction.NORTH.fromDirection(new Vec(0,0,0)); // translate a point to direction
+    ```
 
 # Todo
 ## API
