@@ -3,6 +3,7 @@ package net.minestom.server.item.metadata;
 import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.item.ItemMetaView;
 import net.minestom.server.tag.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -11,10 +12,7 @@ import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.jglrxavpok.hephaistos.nbt.NBTList;
 import org.jglrxavpok.hephaistos.nbt.NBTType;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public record PlayerHeadMeta(TagReadable readable) implements ItemMetaView<PlayerHeadMeta.Builder> {
     public static final Tag<UUID> SKULL_OWNER = Tag.UUID("Id").path("SkullOwner");
@@ -67,6 +65,12 @@ public record PlayerHeadMeta(TagReadable readable) implements ItemMetaView<Playe
 
         public Builder playerSkin(@Nullable PlayerSkin playerSkin) {
             setTag(SKIN, playerSkin);
+            return this;
+        }
+
+        @Contract(value = "_ -> this")
+        public Builder withTexture(@NotNull String link) {
+            this.skullOwner(UUID.randomUUID()).playerSkin(new PlayerSkin(Base64.getEncoder().encodeToString(("{textures:{SKIN:{url:\"" + link + "\"}}}").getBytes()), ""));
             return this;
         }
     }
