@@ -78,6 +78,15 @@ public enum Direction {
         };
     }
 
+    public float getYaw() {
+        return switch (this) {
+            case NORTH -> 180;
+            case EAST -> -90;
+            case WEST -> 90;
+            default -> 0;
+        };
+    }
+
     public static Direction fromDirection(Point direction) {
         double x = direction.x();
         double z = direction.z();
