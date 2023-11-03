@@ -1,5 +1,7 @@
 package net.minestom.server.utils;
 
+import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Vec;
 import org.jetbrains.annotations.NotNull;
 
 public enum Direction {
@@ -43,5 +45,47 @@ public enum Direction {
             case NORTH -> SOUTH;
             case SOUTH -> NORTH;
         };
+    }
+
+    public Vec rotate(Vec vector) {
+        double angle = switch (this) {
+            case WEST -> 90;
+            case SOUTH -> 180;
+            case EAST -> 270;
+            default -> 0;
+        };
+
+        return vector.rotateAroundY(Math.toRadians(angle));
+    }
+
+    public Direction getChestFacing() {
+        return switch (this) {
+            case NORTH -> SOUTH;
+            case EAST -> WEST;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            default -> null;
+        };
+    }
+
+    public Direction getSignFacing() {
+        return switch (this) {
+            case NORTH -> SOUTH;
+            case EAST -> WEST;
+            case SOUTH -> NORTH;
+            case WEST -> EAST;
+            default -> null;
+        };
+    }
+
+    public static Direction fromDirection(Point direction) {
+        double x = direction.x();
+        double z = direction.z();
+
+        if (Math.abs(x) > Math.abs(z)) {
+            return x < 0 ? WEST : EAST;
+        } else {
+            return z < 0 ? NORTH : SOUTH;
+        }
     }
 }
