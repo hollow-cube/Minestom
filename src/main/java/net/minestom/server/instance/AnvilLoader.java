@@ -103,24 +103,6 @@ public class AnvilLoader implements IChunkLoader {
 
         Chunk chunk = instance.getChunkSupplier().createChunk(instance, chunkX, chunkZ);
         synchronized (chunk) {
-            var yRange = chunkReader.getYRange();
-            if (yRange.getStart() < instance.getDimensionType().getMinY()) {
-                throw new AnvilException(
-                        String.format("Trying to load chunk with minY = %d, but instance dimension type (%s) has a minY of %d",
-                                yRange.getStart(),
-                                instance.getDimensionType().getName().asString(),
-                                instance.getDimensionType().getMinY()
-                        ));
-            }
-            if (yRange.getEndInclusive() > instance.getDimensionType().getMaxY()) {
-                throw new AnvilException(
-                        String.format("Trying to load chunk with maxY = %d, but instance dimension type (%s) has a maxY of %d",
-                                yRange.getEndInclusive(),
-                                instance.getDimensionType().getName().asString(),
-                                instance.getDimensionType().getMaxY()
-                        ));
-            }
-
             // TODO: Parallelize block, block entities and biome loading
             // Blocks + Biomes
             loadSections(chunk, chunkReader);
