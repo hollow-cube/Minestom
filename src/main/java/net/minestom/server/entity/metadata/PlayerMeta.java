@@ -126,4 +126,14 @@ public class PlayerMeta extends LivingEntityMeta {
         super.metadata.setIndex(OFFSET + 5, Metadata.NBT(value));
     }
 
+    public void allowAllSkinLayers() {
+        setHatEnabled(true);
+        setLeftSleeveEnabled(true);
+        setRightSleeveEnabled(true);
+        setCapeEnabled(true);
+        setJacketEnabled(true);
+        setLeftLegEnabled(true);
+        setRightLegEnabled(true);
+    }
+
 }

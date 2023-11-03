@@ -28,7 +28,8 @@ public class DimensionType {
             .skylightEnabled(true)
             .ceilingEnabled(false)
             .fixedTime(null)
-            .ambientLight(0.0f)
+            // TODO: lightning is normally 0f
+            .ambientLight(1.0f)
             .height(384)
             .minY(-64)
             .logicalHeight(384)

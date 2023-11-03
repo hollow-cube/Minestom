@@ -670,4 +670,8 @@ public class InstanceContainer extends Instance {
         var dispatcher = MinecraftServer.process().dispatcher();
         dispatcher.createPartition(chunk);
     }
+
+    public void disableTimeRotation() {
+        setTimeRate(0);
+    }
 }
