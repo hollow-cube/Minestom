@@ -4,16 +4,20 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.PlayerLoginEvent
 import net.minestom.server.instance.AnvilLoader
+import net.minestom.server.instance.InstanceContainer
 import net.minestom.server.instance.block.Block
+import net.minestom.server.instance.generator.Generator
+import net.minestom.server.instance.generator.Generators
 import net.minestom.server.world.DimensionType
+import java.util.*
 import kotlin.collections.HashMap
 
 class InstanceHandler {
-    private var instances: HashMap<String, ByteInstance> = HashMap()
-    private var spawnInstance: ByteInstance
+    private var instances: HashMap<String, InstanceContainer> = HashMap()
+    private var spawnInstance: InstanceContainer
 
     init {
-        spawnInstance = create("Default", DimensionType.OVERWORLD)
+        spawnInstance = create("Default", Generators.FLAT_GENERATOR)
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerLoginEvent::class.java) { event ->
             event.setSpawningInstance(spawnInstance)
@@ -21,31 +25,28 @@ class InstanceHandler {
         }
     }
 
-    fun getSpawnInstance(): ByteInstance {
+    fun getSpawnInstance(): InstanceContainer {
         return spawnInstance
     }
 
-    fun setSpawnInstance(instance: ByteInstance) {
+    fun setSpawnInstance(instance: InstanceContainer) {
         spawnInstance = instance
     }
 
-    fun create(name: String, type: DimensionType): ByteInstance {
-        val byteInstance = ByteInstance(name, type)
-        //TODO: Own generator
-        byteInstance.setGenerator {
-            it.modifier().fillHeight(0, 40, Block.GRASS_BLOCK)
-        }
-
+    fun create(name: String, generator: Generator): InstanceContainer {
+        val byteInstance = InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD)
+        byteInstance.setGenerator(generator)
         MinecraftServer.getInstanceManager().registerInstance(byteInstance)
+        instances[name] = byteInstance
         return byteInstance
     }
 
-    fun getOrNull(name: String): ByteInstance? {
+    fun getOrNull(name: String): InstanceContainer? {
         return instances[name]
     }
 
-    fun register(name: String): ByteInstance {
-        val byteInstance = ByteInstance(name, DimensionType.OVERWORLD, AnvilLoader("instances/${name}"))
+    fun register(name: String): InstanceContainer {
+        val byteInstance = InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, AnvilLoader("instances/${name}"))
         MinecraftServer.getInstanceManager().registerInstance(byteInstance)
         instances[name] = byteInstance
         return byteInstance
