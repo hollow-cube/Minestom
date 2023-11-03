@@ -207,6 +207,11 @@ public sealed interface Point permits Vec, Pos {
         return Math.sqrt(distanceSquared(x, y, z));
     }
 
+    default Vec blockCenter() {
+        return new Vec(blockX() + 0.5, blockY(), blockZ() + 0.5);
+    }
+
+
     /**
      * Gets the distance between this point and another. The value of this
      * method is not cached and uses a costly square-root function, so do not
