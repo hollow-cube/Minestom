@@ -341,8 +341,15 @@ public class PlayerSocketConnection extends PlayerConnection {
             final ServerPacket serverPacket = SendablePacket.extractServerPacket(packet);
             PlayerPacketOutEvent event = new PlayerPacketOutEvent(player, serverPacket);
             outgoing.call(event);
+
             if (event.isCancelled()) return;
+            event.usePackets(p -> writeAbstractPacketSync(p, compressed));
+        } else {
+            writeAbstractPacketSync(packet, compressed);
         }
+    }
+
+    private void writeAbstractPacketSync(SendablePacket packet, boolean compressed) {
         // Write packet
         if (packet instanceof ServerPacket serverPacket) {
             writeServerPacketSync(serverPacket, compressed);
@@ -359,7 +366,6 @@ public class PlayerSocketConnection extends PlayerConnection {
             throw new RuntimeException("Unknown packet type: " + packet.getClass().getName());
         }
     }
-
     private void writeServerPacketSync(ServerPacket serverPacket, boolean compressed) {
         final Player player = getPlayer();
         if (player != null) {
