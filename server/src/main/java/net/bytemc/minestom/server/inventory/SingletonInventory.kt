@@ -7,7 +7,7 @@ import net.minestom.server.inventory.InventoryType
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 
-abstract class SingletonInventory(var title: String, var type: InventoryType, var clickable: Boolean) {
+open class SingletonInventory(var title: String, var type: InventoryType, var clickable: Boolean) {
     var inventory: Inventory = Inventory(type, title)
     var items: HashMap<Int, ClickableItem> = HashMap()
 
