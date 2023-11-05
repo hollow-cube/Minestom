@@ -33,7 +33,7 @@ class HeadDisplay(private val value: String, val instance: Instance, val pos: Po
             var distance = 0.0
             when (size) {
                 HeadSize.BIG -> {
-                    distance = i / 1.8
+                    distance = i / 1.6
                     entity.helmet = headStack
                     meta.isSmall = false
                 }
