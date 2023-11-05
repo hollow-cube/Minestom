@@ -77,6 +77,13 @@ Will be released soon as possible. The bytemc team is on the way to implements a
         // set type or something else
     }.spawn(it.player.position, it.player.instance)
     ```
+9. ItemStack
+    ```kotlin
+    // Player Head
+   ItemStack.of(String)
+   ItemStack.of(String, Int)
+   ItemStack.of(PlayerSkin, Int)
+    ```
 
 # Todo
 ## API
