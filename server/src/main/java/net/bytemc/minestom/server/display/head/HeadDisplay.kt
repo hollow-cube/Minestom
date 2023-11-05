@@ -1,6 +1,5 @@
 package net.bytemc.minestom.server.display.head
 
-import net.minestom.server.coordinate.Point
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.EntityCreature
 import net.minestom.server.entity.EntityType
