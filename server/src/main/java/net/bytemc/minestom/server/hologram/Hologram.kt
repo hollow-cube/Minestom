@@ -24,7 +24,7 @@ class Hologram(var instance: Instance, var spawn: Point, var lines: List<String>
             hologram.isCustomNameVisible = true
             hologram.customName = Component.text(line)
 
-            hologram.setInstance(instance).whenComplete { _, _ ->
+            hologram.setInstance(instance, spawn.sub(0.0, (entities.size + 1) / 2.2, 0.0)).whenComplete { _, _ ->
                 hologram.spawn()
             }
             
