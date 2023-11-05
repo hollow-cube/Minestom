@@ -10,6 +10,7 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.PlayerBlockBreakEvent
 import net.minestom.server.extras.MojangAuth
+import net.minestom.server.extras.velocity.VelocityProxy
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 import net.minestom.server.utils.Direction
@@ -26,10 +27,19 @@ class ByteServer(server: MinecraftServer, args: Array<String>) {
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:skull")) { BlockHandlers.SKULL_HANDLER }
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:banner")) { BlockHandlers.BANNER_HELPER }
 
-        if(args.contains("--disableMojangAuth")) {
-            println("[ByteServer] disable MojangAuth...")
+        if(args.contains("--velocity")) {
+            for (i in args.indices) {
+                if(args[i] == "--velocity") {
+                    VelocityProxy.enable(args[i + 1])
+                }
+            }
+            println("[ByteServer] velocity will be enabled...")
         } else {
-            MojangAuth.init()
+            if (args.contains("--disableMojangAuth")) {
+                println("[ByteServer] disable MojangAuth...")
+            } else {
+                MojangAuth.init()
+            }
         }
 
         var port = 25565
