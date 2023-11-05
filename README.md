@@ -5,7 +5,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 
 
 # Documentation
-### Args:
+### Arguments
 ```java
 --velocity [String] | Enable velocity support // Disable mojangAuth
 --port [Int] | Override default port 25565 // If you want to set a specific port
@@ -13,6 +13,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 --allowTesting | Enable all testing methods // Only for testing
 ```
 
+### Methods
 1. FakePlayers
     ```kotlin
     FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>)
