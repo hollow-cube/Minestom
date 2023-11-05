@@ -107,8 +107,11 @@ Will be released soon as possible. The bytemc team is on the way to implements a
     ```
 
 # Todo
+## Not implemented
+- [ ] HeadDisplay size [SMALL, VERY_SMALL]
+- [ ] HeadDisplay rotation [UP, DOWN]
+- [ ] HeadDisplay string [SYMBOLS]
+
 ## API
-- clickable block
-- clickable Item
-- clickable entities
-- Minecraft Colors
+- [ ] ClickableBlock
+- [ ] Minecraft Colors
