@@ -5,7 +5,6 @@ import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.PlayerLoginEvent
 import net.minestom.server.instance.AnvilLoader
 import net.minestom.server.instance.InstanceContainer
-import net.minestom.server.instance.block.Block
 import net.minestom.server.instance.generator.Generator
 import net.minestom.server.instance.generator.Generators
 import net.minestom.server.world.DimensionType
