@@ -9,6 +9,7 @@ import net.bytemc.minestom.server.instance.InstanceHandler
 import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.PlayerBlockBreakEvent
+import net.minestom.server.extras.MojangAuth
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 import net.minestom.server.utils.Direction
@@ -25,7 +26,23 @@ class ByteServer(server: MinecraftServer, args: Array<String>) {
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:skull")) { BlockHandlers.SKULL_HANDLER }
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:banner")) { BlockHandlers.BANNER_HELPER }
 
-        server.start("127.0.0.1", 25565)
+        if(args.contains("--disableMojangAuth")) {
+            println("[ByteServer] disable MojangAuth...")
+        } else {
+            MojangAuth.init()
+        }
+
+        var port = 25565
+        if(args.contains("--port")) {
+            for (i in args.indices) {
+                if(args[i] == "--port") {
+                    port = Integer.parseInt(args[i + 1])
+                }
+            }
+            println("[ByteServer] port is $port")
+        }
+
+        server.start("127.0.0.1", port)
         println("[ByteServer] minestom server was started!")
 
         // Testing
