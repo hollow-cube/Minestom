@@ -1,6 +1,8 @@
 package net.bytemc.minestom.server
 
 import net.bytemc.minestom.server.clickable.InteractItem
+import net.bytemc.minestom.server.display.head.HeadDisplay
+import net.bytemc.minestom.server.display.head.HeadSize
 import net.bytemc.minestom.server.handler.BlockHandlers
 import net.bytemc.minestom.server.hologram.Hologram
 import net.bytemc.minestom.server.instance.InstanceHandler
@@ -9,6 +11,7 @@ import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.player.PlayerBlockBreakEvent
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
+import net.minestom.server.utils.Direction
 import net.minestom.server.utils.NamespaceID
 import java.util.function.Consumer
 
@@ -48,6 +51,9 @@ class ByteServer(server: MinecraftServer, args: Array<String>) {
 
             // Hologram
             Hologram(instance, Pos(1.0, 5.0, 1.0), listOf("Test", "Test2")).spawn()
+
+            // HeadDIsplay
+            HeadDisplay("Marco Polo", instance, Pos(1.0, 2.0, 1.0), Direction.EAST, HeadSize.BIG).spawn()
         }
 
 
