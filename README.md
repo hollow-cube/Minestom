@@ -84,6 +84,18 @@ Will be released soon as possible. The bytemc team is on the way to implements a
    ItemStack.of(String, Int)
    ItemStack.of(PlayerSkin, Int)
     ```
+10. HeadDisplay
+    ```kotlin
+    TODO("Currently there is only Space and Alphabetic-Letters implemented!")
+    TODO("Currently there is only HeadSize.BIG and HeadSize.MEDIUM implemented!")
+    // Player Head
+    HeadDisplay(String, Instance, Pos, Direction)
+    HeadDisplay(String, Instance, Pos, Direction, HeadSize)
+    HeadDisplay(String, Instance, Pos, Direction, HeadSize, Boolean)
+    // Methods
+    spawn()
+    destroy()
+    ```
 
 # Todo
 ## API
