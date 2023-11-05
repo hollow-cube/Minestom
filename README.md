@@ -67,7 +67,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
     Direction.NORTH.getChestFacing(); // get chest face direction
     Direction.NORTH.getSignFacing(); // get sign face direction
     Direction.NORTH.rotate(new Vec(0,0,0)); // rotate a direciton 
-    Direction.NORTH.fromDirection(new Vec(0,0,0)); // translate a point to direction
+    Direction.fromDirection(new Vec(0,0,0)); // translate a point to direction
     ```
 8. ClickableEntity
     ```kotlin
