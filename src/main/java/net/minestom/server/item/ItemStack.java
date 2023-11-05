@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.minestom.server.adventure.MinestomAdventure;
+import net.minestom.server.entity.PlayerSkin;
+import net.minestom.server.item.metadata.PlayerHeadMeta;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.tag.TagHandler;
 import net.minestom.server.tag.TagReadable;
@@ -14,6 +16,7 @@ import org.jetbrains.annotations.*;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.function.UnaryOperator;
@@ -39,6 +42,19 @@ public sealed interface ItemStack extends TagReadable, HoverEventSource<HoverEve
     @Contract(value = "_ ,_ -> new", pure = true)
     static @NotNull ItemStack of(@NotNull Material material, int amount) {
         return ItemStackImpl.create(material, amount);
+    }
+
+    @Contract(value = "_ -> new", pure = true)
+    static @NotNull ItemStack of(@NotNull String skinData) {
+        return of(new PlayerSkin(skinData, ""), 1);
+    }
+
+    @Contract(value = "_ ,_ -> new", pure = true)
+    static @NotNull ItemStack of(@NotNull PlayerSkin skin, int amount) {
+        return ItemStackImpl.create(Material.PLAYER_HEAD, amount).withMeta(PlayerHeadMeta.class, meta -> {
+            meta.skullOwner(UUID.randomUUID());
+            meta.playerSkin(skin);
+        });
     }
 
     @Contract(value = "_ -> new", pure = true)
