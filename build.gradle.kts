@@ -4,14 +4,12 @@ plugins {
     `maven-publish`
 }
 
-version = System.getenv("SHORT_COMMIT_HASH") ?: "dev"
-
 allprojects {
     apply(plugin = "java")
     apply(plugin = "maven-publish")
 
-    group = "net.minestom"
-    version = rootProject.version
+    group = "net.bytemc"
+    version = "1.0.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -90,16 +88,4 @@ dependencies {
     api(libs.gson)
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
-}
-
-artifactory {
-    setContextUrl("https://artifactory.bytemc.de/artifactory/bytemc-public/")
-
-    publish {
-        repository {
-            username = "mirco"
-            password = "Polo123.#"
-            repoKey = "bytemc-public"
-        }
-    }
 }
