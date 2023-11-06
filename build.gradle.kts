@@ -88,4 +88,9 @@ dependencies {
     api(libs.gson)
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
+
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 }
