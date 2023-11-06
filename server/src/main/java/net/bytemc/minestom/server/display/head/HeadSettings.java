@@ -7,11 +7,13 @@ public final class HeadSettings {
     private Direction direction;
     private HeadSize headSize;
     private Boolean spacer;
+    private double additionDistance;
 
     public HeadSettings() {
         this.direction = Direction.NORTH;
         this.headSize = HeadSize.BIG;
         this.spacer = true;
+        this.additionDistance = 0.0;
     }
 
     public Direction getDirection() {
@@ -36,5 +38,13 @@ public final class HeadSettings {
 
     public void withSpacer(Boolean spacer) {
         this.spacer = spacer;
+    }
+
+    public double getAdditionDistance() {
+        return additionDistance;
+    }
+
+    public void withAdditionDistance(double additionDistance) {
+        this.additionDistance = additionDistance;
     }
 }
