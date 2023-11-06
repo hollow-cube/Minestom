@@ -11,9 +11,9 @@ import net.minestom.server.utils.NamespaceID;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
 @SuppressWarnings("unused")
 public final class ByteServer {
-
     @Getter
     public static ByteServer instance;
 
