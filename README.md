@@ -43,7 +43,6 @@ Only our modifyed minestom version:
 --velocity [String] | Enable velocity support // Disable mojangAuth
 --port [Int] | Override default port 25565 // If you want to set a specific port
 --disableMojangAuth | Disable mojangAuth // For cracked only
---allowTesting | Enable all testing methods // Only for testing
 ```
 
 ### Methods
