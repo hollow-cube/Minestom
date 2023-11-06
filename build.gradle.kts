@@ -89,6 +89,8 @@ dependencies {
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
 
+    api(libs.lombok)
+    implementation(libs.lombok)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
