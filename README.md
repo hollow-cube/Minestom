@@ -13,7 +13,7 @@ Repository:
 ```xml
 <repository>
     <id>bytemc-public</id>
-    <url>https://artifactory.bytemc.de/artifactory/public-bytemc</url>
+    <url>https://artifactory.bytemc.de/artifactory/bytemc-public</url>
 </repository>
 ```
 
