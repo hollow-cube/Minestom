@@ -3,6 +3,39 @@
 ### Description
 Will be released soon as possible. The bytemc team is on the way to implements all basic functions.
 
+# Dependencies
+
+> **Warning**
+>
+> You need following repository `public-bytemc`
+
+Repository:
+```xml
+<repository>
+    <id>public-bytemc</id>
+    <url>https://artifactory.bytemc.de/artifactory/public-bytemc</url>
+</repository>
+```
+
+Our own bytemc-server-minestom fork: 
+```xml 
+<dependency>
+    <groupId>net.bytemc</groupId>
+    <artifactId>server</artifactId>
+    <version>VERSION</version>
+</dependency>
+```
+
+Only our modifyed minestom version:
+```xml  
+<dependency>
+    <groupId>net.bytemc</groupId>
+    <artifactId>minestom</artifactId>
+    <version>VERSION</version>
+</dependency>
+```
+
+
 
 # Documentation
 ### Arguments

@@ -1,8 +1,7 @@
 package net.minestom.server.inventory.click.integration;
 
-
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;

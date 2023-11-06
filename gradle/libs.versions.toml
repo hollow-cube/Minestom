@@ -21,10 +21,9 @@ gson = "2.10.1"
 jcTools = "4.0.1"
 
 # Quality
-junit-jupiter = "5.10.0"
-junit-platform = "1.10.0"
+junit-jupiter = "5.10.1"
+junit-platform = "1.10.1"
 jmh = "1.37"
-jcstress = "0.16"
 
 # Code Generation
 javaPoet = "1.13.0"
@@ -77,7 +76,6 @@ junit-suite-api = { group = "org.junit.platform", name = "junit-platform-suite-a
 junit-suite-engine = { group = "org.junit.platform", name = "junit-platform-suite-engine", version.ref = "junit-platform" }
 jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
 jmh-annotationprocessor = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
-jcstress-core = { group = "org.openjdk.jcstress", name = "jcstress-core", version.ref = "jcstress" }
 
 # Code Generation
 javaPoet = { group = "com.squareup", name = "javapoet", version.ref = "javaPoet" }

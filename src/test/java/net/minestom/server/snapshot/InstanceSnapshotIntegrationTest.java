@@ -1,7 +1,7 @@
 package net.minestom.server.snapshot;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
