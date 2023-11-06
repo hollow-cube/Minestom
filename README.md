@@ -5,6 +5,15 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 
 
 # Documentation
+### Arguments
+```java
+--velocity [String] | Enable velocity support // Disable mojangAuth
+--port [Int] | Override default port 25565 // If you want to set a specific port
+--disableMojangAuth | Disable mojangAuth // For cracked only
+--allowTesting | Enable all testing methods // Only for testing
+```
+
+### Methods
 1. FakePlayers
     ```kotlin
     FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>)
@@ -67,7 +76,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
     Direction.NORTH.getChestFacing(); // get chest face direction
     Direction.NORTH.getSignFacing(); // get sign face direction
     Direction.NORTH.rotate(new Vec(0,0,0)); // rotate a direciton 
-    Direction.NORTH.fromDirection(new Vec(0,0,0)); // translate a point to direction
+    Direction.fromDirection(new Vec(0,0,0)); // translate a point to direction
     ```
 8. ClickableEntity
     ```kotlin
@@ -77,10 +86,32 @@ Will be released soon as possible. The bytemc team is on the way to implements a
         // set type or something else
     }.spawn(it.player.position, it.player.instance)
     ```
+9. ItemStack
+    ```kotlin
+    // Player Head
+   ItemStack.of(String)
+   ItemStack.of(String, Int)
+   ItemStack.of(PlayerSkin, Int)
+    ```
+10. HeadDisplay
+    ```kotlin
+    TODO("Currently there is only Space and Alphabetic-Letters implemented!")
+    TODO("Currently there is only HeadSize.BIG and HeadSize.MEDIUM implemented!")
+    // Player Head
+    HeadDisplay(String, Instance, Pos, Direction)
+    HeadDisplay(String, Instance, Pos, Direction, HeadSize)
+    HeadDisplay(String, Instance, Pos, Direction, HeadSize, Boolean)
+    // Methods
+    spawn()
+    destroy()
+    ```
 
 # Todo
+## Not implemented
+- [ ] HeadDisplay size [SMALL, VERY_SMALL]
+- [ ] HeadDisplay rotation [UP, DOWN]
+- [ ] HeadDisplay string [SYMBOLS]
+
 ## API
-- clickable block
-- clickable Item
-- clickable entities
-- Minecraft Colors
+- [ ] ClickableBlock
+- [ ] Minecraft Colors

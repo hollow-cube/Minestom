@@ -20,8 +20,8 @@ gson = "2.10.1"
 jcTools = "4.0.1"
 
 # Quality
-junit-jupiter = "5.10.0"
-junit-platform = "1.10.0"
+junit-jupiter = "5.10.1"
+junit-platform = "1.10.1"
 jmh = "1.37"
 
 # Code Generation
