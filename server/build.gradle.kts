@@ -15,6 +15,12 @@ dependencies {
     implementation(project(mapOf("path" to ":")))
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "net.bytemc.minestom.server.ByteServerBootstrap"
+    }
+}
+
 kotlin {
     jvmToolchain(17)
 }
