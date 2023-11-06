@@ -130,9 +130,7 @@ Only our modifyed minestom version:
     TODO("Currently there is only Space and Alphabetic-Letters implemented!")
     TODO("Currently there is only HeadSize.BIG and HeadSize.MEDIUM implemented!")
     // Player Head
-    HeadDisplay(String, Instance, Pos, Direction)
-    HeadDisplay(String, Instance, Pos, Direction, HeadSize)
-    HeadDisplay(String, Instance, Pos, Direction, HeadSize, Boolean)
+    HeadDisplay(String, Instance, Pos, Consumer<HeadSettings>)
     // Methods
     spawn()
     destroy()
