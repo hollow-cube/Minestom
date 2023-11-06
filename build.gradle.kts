@@ -1,12 +1,14 @@
 plugins {
     `java-library`
     id("com.jfrog.artifactory") version "5.1.10"
+    `maven-publish`
 }
 
 version = System.getenv("SHORT_COMMIT_HASH") ?: "dev"
 
 allprojects {
     apply(plugin = "java")
+    apply(plugin = "maven-publish")
 
     group = "net.minestom"
     version = rootProject.version
@@ -14,10 +16,6 @@ allprojects {
     repositories {
         mavenCentral()
         maven(url = "https://jitpack.io")
-    }
-
-    tasks.withType<JavaCompile>().configureEach {
-        options.encoding = "UTF-8"
     }
 
     configurations.all {
@@ -40,6 +38,33 @@ allprojects {
         // Viewable packets make tracking harder. Could be re-enabled later.
         jvmArgs("-Dminestom.viewable-packet=false")
         jvmArgs("-Dminestom.inside-test=true")
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+
+                this.groupId = project.group.toString()
+                this.artifactId = project.name
+                this.version = project.version.toString()
+            }
+        }
+
+        repositories {
+            maven {
+                name = "bytemc"
+                url = uri("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+                credentials {
+                    username = System.getenv("BYTEMC_REPO_USERNAME")
+                    password = System.getenv("BYTEMC_REPO_PASSWORD")
+                }
+            }
+        }
     }
 }
 
