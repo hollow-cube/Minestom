@@ -12,7 +12,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 Repository:
 ```xml
 <repository>
-    <id>public-bytemc</id>
+    <id>bytemc-public</id>
     <url>https://artifactory.bytemc.de/artifactory/public-bytemc</url>
 </repository>
 ```
