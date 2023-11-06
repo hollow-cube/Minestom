@@ -1,9 +1,9 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
