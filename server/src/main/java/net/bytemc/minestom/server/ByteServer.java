@@ -1,5 +1,6 @@
 package net.bytemc.minestom.server;
 
+import lombok.Getter;
 import net.bytemc.minestom.server.handler.BlockHandlers;
 import net.bytemc.minestom.server.instance.InstanceHandler;
 import net.minestom.server.MinecraftServer;
@@ -8,19 +9,18 @@ import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.utils.NamespaceID;
 
 import java.util.List;
+import java.util.Objects;
 
-public class ByteServer {
+@SuppressWarnings("unused")
+public final class ByteServer {
 
+    @Getter
     public static ByteServer instance;
 
-    private MinecraftServer server;
     private InstanceHandler instanceHandler;
 
     public ByteServer(MinecraftServer server, List<String> args) {
-
         instance = this;
-
-        this.server = server;
 
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:skull"), () -> BlockHandlers.SKULL_HANDLER);
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:banner"), () -> BlockHandlers.BANNER_HANDLER);
@@ -43,7 +43,7 @@ public class ByteServer {
         var port = 25565;
         if (args.contains("--port")) {
             for (int i = 0; i < args.size(); i++) {
-                if (args.get(i) == "--port") {
+                if (Objects.equals(args.get(i), "--port")) {
                     port = Integer.parseInt(args.get(i + 1));
                 }
             }
@@ -53,7 +53,4 @@ public class ByteServer {
         System.out.println("[ByteServer] minestom server was started!");
     }
 
-    public static ByteServer getInstance() {
-        return instance;
-    }
 }
