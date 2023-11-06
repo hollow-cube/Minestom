@@ -14,7 +14,7 @@ import java.util.Objects;
 public final class ByteServer {
     public static ByteServer instance;
 
-    private InstanceHandler instanceHandler;
+    private final InstanceHandler instanceHandler;
 
     public ByteServer(MinecraftServer server, List<String> args) {
         instance = this;
