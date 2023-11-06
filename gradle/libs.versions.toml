@@ -11,6 +11,7 @@ hephaistos = "2.6.1"
 dependencyGetter = "v1.0.1"
 jetbrainsAnnotations = "24.0.1"
 slf4j = "2.0.9"
+lombok = "1.18.30"
 
 # Performance / Data Structures
 caffeine = "3.1.8"
@@ -37,6 +38,9 @@ shadow = "8.1.1"
 [libraries]
 
 # Important Dependencies
+# Lombok
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok"}
+
 # Adventure
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
@@ -84,6 +88,7 @@ logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.
 
 [bundles]
 
+lombok = ["lombok"]
 kotlin = ["kotlin-stdlib-jdk8", "kotlin-reflect"]
 flare = ["flare", "flare-fastutil"]
 adventure = ["adventure-api", "adventure-serializer-gson", "adventure-serializer-legacy", "adventure-serializer-plain", "adventure-text-logger-slf4j"]
