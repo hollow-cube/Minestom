@@ -9,7 +9,7 @@ public final class TestServer {
         var instance = ByteServer.getInstance().getInstanceHandler().getSpawnInstance();
 
         // HeadDisplay
-        var head = new HeadDisplay("Test Marco Polo", instance, new Pos(1, 2, 1), settings -> {
+        var head = new HeadDisplay("Love you Marco Polo", instance, new Pos(1, 2, 1), settings -> {
             settings.withDirection(Direction.NORTH);
         });
         head.spawn();
