@@ -1,12 +1,7 @@
 package net.bytemc.minestom.server.display.head.misc;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.util.Arrays;
 
-@Getter
-@AllArgsConstructor
 public enum HeadLetter {
     A("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTY3ZDgxM2FlN2ZmZTViZTk1MWE0ZjQxZjJhYTYxOWE1ZTM4OTRlODVlYTVkNDk4NmY4NDk0OWM2M2Q3NjcyZSJ9fX0="),
     B("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTBjMWI1ODRmMTM5ODdiNDY2MTM5Mjg1YjJmM2YyOGRmNjc4NzEyM2QwYjMyMjgzZDg3OTRlMzM3NGUyMyJ9fX0="),
@@ -37,6 +32,14 @@ public enum HeadLetter {
     BLANK("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWRiNTMyYjVjY2VkNDZiNGI1MzVlY2UxNmVjZWQ3YmJjNWNhYzU1NTk0ZDYxZThiOGY4ZWFjNDI5OWM5ZmMifX19");
 
     private final String skinData;
+
+    HeadLetter(String skinData) {
+        this.skinData = skinData;
+    }
+
+    public String getSkinData() {
+        return skinData;
+    }
 
     public static HeadLetter getOrThrow(String letter) {
         return Arrays.stream(values()).filter(it -> it.name().equalsIgnoreCase(letter)).findFirst().orElseThrow(() -> new RuntimeException("Letter " + letter + " does not exists!"));

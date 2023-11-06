@@ -1,6 +1,5 @@
 package net.bytemc.minestom.server;
 
-import lombok.Getter;
 import net.bytemc.minestom.server.handler.BlockHandlers;
 import net.bytemc.minestom.server.instance.InstanceHandler;
 import net.minestom.server.MinecraftServer;
@@ -11,10 +10,8 @@ import net.minestom.server.utils.NamespaceID;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
 @SuppressWarnings("unused")
 public final class ByteServer {
-    @Getter
     public static ByteServer instance;
 
     private InstanceHandler instanceHandler;
@@ -51,5 +48,9 @@ public final class ByteServer {
         }
         server.start("127.0.0.1", port);
         System.out.println("[ByteServer] minestom server was started!");
+    }
+
+    public static ByteServer getInstance() {
+        return instance;
     }
 }
