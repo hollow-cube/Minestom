@@ -52,5 +52,4 @@ public final class ByteServer {
         server.start("127.0.0.1", port);
         System.out.println("[ByteServer] minestom server was started!");
     }
-
 }
