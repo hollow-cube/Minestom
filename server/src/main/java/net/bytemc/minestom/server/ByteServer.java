@@ -19,6 +19,8 @@ public final class ByteServer {
     public ByteServer(MinecraftServer server, List<String> args) {
         instance = this;
 
+        instanceHandler = new InstanceHandler();
+
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:skull"), () -> BlockHandlers.SKULL_HANDLER);
         MinecraftServer.getBlockManager().registerHandler(NamespaceID.from("minecraft:banner"), () -> BlockHandlers.BANNER_HANDLER);
 
