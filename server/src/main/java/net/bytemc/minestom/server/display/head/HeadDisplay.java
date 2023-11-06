@@ -44,7 +44,7 @@ public final class HeadDisplay {
             }
             var stack = ItemStack.of(HeadLetter.getOrThrow(letter).getSkinData());
             var entity = getEntityCreature(stack);
-            var spawnPos = rotatePos(pos, settings.getDirection(), settings.getHeadSize().getDistance());
+            var spawnPos = rotatePos(pos, settings.getDirection(), i / settings.getHeadSize().getDistance());
             entity.setInstance(instance, spawnPos).whenComplete((unused, throwable) -> {
                 entity.spawn();
             });
