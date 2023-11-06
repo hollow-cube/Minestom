@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.ref.WeakReference;
 
-import static net.minestom.testing.TestUtils.assertEqualsSNBT;
-import static net.minestom.testing.TestUtils.waitUntilCleared;
+import static net.minestom.server.TestUtils.assertEqualsSNBT;
+import static net.minestom.server.TestUtils.waitUntilCleared;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

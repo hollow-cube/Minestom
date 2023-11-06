@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    id("com.jfrog.artifactory") version "5.1.10"
 }
 
 version = System.getenv("SHORT_COMMIT_HASH") ?: "dev"
@@ -25,9 +26,6 @@ allprojects {
     }
 
     java {
-        withSourcesJar()
-        withJavadocJar()
-
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -67,9 +65,16 @@ dependencies {
     api(libs.gson)
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
+}
 
-    compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
-    testCompileOnly(libs.lombok)
-    testAnnotationProcessor(libs.lombok)
+artifactory {
+    setContextUrl("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+
+    publish {
+        repository {
+            username = "mirco"
+            password = "Polo123.#"
+            repoKey = "bytemc-public"
+        }
+    }
 }

@@ -1,18 +1,18 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.event.player.PlayerTickEvent;
 import net.minestom.server.world.DimensionType;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import java.lang.ref.WeakReference;
 import java.util.UUID;
 
-import static net.minestom.testing.TestUtils.waitUntilCleared;
+import static net.minestom.server.TestUtils.waitUntilCleared;
 
 @EnvTest
 public class InstanceUnregisterIntegrationTest {

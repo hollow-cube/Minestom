@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.entity.EntityTickEvent;
 import net.minestom.server.network.packet.server.play.DestroyEntitiesPacket;
@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import java.lang.ref.WeakReference;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
-
-import static net.minestom.testing.TestUtils.waitUntilCleared;
 import static org.junit.jupiter.api.Assertions.*;
+
+import static net.minestom.server.TestUtils.waitUntilCleared;
 
 @EnvTest
 public class EntityRemovalIntegrationTest {

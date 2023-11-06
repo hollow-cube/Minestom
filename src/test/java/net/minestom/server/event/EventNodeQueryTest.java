@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static net.minestom.testing.TestUtils.assertEqualsIgnoreOrder;
+import static net.minestom.server.TestUtils.assertEqualsIgnoreOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EventNodeQueryTest {

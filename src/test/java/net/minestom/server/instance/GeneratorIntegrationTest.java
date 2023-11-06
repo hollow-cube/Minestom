@@ -1,7 +1,7 @@
 package net.minestom.server.instance;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.instance.block.Block;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.junit.jupiter.api.Test;
