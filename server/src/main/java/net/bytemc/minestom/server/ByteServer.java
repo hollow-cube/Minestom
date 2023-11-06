@@ -50,6 +50,10 @@ public final class ByteServer {
         System.out.println("[ByteServer] minestom server was started!");
     }
 
+    public InstanceHandler getInstanceHandler() {
+        return instanceHandler;
+    }
+
     public static ByteServer getInstance() {
         return instance;
     }
