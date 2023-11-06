@@ -7,7 +7,7 @@ Will be released soon as possible. The bytemc team is on the way to implements a
 
 > **Warning**
 >
-> You need following repository `public-bytemc`
+> You need following repository `bytemc-public`
 
 Repository:
 ```xml
