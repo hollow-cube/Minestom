@@ -1,14 +1,21 @@
 # ByteMC - Minestom
 
+> **Wiki**\
+> If you need help just look into our wiki:\
+> https://github.com/bytemcnetzwerk/minestom/wiki
+
+
 ### Description
-Will be released soon as possible. The bytemc team is on the way to implements all basic functions.
+> **Progress**\
+> We are currently in the process of adding functions. Therefore, it is not guaranteed that the current version will be stable.
+> If you have ideas write us a message: https://discord.gg/bZ7hGX4pPt
 
 # Dependencies
 
 > **Warning**
 >
 > You need following repository `bytemc-public`
-
+> 
 Repository:
 ```xml
 <repository>
@@ -35,17 +42,22 @@ Only our modifyed minestom version:
 </dependency>
 ```
 
+# Todo
+## Not implemented
+- [ ] HeadDisplay size [SMALL, VERY_SMALL]
+- [ ] HeadDisplay rotation [UP, DOWN]
+- [ ] HeadDisplay string [SYMBOLS]
+- [ ] Clickable Hologram
+- [ ] Paket Hologram
+- [ ] Edit Hologram lines
+
+## API
+- [ ] ClickableBlock
+- [ ] Minecraft Colors
 
 
-# Documentation
-### Arguments
-```java
---velocity [String] | Enable velocity support // Disable mojangAuth
---port [Int] | Override default port 25565 // If you want to set a specific port
---disableMojangAuth | Disable mojangAuth // For cracked only
-```
 
-### Methods
+### Methods - THAT I HAVE NOT IMPLEMENTED INTO THE WIKI (TODO)
 1. FakePlayers
     ```kotlin
     FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>)
@@ -102,49 +114,3 @@ Only our modifyed minestom version:
     ``` java
     point.blockCenter() // return the middle of a block
     ```
-
-7. Direction
-    ```java
-    Direction.NORTH.getChestFacing(); // get chest face direction
-    Direction.NORTH.getSignFacing(); // get sign face direction
-    Direction.NORTH.rotate(new Vec(0,0,0)); // rotate a direciton 
-    Direction.fromDirection(new Vec(0,0,0)); // translate a point to direction
-    ```
-8. ClickableEntity
-    ```kotlin
-    ClickableEntity(EntityType.VILLAGER, Consumer {
-        // click action
-    }).modify {
-        // set type or something else
-    }.spawn(it.player.position, it.player.instance)
-    ```
-9. ItemStack
-    ```kotlin
-    // Player Head
-   ItemStack.of(String)
-   ItemStack.of(String, Int)
-   ItemStack.of(PlayerSkin, Int)
-    ```
-10. HeadDisplay
-    ```kotlin
-    TODO("Currently there is only Space and Alphabetic-Letters implemented!")
-    TODO("Currently there is only HeadSize.BIG and HeadSize.MEDIUM implemented!")
-    // Player Head
-    HeadDisplay(String, Instance, Pos, Consumer<HeadSettings>)
-    // Methods
-    spawn()
-    destroy()
-    ```
-
-# Todo
-## Not implemented
-- [ ] HeadDisplay size [SMALL, VERY_SMALL]
-- [ ] HeadDisplay rotation [UP, DOWN]
-- [ ] HeadDisplay string [SYMBOLS]
-- [ ] Clickable Hologram
-- [ ] Paket Hologram
-- [ ] Edit Hologram lines
-
-## API
-- [ ] ClickableBlock
-- [ ] Minecraft Colors

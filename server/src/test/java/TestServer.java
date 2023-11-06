@@ -1,7 +1,9 @@
 import net.bytemc.minestom.server.ByteServer;
+import net.bytemc.minestom.server.clickable.ClickableEntity;
 import net.bytemc.minestom.server.display.head.HeadDisplay;
 import net.bytemc.minestom.server.display.head.misc.HeadSize;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.EntityType;
 import net.minestom.server.utils.Direction;
 
 public final class TestServer {
@@ -29,5 +31,10 @@ public final class TestServer {
             settings.withSpacer(false);
         });
         head3.spawn();
+
+        var entity = new ClickableEntity(EntityType.ALLAY, player -> {
+            player.sendMessage("Click!");
+        });
+        entity.spawn(Pos, Instance);
     }
 }
