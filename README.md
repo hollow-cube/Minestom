@@ -56,11 +56,6 @@ Only our modifyed minestom version:
 
 ### Methods - THAT I HAVE NOT IMPLEMENTED INTO THE WIKI (TODO)
 
-3. Extension
-    ```kotlin
-   // Return path:
-   Extension.getConfigPath()
-    ```
 4. Inventory
    ```kotlin
    // ClickableItem
