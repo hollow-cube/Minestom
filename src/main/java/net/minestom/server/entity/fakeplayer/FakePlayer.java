@@ -87,7 +87,7 @@ public class FakePlayer extends Player implements NavigableEntity {
         var id = UUID.randomUUID();
         var options = new FakePlayerOption().setInTabList(false).setRegistered(false);
 
-        initPlayer(id, id.toString(), options, fakePlayer -> {
+        initPlayer(id, id.toString().substring(0, 16), options, fakePlayer -> {
             if (instance == fakePlayer.instance) {
                 fakePlayer.refreshPosition(pos);
             } else {
