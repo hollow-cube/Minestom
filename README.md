@@ -56,11 +56,6 @@ Only our modifyed minestom version:
 
 ### Methods - THAT I HAVE NOT IMPLEMENTED INTO THE WIKI (TODO)
 
-2. Instance
-    ```kotlin
-    // Disable time:
-    Instance.disableTimeRotation()
-    ```
 3. Extension
     ```kotlin
    // Return path:
