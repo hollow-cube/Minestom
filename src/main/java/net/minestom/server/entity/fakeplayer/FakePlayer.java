@@ -12,6 +12,7 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.player.FakePlayerConnection;
 import net.minestom.server.network.player.PlayerConnection;
@@ -109,6 +110,15 @@ public class FakePlayer extends Player implements NavigableEntity {
 
             spawnCallback.accept(fakePlayer);
         });
+    }
+
+    private FakePlayerInteract fakePlayerInteract;
+
+    public FakePlayerInteract interact() {
+        if(fakePlayerInteract == null) {
+            return new FakePlayerInteract(this);
+        }
+        return fakePlayerInteract;
     }
 
     /**
