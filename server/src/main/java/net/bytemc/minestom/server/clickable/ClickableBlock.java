@@ -21,7 +21,7 @@ public class ClickableBlock {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent.class, event -> {
             for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
                 if (block.getBlock() == event.getBlock()) {
-                    block.breakCallback.forEach(callback -> callback.accept(block.getBlock()));
+                    block.breakCallback.forEach(callback -> callback.accept(event.getPlayer()));
                     break;
                 }
             }
@@ -30,7 +30,7 @@ public class ClickableBlock {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
             for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
                 if (block.getBlock() == event.getBlock()) {
-                    block.diggingCallback.forEach(callback -> callback.accept(block.getBlock()));
+                    block.diggingCallback.forEach(callback -> callback.accept(event.getPlayer()));
                     break;
                 }
             }
@@ -48,8 +48,8 @@ public class ClickableBlock {
 
     private Block block;
 
-    private final List<Consumer<Block>> breakCallback = new ArrayList<>();
-    private final List<Consumer<Block>> diggingCallback = new ArrayList<>();
+    private final List<Consumer<Player>> breakCallback = new ArrayList<>();
+    private final List<Consumer<Player>> diggingCallback = new ArrayList<>();
     private final List<Consumer<Player>> interactCallback = new ArrayList<>();
 
     public ClickableBlock(Pos pos, Instance instance) {
@@ -70,12 +70,12 @@ public class ClickableBlock {
         this.block = instance.getBlock(pos);
     }
 
-    public ClickableBlock addBreakCallback(Consumer<Block> callback) {
+    public ClickableBlock addBreakCallback(Consumer<Player> callback) {
         breakCallback.add(callback);
         return this;
     }
 
-    public ClickableBlock addDiggingCallback(Consumer<Block> callback) {
+    public ClickableBlock addDiggingCallback(Consumer<Player> callback) {
         diggingCallback.add(callback);
         return this;
     }
