@@ -48,24 +48,14 @@ Only our modifyed minestom version:
 - [ ] HeadDisplay rotation [UP, DOWN]
 - [ ] HeadDisplay string [SYMBOLS]
 - [ ] Clickable Hologram
-- [ ] Paket Hologram
 - [ ] Edit Hologram lines
 
 ## API
 - [ ] ClickableBlock
 - [ ] Minecraft Colors
 
-
-
 ### Methods - THAT I HAVE NOT IMPLEMENTED INTO THE WIKI (TODO)
-1. FakePlayers
-    ```kotlin
-    FakePlayer.initPlayer(PlayerSkin, Instance, Pos, Consumer<FakePlayer>)
-    ```
-    Also manipulate `FakePlayers` with skin layers:
-    ```kotlin
-    fakePlayer.meta.allowAllSkinLayers()
-    ```
+
 2. Instance
     ```kotlin
     // Disable time:
@@ -109,8 +99,3 @@ Only our modifyed minestom version:
    spawn()
    destroy()
    ```
-
-6. Point
-    ``` java
-    point.blockCenter() // return the middle of a block
-    ```
