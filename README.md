@@ -1,12 +1,12 @@
 # ByteMC - Minestom
 
-> **Wiki**\
+> **Note**\
 > If you need help just look into our wiki:\
 > https://github.com/bytemcnetzwerk/minestom/wiki
 
 
 ### Description
-> **Progress**\
+> **Important**\
 > We are currently in the process of adding functions. Therefore, it is not guaranteed that the current version will be stable.
 > If you have ideas write us a message: https://discord.gg/bZ7hGX4pPt
 

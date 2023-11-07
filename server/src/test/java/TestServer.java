@@ -6,7 +6,9 @@ import net.bytemc.minestom.server.hologram.Hologram;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityType;
+import net.minestom.server.entity.GameMode;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.utils.Direction;
 
 public final class TestServer {
@@ -38,11 +40,18 @@ public final class TestServer {
         var entity = new ClickableEntity(EntityType.ALLAY, player -> {
             player.sendMessage("Click!");
         });
-        entity.spawn(new Pos(1, 1.0, 1), instance);
+        entity.modify(it -> {
+            it.setNoGravity(true);
+        });
+        entity.spawn(new Pos(1, 10, 1), instance);
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent.class, event -> {
             var holo = new Hologram(event.getBlockPosition().add(0, 3, 0), instance, "Test", "Test2");
             holo.spawn();
+        });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerSpawnEvent.class, event -> {
+            event.getPlayer().setGameMode(GameMode.CREATIVE);
         });
     }
 }
