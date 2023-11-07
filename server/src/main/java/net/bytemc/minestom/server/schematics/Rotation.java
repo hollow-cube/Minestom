@@ -3,7 +3,6 @@ package net.bytemc.minestom.server.schematics;
 import org.jetbrains.annotations.NotNull;
 
 public enum Rotation {
-
     NONE,
     CLOCKWISE_90,
     CLOCKWISE_180,

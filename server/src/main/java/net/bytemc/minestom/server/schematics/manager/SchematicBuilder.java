@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SchematicBuilder {
-
     private final Map<Point, Block> blockSet = new HashMap<>();
 
     private Point offset = Vec.ZERO;
