@@ -42,4 +42,10 @@ open class SingletonInventory(var title: String, var type: InventoryType, var cl
     fun fill(row: Int, slot: Int, clickableItem: ClickableItem) {
         fill(((row - 1) * 9) + slot, clickableItem)
     }
+
+    fun fillRow(row: Int, clickableItem: ClickableItem) {
+        for(i in 0 until 9) {
+            fill(row, i, clickableItem)
+        }
+    }
 }
