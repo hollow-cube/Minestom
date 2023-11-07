@@ -2,7 +2,9 @@ package net.bytemc.minestom.server.clickable;
 
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
+import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerStartDiggingEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -11,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class ClickableBlock {
-
     private static final List<ClickableBlock> CLICKABLE_BLOCKS_LIST = new ArrayList<>();
 
     static {
@@ -33,12 +35,22 @@ public class ClickableBlock {
                 }
             }
         });
+
+        MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
+            for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
+                if (block.getBlock() == event.getBlock()) {
+                    block.interactCallback.forEach(callback -> callback.accept(event.getPlayer()));
+                    break;
+                }
+            }
+        });
     }
 
     private Block block;
 
-    private List<Consumer<Block>> breakCallback = new ArrayList<>();
-    private List<Consumer<Block>> diggingCallback = new ArrayList<>();
+    private final List<Consumer<Block>> breakCallback = new ArrayList<>();
+    private final List<Consumer<Block>> diggingCallback = new ArrayList<>();
+    private final List<Consumer<Player>> interactCallback = new ArrayList<>();
 
     public ClickableBlock(Pos pos, Instance instance) {
         this();
@@ -65,6 +77,11 @@ public class ClickableBlock {
 
     public ClickableBlock addDiggingCallback(Consumer<Block> callback) {
         diggingCallback.add(callback);
+        return this;
+    }
+
+    public ClickableBlock addInteractCallback(Consumer<Player> callback) {
+        interactCallback.add(callback);
         return this;
     }
 

@@ -51,5 +51,4 @@ Only our modifyed minestom version:
 - [ ] Edit Hologram lines
 
 ## API
-- [ ] ClickableBlock
 - [ ] Minecraft Colors
