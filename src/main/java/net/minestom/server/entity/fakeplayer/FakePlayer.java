@@ -84,7 +84,7 @@ public class FakePlayer extends Player implements NavigableEntity {
         new FakePlayer(uuid, username, option, spawnCallback);
     }
 
-    public static void initPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
+    public static void spawnPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
         var id = UUID.randomUUID();
         var options = new FakePlayerOption().setInTabList(false).setRegistered(false);
 
