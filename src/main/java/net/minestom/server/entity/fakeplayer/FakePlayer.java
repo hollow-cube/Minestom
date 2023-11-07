@@ -8,11 +8,9 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.event.Event;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.player.FakePlayerConnection;
 import net.minestom.server.network.player.PlayerConnection;
@@ -112,11 +110,11 @@ public class FakePlayer extends Player implements NavigableEntity {
         });
     }
 
-    private FakePlayerInteract fakePlayerInteract;
+    private FakePlayerInteractController fakePlayerInteract;
 
-    public FakePlayerInteract interact() {
+    public FakePlayerInteractController getInteractController() {
         if(fakePlayerInteract == null) {
-            return new FakePlayerInteract(this);
+            return new FakePlayerInteractController(this);
         }
         return fakePlayerInteract;
     }

@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public final class FakePlayerInteract {
+public final class FakePlayerInteractController {
     private final List<Consumer<Player>> consumers;
 
-    public FakePlayerInteract(FakePlayer fakePlayer) {
+    public FakePlayerInteractController(FakePlayer fakePlayer) {
         this.consumers = new ArrayList<>();
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerEntityInteractEvent.class, event -> {
