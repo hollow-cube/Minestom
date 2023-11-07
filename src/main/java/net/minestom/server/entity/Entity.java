@@ -1553,7 +1553,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.scheduler.buildTask(this::remove).delay(schedule).schedule();
     }
 
-    protected @NotNull Vec getVelocityForPacket() {
+    @NotNull
+    public Vec getVelocityForPacket() {
         return this.velocity.mul(8000f / MinecraftServer.TICK_PER_SECOND);
     }
 
