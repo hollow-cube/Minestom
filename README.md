@@ -82,10 +82,3 @@ Only our modifyed minestom version:
         override fun onSubmit(Player, String)
     }
    ```
-5. Hologram
-   ```kotlin
-   Hologram(Instance, Point, List<String>)
-   // Methods
-   spawn()
-   destroy()
-   ```
