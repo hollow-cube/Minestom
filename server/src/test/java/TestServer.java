@@ -42,7 +42,7 @@ public final class TestServer {
 
         var head3 = new HeadDisplay("0 Player online", instance, new Pos(1, 1.25, 1), settings -> {
             settings.withDirection(Direction.NORTH);
-            settings.withHeadSize(HeadSize.MID);
+            settings.withHeadSize(HeadSize.SMALL);
             settings.withAdditionDistance(0.5);
             settings.withSpacer(false);
         });
