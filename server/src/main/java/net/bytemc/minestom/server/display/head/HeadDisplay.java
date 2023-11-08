@@ -2,6 +2,7 @@ package net.bytemc.minestom.server.display.head;
 
 import net.bytemc.minestom.server.display.head.misc.HeadLetter;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
@@ -67,6 +68,7 @@ public final class HeadDisplay {
         entity.setNoGravity(true);
         entity.setInvisible(true);
         entity.setInvulnerable(true);
+        meta.setHasArms(true);
 
         switch (settings.getHeadSize()) {
             case BIG -> {
@@ -77,6 +79,13 @@ public final class HeadDisplay {
                 meta.setSmall(true);
                 entity.setHelmet(stack);
             }
+            case SMALL -> {
+                entity.setInvisible(false);
+                meta.setSmall(false);
+                //meta.setRightArmRotation(new Vec(280, 0, 0));
+                meta.setRightArmRotation(new Vec(330, 360, 0));
+                entity.setItemInMainHand(stack);
+            }
             // TODO: Do SMALL and TINY
         }
         return entity;
@@ -85,6 +94,8 @@ public final class HeadDisplay {
     private Pos rotatePos(Pos pos, Direction direction, double distance) {
         var newPos = pos.withYaw(settings.getDirection().getYaw());
         switch (direction) {
+            case UP -> newPos = newPos.add(0, distance, 0);
+            case DOWN -> newPos = newPos.sub(0, distance, 0);
             case NORTH -> newPos = newPos.sub(distance, 0, 0);
             case SOUTH -> newPos = newPos.add(distance, 0, 0);
             case WEST -> newPos = newPos.add(0, 0, distance);

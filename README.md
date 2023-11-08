@@ -45,5 +45,3 @@ Only our modifyed minestom version:
 # Todo
 ## Not implemented
 - [ ] HeadDisplay size [SMALL, VERY_SMALL]
-- [ ] HeadDisplay rotation [UP, DOWN]
-- [ ] HeadDisplay string [SYMBOLS]
