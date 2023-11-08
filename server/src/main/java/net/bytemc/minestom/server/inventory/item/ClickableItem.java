@@ -3,6 +3,7 @@ package net.bytemc.minestom.server.inventory.item;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,11 @@ public final class ClickableItem {
 
     public ItemStack getItemStack() {
         return itemStack;
+    }
+
+    public ClickableItem subscribe(Consumer<Player> onClick, ClickType... clickTypes) {
+        this.onClick.put(onClick, Arrays.stream(clickTypes).toList());
+        return this;
     }
 
     public void click(Player player, String identifier) {

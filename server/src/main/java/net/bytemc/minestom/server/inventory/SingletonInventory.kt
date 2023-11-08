@@ -4,7 +4,6 @@ import net.bytemc.minestom.server.inventory.item.ClickableItem
 import net.minestom.server.entity.Player
 import net.minestom.server.inventory.Inventory
 import net.minestom.server.inventory.InventoryType
-import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 
 open class SingletonInventory(var title: String, var type: InventoryType, var clickable: Boolean) {
