@@ -47,5 +47,3 @@ Only our modifyed minestom version:
 - [ ] HeadDisplay size [SMALL, VERY_SMALL]
 - [ ] HeadDisplay rotation [UP, DOWN]
 - [ ] HeadDisplay string [SYMBOLS]
-- [ ] Clickable Hologram
-- [ ] Edit Hologram lines
