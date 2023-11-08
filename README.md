@@ -49,6 +49,3 @@ Only our modifyed minestom version:
 - [ ] HeadDisplay string [SYMBOLS]
 - [ ] Clickable Hologram
 - [ ] Edit Hologram lines
-
-## API
-- [ ] Minecraft Colors
