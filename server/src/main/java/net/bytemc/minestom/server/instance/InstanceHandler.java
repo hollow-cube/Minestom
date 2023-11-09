@@ -2,10 +2,12 @@ package net.bytemc.minestom.server.instance;
 
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.player.PlayerLoginEvent;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.generator.Generators;
 import net.minestom.server.world.DimensionType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +40,20 @@ public final class InstanceHandler {
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
         return byteInstance;
+    }
+
+    @Nullable
+    public String getNameFromInstance(InstanceContainer instance) {
+        return this.getNameFromUUID(instance.getUniqueId());
+    }
+
+    @Nullable
+    public String getNameFromUUID(UUID uuid) {
+        return this.instances.entrySet().stream()
+                .filter(entry -> entry.getValue().getUniqueId().equals(uuid))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
     }
 
     public InstanceContainer getOrNull(String name) {
