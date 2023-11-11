@@ -2,6 +2,7 @@ package net.minestom.server.utils;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.metadata.other.ItemFrameMeta;
 import org.jetbrains.annotations.NotNull;
 
 public enum Direction {
@@ -63,6 +64,10 @@ public enum Direction {
 
     public String getFacingProperty() {
         return name().toLowerCase();
+    }
+
+    public ItemFrameMeta.Orientation getItemFrameOrientation() {
+        return ItemFrameMeta.Orientation.values()[ordinal()];
     }
 
     public float getYaw() {
