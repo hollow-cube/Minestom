@@ -43,7 +43,7 @@ public final class SchematicWriter {
         });
         schematicNBT.set("Palette", palette);
 
-        try (NBTWriter writer = new NBTWriter(schemPath)) {
+        try (NBTWriter writer = new NBTWriter(schemPath.toAbsolutePath())) {
             writer.writeRaw(schematicNBT.toCompound());
         }
     }

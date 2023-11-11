@@ -58,12 +58,20 @@ public enum Direction {
         return vector.rotateAroundY(Math.toRadians(angle));
     }
 
+    public Direction rotateDirectionOnce() {
+        return switch (this) {
+            case NORTH -> EAST;
+            case EAST -> SOUTH;
+            case SOUTH -> WEST;
+            case WEST -> NORTH;
+            default -> null;
+        };
+    }
+
     public Direction getChestFacing() {
         return switch (this) {
-            case NORTH -> SOUTH;
-            case EAST -> WEST;
-            case SOUTH -> SOUTH;
-            case WEST -> WEST;
+            case NORTH, SOUTH -> SOUTH;
+            case EAST, WEST -> WEST;
             default -> null;
         };
     }

@@ -25,8 +25,8 @@ public class InteractItem {
         });
     }
 
-    private ItemStack item;
-    private Consumer<Player> interactionPlayer;
+    private final ItemStack item;
+    private final Consumer<Player> interactionPlayer;
 
     public InteractItem(ItemStack item, Consumer<Player> interactionPlayer) {
         this.item = item;

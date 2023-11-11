@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static net.minestom.testing.TestUtils.waitUntilCleared;
+import static net.minestom.server.TestUtils.waitUntilCleared;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EventNodeTest {

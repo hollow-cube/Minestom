@@ -8,7 +8,6 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.event.Event;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
@@ -84,11 +83,11 @@ public class FakePlayer extends Player implements NavigableEntity {
         new FakePlayer(uuid, username, option, spawnCallback);
     }
 
-    public static void initPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
+    public static void spawnPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
         var id = UUID.randomUUID();
         var options = new FakePlayerOption().setInTabList(false).setRegistered(false);
 
-        initPlayer(id, id.toString(), options, fakePlayer -> {
+        initPlayer(id, id.toString().substring(0, 16), options, fakePlayer -> {
             if (instance == fakePlayer.instance) {
                 fakePlayer.refreshPosition(pos);
             } else {
@@ -109,6 +108,15 @@ public class FakePlayer extends Player implements NavigableEntity {
 
             spawnCallback.accept(fakePlayer);
         });
+    }
+
+    private FakePlayerInteractController fakePlayerInteract;
+
+    public FakePlayerInteractController getInteractController() {
+        if(fakePlayerInteract == null) {
+            return new FakePlayerInteractController(this);
+        }
+        return fakePlayerInteract;
     }
 
     /**

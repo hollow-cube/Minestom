@@ -1,11 +1,11 @@
 package net.minestom.server.instance.light;
 
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.*;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.palette.Palette;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import org.jglrxavpok.hephaistos.mca.AnvilException;
 import org.jglrxavpok.hephaistos.mca.BlockState;
 import org.jglrxavpok.hephaistos.mca.ChunkSection;

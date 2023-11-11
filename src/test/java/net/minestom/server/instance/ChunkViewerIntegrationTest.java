@@ -1,11 +1,11 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.Env;
+import net.minestom.server.EnvTest;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.server.play.ChunkDataPacket;
 import net.minestom.server.utils.chunk.ChunkUtils;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

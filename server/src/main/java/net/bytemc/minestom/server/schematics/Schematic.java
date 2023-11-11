@@ -16,11 +16,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class Schematic {
-
-    private Point size;
-    private Point offset;
-    private Block[] palette;
-    private byte[] blocks;
+    private final Point size;
+    private final Point offset;
+    private final Block[] palette;
+    private final byte[] blocks;
 
     public Schematic(Point size, Point offset, Block[] palette, byte[] blocks) {
         this.size = size;

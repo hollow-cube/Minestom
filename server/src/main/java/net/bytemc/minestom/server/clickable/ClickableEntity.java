@@ -13,20 +13,21 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ClickableEntity {
-
-    private static List<ClickableEntity> ENTITY_LIST = new ArrayList<>();
+    private static final List<ClickableEntity> ENTITY_LIST = new ArrayList<>();
 
     static {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerEntityInteractEvent.class, event -> {
             for (var entity : ENTITY_LIST) {
-                entity.interactionPlayer.accept(event.getPlayer());
+                if(event.getTarget().getUuid().equals(entity.entity.getUuid())) {
+                    entity.interactionPlayer.accept(event.getPlayer());
+                }
                 break;
             }
         });
     }
 
-    private Entity entity;
-    private Consumer<Player> interactionPlayer;
+    private final Entity entity;
+    private final Consumer<Player> interactionPlayer;
 
     public ClickableEntity(EntityType entity, Consumer<Player> interactionPlayer) {
         this.entity = new Entity(entity);
