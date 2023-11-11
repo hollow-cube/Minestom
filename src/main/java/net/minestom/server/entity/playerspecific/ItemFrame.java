@@ -20,13 +20,19 @@ public class ItemFrame extends Entity {
     private final Function<Player, ItemStack> getItemStack;
     private final Helper helper;
 
-    public ItemFrame(@NotNull Function<@NotNull Player, @NotNull ItemStack> getItemStack) {
+    public ItemFrame(@NotNull Instance instance,
+                     @NotNull Point position,
+                     @NotNull Direction orientation,
+                     @NotNull Function<@NotNull Player, @NotNull ItemStack> getItemStack) {
         super(EntityType.ITEM_FRAME);
         this.getItemStack = getItemStack;
 
         helper = new Helper(this);
         metadata = helper.getMetadata();
         entityMeta = helper.getEntityMeta();
+
+        setOrientation(orientation);
+        setInstance(instance, position);
     }
 
     @Override
@@ -60,12 +66,12 @@ public class ItemFrame extends Entity {
         getEntityMeta().setItem(itemBefore);
     }
 
-    public void setOrientation(Direction direction) {
-        getEntityMeta().setOrientation(direction.getItemFrameOrientation());
+    private void setOrientation(Direction orientation) {
+        getEntityMeta().setOrientation(orientation.getItemFrameOrientation());
         position = getPosition().withDirection(new Vec(
-                direction.normalX(),
-                direction.normalY(),
-                direction.normalZ()));
+                orientation.normalX(),
+                orientation.normalY(),
+                orientation.normalZ()));
     }
 
     @Override
