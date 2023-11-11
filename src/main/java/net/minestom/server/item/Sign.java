@@ -48,7 +48,7 @@ public class Sign {
         this.instance = instance;
         this.position = position.blockCenter();
         this.originalBlock = instance.getBlock(position);
-        loader = new Loader(instance, position);
+        loader = new Loader(instance, this.position);
         playerRemoveEvent = instance.eventNode().addListener(
                 RemoveEntityFromInstanceEvent.class, event -> {
                     if (event.getEntity() instanceof Player player) {
@@ -242,7 +242,6 @@ public class Sign {
 
         @Override
         public void updateNewViewer(@NotNull Player player) {
-            super.updateNewViewer(player);
             scheduler().scheduleNextTick(() -> updateTextForPlayer(player));
         }
     }
