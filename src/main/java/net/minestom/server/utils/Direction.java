@@ -48,14 +48,7 @@ public enum Direction {
     }
 
     public Vec rotate(Vec vector) {
-        double angle = switch (this) {
-            case WEST -> 90;
-            case SOUTH -> 180;
-            case EAST -> 270;
-            default -> 0;
-        };
-
-        return vector.rotateAroundY(Math.toRadians(angle));
+        return vector.rotateAroundY(Math.toRadians(getYaw()));
     }
 
     public Direction rotateDirectionOnce() {
@@ -68,22 +61,8 @@ public enum Direction {
         };
     }
 
-    public Direction getChestFacing() {
-        return switch (this) {
-            case NORTH, SOUTH -> SOUTH;
-            case EAST, WEST -> WEST;
-            default -> null;
-        };
-    }
-
-    public Direction getSignFacing() {
-        return switch (this) {
-            case NORTH -> SOUTH;
-            case EAST -> WEST;
-            case SOUTH -> NORTH;
-            case WEST -> EAST;
-            default -> null;
-        };
+    public String getFacingProperty() {
+        return name().toLowerCase();
     }
 
     public float getYaw() {
@@ -95,14 +74,24 @@ public enum Direction {
         };
     }
 
-    public static Direction fromDirection(Point direction) {
+    public boolean isHorizontal() {
+        return this.normalY == 0;
+    }
+
+    public static Direction fromPoint(Point direction, boolean onlyHorizontal) {
         double x = direction.x();
+        double y = direction.y();
         double z = direction.z();
 
-        if (Math.abs(x) > Math.abs(z)) {
+        if ((Math.abs(x) > Math.abs(y) || onlyHorizontal) && Math.abs(x) > Math.abs(z)) {
             return x < 0 ? WEST : EAST;
+        } else if (Math.abs(y) > Math.abs(z) && !onlyHorizontal) {
+            return y < 0 ? DOWN : UP;
         } else {
             return z < 0 ? NORTH : SOUTH;
         }
+    }
+    public static Direction fromPoint(Point direction) {
+        return fromPoint(direction, false);
     }
 }
