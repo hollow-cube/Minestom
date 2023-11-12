@@ -36,6 +36,7 @@ public class FakePlayer extends Player implements NavigableEntity {
 
     private final FakePlayerOption option;
     private final FakePlayerController fakePlayerController;
+    private final FakePlayerInteractController fakePlayerInteract;
 
     private final Navigator navigator = new Navigator(this);
 
@@ -56,6 +57,7 @@ public class FakePlayer extends Player implements NavigableEntity {
         this.option = option;
 
         this.fakePlayerController = new FakePlayerController(this);
+        this.fakePlayerInteract = new FakePlayerInteractController(this);
 
         if (spawnCallback != null) {
             spawnListener = EventListener.builder(PlayerSpawnEvent.class)
@@ -110,12 +112,12 @@ public class FakePlayer extends Player implements NavigableEntity {
         });
     }
 
-    private FakePlayerInteractController fakePlayerInteract;
+    public void onInteract(Consumer<Player> onInteract) {
+        fakePlayerInteract.subscribe(onInteract);
+    }
 
+    @Deprecated
     public FakePlayerInteractController getInteractController() {
-        if(fakePlayerInteract == null) {
-            return new FakePlayerInteractController(this);
-        }
         return fakePlayerInteract;
     }
 
