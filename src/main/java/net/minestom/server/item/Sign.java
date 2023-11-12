@@ -118,7 +118,8 @@ public class Sign {
                                   @NotNull Point position,
                                   @NotNull SignType signType,
                                   SignRotation rotation) {
-        var block = signType.normal.withProperty("rotation", "" + rotation.ordinal());
+        var block = signType.normal.withProperty("rotation",
+                "" + rotation.ordinal());
         instance.setBlock(position, block);
         return new Sign(instance, position);
     }
@@ -127,8 +128,11 @@ public class Sign {
                                       @NotNull Point position,
                                       @NotNull SignType signType,
                                       @NotNull Direction direction) {
+        if (!direction.isHorizontal()) {
+            throw new IllegalArgumentException("direction of sign must be horizontal");
+        }
         var block = signType.wall.withProperty("facing",
-                direction.getSignFacing().name().toLowerCase());
+                direction.getFacingProperty());
         instance.setBlock(position, block);
         return new Sign(instance, position);
     }
@@ -203,21 +207,24 @@ public class Sign {
         E_SE,
         SE,
         S_SE;
+        private static final double ANGLE_BETWEEN = 360. / values().length;
 
         public SignRotation opposite() {
             return values()[(ordinal() + values().length / 2) % values().length];
         }
 
-        public static SignRotation fromDirection(Point direction) {
-            throw new RuntimeException("not implemented");
+        public static SignRotation fromPoint(Point direction) {
+            double angle = Math.toDegrees(Math.atan2(direction.z(), direction.x()));
+            angle += 270 + ANGLE_BETWEEN / 2;
+            return values()[((int) (angle / ANGLE_BETWEEN)) % values().length];
         }
 
         public static SignRotation fromDirection(Direction direction) {
             return switch (direction) {
-                case NORTH -> SOUTH;
-                case SOUTH -> NORTH;
-                case WEST -> EAST;
-                case EAST -> WEST;
+                case NORTH -> NORTH;
+                case SOUTH -> SOUTH;
+                case WEST -> WEST;
+                case EAST -> EAST;
                 default -> throw new RuntimeException();
             };
         }
