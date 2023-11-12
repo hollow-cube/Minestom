@@ -49,7 +49,14 @@ public enum Direction {
     }
 
     public Vec rotate(Vec vector) {
-        return vector.rotateAroundY(Math.toRadians(getYaw()));
+        double angle = switch (this) {
+            case WEST -> 90;
+            case SOUTH -> 180;
+            case EAST -> 270;
+            default -> 0;
+        };
+
+        return vector.rotateAroundY(Math.toRadians(angle));
     }
 
     public Direction rotateDirectionOnce() {
