@@ -42,7 +42,10 @@ public class ClickableEntity {
     }
 
     public void spawn(Pos pos, Instance instance) {
-        entity.setInstance(instance, pos);
+        entity.setInstance(instance, pos).whenComplete((unused, throwable) -> {
+            entity.spawn();
+            entity.refreshPosition(pos);
+        });
     }
 
     public void remove() {
