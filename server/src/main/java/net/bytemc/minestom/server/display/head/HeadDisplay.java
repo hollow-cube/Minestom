@@ -80,6 +80,7 @@ public final class HeadDisplay {
                 entity.setHelmet(stack);
             }
             case SMALL -> {
+                // TODO: not final
                 entity.setInvisible(false);
                 meta.setSmall(false);
                 //meta.setRightArmRotation(new Vec(280, 0, 0));
