@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "1.9.20"
     id("com.jfrog.artifactory") version "5.1.10"
+    id ("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "net.bytemc"
@@ -17,4 +18,33 @@ dependencies {
 
 kotlin {
     jvmToolchain(17)
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "net.bytemc.minestom.server.ByteServerBootstrapKt"
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJavaServer") {
+            from(components["java"])
+
+            this.groupId = project.group.toString()
+            this.artifactId = project.name
+            this.version = project.version.toString()
+        }
+    }
+
+    repositories {
+        maven {
+            name = "bytemc"
+            url = uri("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+            credentials {
+                username = System.getenv("BYTEMC_REPO_USERNAME")
+                password = System.getenv("BYTEMC_REPO_PASSWORD")
+            }
+        }
+    }
 }
