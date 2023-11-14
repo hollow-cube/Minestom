@@ -12,6 +12,9 @@
 
 # Dependencies
 
+**All available versions:** 
+<a href="https://artifactory.bytemc.de/ui/native/bytemc-public/net/bytemc/minestom/">Click </a>
+
 > **Warning**
 >
 > You need following repository `bytemc-public`
