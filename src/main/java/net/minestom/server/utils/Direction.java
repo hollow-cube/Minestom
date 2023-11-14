@@ -2,6 +2,7 @@ package net.minestom.server.utils;
 
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.entity.metadata.other.ItemFrameMeta;
 import org.jetbrains.annotations.NotNull;
 
 public enum Direction {
@@ -58,24 +59,22 @@ public enum Direction {
         return vector.rotateAroundY(Math.toRadians(angle));
     }
 
-    public Direction getChestFacing() {
+    public Direction rotateDirectionOnce() {
         return switch (this) {
-            case NORTH -> SOUTH;
-            case EAST -> WEST;
-            case SOUTH -> SOUTH;
-            case WEST -> WEST;
+            case NORTH -> EAST;
+            case EAST -> SOUTH;
+            case SOUTH -> WEST;
+            case WEST -> NORTH;
             default -> null;
         };
     }
 
-    public Direction getSignFacing() {
-        return switch (this) {
-            case NORTH -> SOUTH;
-            case EAST -> WEST;
-            case SOUTH -> NORTH;
-            case WEST -> EAST;
-            default -> null;
-        };
+    public String getFacingProperty() {
+        return name().toLowerCase();
+    }
+
+    public ItemFrameMeta.Orientation getItemFrameOrientation() {
+        return ItemFrameMeta.Orientation.values()[ordinal()];
     }
 
     public float getYaw() {
@@ -87,14 +86,24 @@ public enum Direction {
         };
     }
 
-    public static Direction fromDirection(Point direction) {
+    public boolean isHorizontal() {
+        return this.normalY == 0;
+    }
+
+    public static Direction fromPoint(Point direction, boolean onlyHorizontal) {
         double x = direction.x();
+        double y = direction.y();
         double z = direction.z();
 
-        if (Math.abs(x) > Math.abs(z)) {
+        if ((Math.abs(x) > Math.abs(y) || onlyHorizontal) && Math.abs(x) > Math.abs(z)) {
             return x < 0 ? WEST : EAST;
+        } else if (Math.abs(y) > Math.abs(z) && !onlyHorizontal) {
+            return y < 0 ? DOWN : UP;
         } else {
             return z < 0 ? NORTH : SOUTH;
         }
+    }
+    public static Direction fromPoint(Point direction) {
+        return fromPoint(direction, false);
     }
 }

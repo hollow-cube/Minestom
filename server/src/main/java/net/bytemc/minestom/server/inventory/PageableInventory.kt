@@ -32,13 +32,13 @@ abstract class PageableInventory<T>(title: String, type: InventoryType, clickabl
         if(currentPage > 1) {
             fill(inventory.size / 9, 2, ClickableItem(ItemStack.of(Material.ARROW).withDisplayName(Component.text("§7Back"))).subscribe({
                 createPage(currentPage - 1)
-            }, listOf(ClickType.ALL)))
+            }, ClickType.ALL))
         }
 
         if(currentPage < getMaxPage()) {
             fill(inventory.size / 9, 6, ClickableItem(ItemStack.of(Material.ARROW).withDisplayName(Component.text("§7Forward"))).subscribe({
                 createPage(currentPage + 1)
-            }, listOf(ClickType.ALL)))
+            }, ClickType.ALL))
         }
 
         if(values.isEmpty()) {

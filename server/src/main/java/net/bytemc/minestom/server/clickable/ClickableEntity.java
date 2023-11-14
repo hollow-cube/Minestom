@@ -13,13 +13,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ClickableEntity {
-
     private static final List<ClickableEntity> ENTITY_LIST = new ArrayList<>();
 
     static {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerEntityInteractEvent.class, event -> {
             for (var entity : ENTITY_LIST) {
-                entity.interactionPlayer.accept(event.getPlayer());
+                if(event.getTarget().getUuid().equals(entity.entity.getUuid())) {
+                    entity.interactionPlayer.accept(event.getPlayer());
+                }
                 break;
             }
         });
@@ -41,7 +42,10 @@ public class ClickableEntity {
     }
 
     public void spawn(Pos pos, Instance instance) {
-        entity.setInstance(instance, pos);
+        entity.setInstance(instance, pos).whenComplete((unused, throwable) -> {
+            entity.spawn();
+            entity.refreshPosition(pos);
+        });
     }
 
     public void remove() {

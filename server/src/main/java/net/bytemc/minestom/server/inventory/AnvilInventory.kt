@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Player
+import net.minestom.server.event.inventory.InventoryCloseEvent
 import net.minestom.server.event.player.PlayerPacketEvent
 import net.minestom.server.inventory.Inventory
 import net.minestom.server.inventory.InventoryType
@@ -30,6 +31,10 @@ abstract class AnvilInventory(var title: String, var targetPlayer: Player) {
                     targetPlayer.level = oldLevel
                 }
             }
+        }
+
+        MinecraftServer.getGlobalEventHandler().addListener(InventoryCloseEvent::class.java) { event ->
+            event.player.level = oldLevel
         }
 
         inventory.setItemStack(0, ItemStack.of(Material.BAMBOO_SIGN).withDisplayName(Component.text("Enter value")))

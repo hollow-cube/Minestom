@@ -36,7 +36,6 @@ public final class SchematicReader {
             Short length = tag.getShort("Length");
 
             NBTCompound metadata = tag.getCompound("Metadata");
-
             Integer offsetX = metadata.getInt("WEOffsetX");
             Integer offsetY = metadata.getInt("WEOffsetY");
             Integer offsetZ = metadata.getInt("WEOffsetZ");

@@ -1,5 +1,6 @@
 package net.bytemc.minestom.server.schematics.manager;
 
+import net.bytemc.minestom.server.schematics.CuboId;
 import net.bytemc.minestom.server.schematics.Schematic;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -12,10 +13,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SchematicBuilder {
-
     private final Map<Point, Block> blockSet = new HashMap<>();
-
     private Point offset = Vec.ZERO;
+
+    public static SchematicBuilder builder() {
+        return new SchematicBuilder();
+    }
+
+    public static SchematicBuilder builder(CuboId cuboId) {
+        var builder = builder();
+        builder.blocksFromCubo(cuboId);
+        return builder;
+    }
+
+    public void blocksFromCubo(CuboId cuboId) {
+        cuboId.blockList().forEach((block, point) -> {
+            addBlock(point, block);
+        });
+    }
 
     public void addBlock(@NotNull Point point, @NotNull Block block) {
         blockSet.put(new Vec(point.blockX(), point.blockY(), point.blockZ()), block);

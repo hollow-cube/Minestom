@@ -7,8 +7,8 @@ import net.minestom.server.instance.block.Block;
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class CuboId {
-
     private final int xMin;
     private final int xMax;
     private final int yMin;
@@ -54,7 +54,7 @@ public class CuboId {
     }
 
     public Point getCenter() {
-        return new Vec((this.xMax - this.xMin) / 2 + this.xMin, (this.yMax - this.yMin) / 2 + this.yMin, (this.zMax - this.zMin) / 2 + this.zMin);
+        return new Vec((double) (this.xMax - this.xMin) / 2 + this.xMin, (double) (this.yMax - this.yMin) / 2 + this.yMin, (double) (this.zMax - this.zMin) / 2 + this.zMin);
     }
 
     public int getHeight() {
