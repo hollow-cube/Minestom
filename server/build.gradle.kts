@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.bytemc"
-version = "1.0.4-SNAPSHOT"
+version = "1.0.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -25,12 +25,6 @@ tasks.withType<Jar> {
 
 kotlin {
     jvmToolchain(17)
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "net.bytemc.minestom.server.ByteServerBootstrapKt"
-    }
 }
 
 publishing {
