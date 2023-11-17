@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.bytemc"
-version = "1.0.5-SNAPSHOT"
+version = "1.1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
