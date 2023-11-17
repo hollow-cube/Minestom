@@ -6,9 +6,7 @@ metadata.format.version = "1.1"
 data = "1.20-rv2"
 adventure = "4.14.0"
 kotlin = "1.9.20"
-hydrazine = "1.8.1"
 hephaistos = "2.6.1"
-dependencyGetter = "v1.0.1"
 jetbrainsAnnotations = "24.1.0"
 slf4j = "2.0.9"
 
@@ -48,8 +46,6 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
 
 # Miscellaneous
-hydrazine = { group = "com.github.MadMartian", name = "hydrazine-path-finding", version.ref = "hydrazine" }
-dependencyGetter = { group = "com.github.Minestom", name = "DependencyGetter", version.ref = "dependencyGetter" }
 minestomData = { group = "dev.hollowcube", name = "minestom-ce-data", version.ref = "data" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
 hephaistos-common = { group = "io.github.jglrxavpok.hephaistos", name = "common", version.ref = "hephaistos" }
