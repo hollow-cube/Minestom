@@ -13,7 +13,9 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven(url = "https://jitpack.io")
+        maven {
+            url = uri("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+        }
     }
 
     configurations.all {
@@ -73,14 +75,16 @@ sourceSets {
     }
 }
 
+configurations.implementation {
+    exclude(group = "org.jboss.shrinkwrap.resolver", module = "shrinkwrap-resolver-depchain")
+}
+
 dependencies {
     api(libs.slf4j)
     api(libs.jetbrainsAnnotations)
     api(libs.bundles.adventure)
-    api(libs.hydrazine)
     api(libs.bundles.kotlin)
     api(libs.bundles.hephaistos)
-    api(libs.dependencyGetter)
     implementation(libs.minestomData)
     implementation(libs.caffeine)
     api(libs.fastutil)
@@ -88,4 +92,6 @@ dependencies {
     api(libs.gson)
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
+
+    api(group = "net.bytemc.libs", name = "path", version = "1.0-SNAPSHOT", classifier = "all")
 }
