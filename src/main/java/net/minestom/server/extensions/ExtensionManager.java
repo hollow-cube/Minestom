@@ -1,9 +1,6 @@
 package net.minestom.server.extensions;
 
 import com.google.gson.Gson;
-import net.minestom.dependencies.DependencyGetter;
-import net.minestom.dependencies.ResolvedDependency;
-import net.minestom.dependencies.maven.MavenRepository;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.ApiStatus;
@@ -15,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -226,7 +222,6 @@ public class ExtensionManager {
             }
 
             discoveredExtensions = generateLoadOrder(discoveredExtensions);
-            loadDependencies(discoveredExtensions);
 
             // remove invalid extensions
             discoveredExtensions.removeIf(ext -> ext.loadStatus != DiscoveredExtension.LoadStatus.LOAD_SUCCESS);
@@ -540,80 +535,10 @@ public class ExtensionManager {
                         || extensions.stream().allMatch(ext -> this.extensions.containsKey(ext.getName().toLowerCase()));
     }
 
-    private void loadDependencies(@NotNull List<DiscoveredExtension> extensions) {
-        List<DiscoveredExtension> allLoadedExtensions = new LinkedList<>(extensions);
-
-        for (Extension extension : immutableExtensions.values())
-            allLoadedExtensions.add(extension.getOrigin());
-
-        for (DiscoveredExtension discoveredExtension : extensions) {
-            try {
-                DependencyGetter getter = new DependencyGetter();
-                DiscoveredExtension.ExternalDependencies externalDependencies = discoveredExtension.getExternalDependencies();
-                List<MavenRepository> repoList = new LinkedList<>();
-                for (var repository : externalDependencies.repositories) {
-
-                    if (repository.name == null || repository.name.isEmpty()) {
-                        throw new IllegalStateException("Missing 'name' element in repository object.");
-                    }
-
-                    if (repository.url == null || repository.url.isEmpty()) {
-                        throw new IllegalStateException("Missing 'url' element in repository object.");
-                    }
-
-                    repoList.add(new MavenRepository(repository.name, repository.url));
-                }
-
-                getter.addMavenResolver(repoList);
-
-                for (String artifact : externalDependencies.artifacts) {
-                    var resolved = getter.get(artifact, dependenciesFolder);
-                    addDependencyFile(resolved, discoveredExtension);
-                    LOGGER.trace("Dependency of extension {}: {}", discoveredExtension.getName(), resolved);
-                }
-
-                ExtensionClassLoader extensionClassLoader = discoveredExtension.getClassLoader();
-                for (String dependencyName : discoveredExtension.getDependencies()) {
-                    var resolved = extensions.stream()
-                            .filter(ext -> ext.getName().equalsIgnoreCase(dependencyName))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Unknown dependency '" + dependencyName + "' of '" + discoveredExtension.getName() + "'"));
-
-                    ExtensionClassLoader dependencyClassLoader = resolved.getClassLoader();
-
-                    extensionClassLoader.addChild(dependencyClassLoader);
-                    LOGGER.trace("Dependency of extension {}: {}", discoveredExtension.getName(), resolved);
-                }
-            } catch (Exception e) {
-                discoveredExtension.loadStatus = DiscoveredExtension.LoadStatus.MISSING_DEPENDENCIES;
-                LOGGER.error("Failed to load dependencies for extension {}", discoveredExtension.getName());
-                LOGGER.error("Extension '{}' will not be loaded", discoveredExtension.getName());
-                LOGGER.error("This is the exception", e);
-            }
-        }
-    }
-
-    private void addDependencyFile(@NotNull ResolvedDependency dependency, @NotNull DiscoveredExtension extension) {
-        URL location = dependency.getContentsLocation();
-        extension.files.add(location);
-        extension.getClassLoader().addURL(location);
-        LOGGER.trace("Added dependency {} to extension {} classpath", location.toExternalForm(), extension.getName());
-
-        // recurse to add full dependency tree
-        if (!dependency.getSubdependencies().isEmpty()) {
-            LOGGER.trace("Dependency {} has subdependencies, adding...", location.toExternalForm());
-            for (ResolvedDependency sub : dependency.getSubdependencies()) {
-                addDependencyFile(sub, extension);
-            }
-            LOGGER.trace("Dependency {} has had its subdependencies added.", location.toExternalForm());
-        }
-    }
-
     private boolean loadExtensionList(@NotNull List<DiscoveredExtension> extensionsToLoad) {
         // ensure correct order of dependencies
         LOGGER.debug("Reorder extensions to ensure proper load order");
         extensionsToLoad = generateLoadOrder(extensionsToLoad);
-        loadDependencies(extensionsToLoad);
 
         // setup new classloaders for the extensions to reload
         for (DiscoveredExtension toReload : extensionsToLoad) {

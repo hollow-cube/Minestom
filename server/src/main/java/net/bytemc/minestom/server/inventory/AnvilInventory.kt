@@ -17,7 +17,7 @@ abstract class AnvilInventory(var title: String, var targetPlayer: Player) {
     var oldLevel: Int = targetPlayer.level
 
     init {
-        inventory.addInventoryCondition { player, slot, _, result ->
+        inventory.addInventoryCondition { _, _, _, result ->
             result.isCancel = true
         }
 
