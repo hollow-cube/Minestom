@@ -17,7 +17,7 @@ public class ParticleBuilder {
     private final int count;
     private final float speed;
 
-    private final List<Pos> lines;
+    private final List<AbstractParticleQueue> queues;
 
     private byte[] data = new byte[0];
     private final float[] offset = new float[] { 0, 0, 0 };
@@ -39,7 +39,11 @@ public class ParticleBuilder {
         this.count = count;
         this.speed = speed;
 
-        this.lines = new ArrayList<>();
+        this.queues = new ArrayList<>();
+    }
+
+    public void addQueue(AbstractParticleQueue queue) {
+        this.queues.add(queue);
     }
 
     public void circle(Player player, Pos pos, float radius) {
@@ -61,16 +65,6 @@ public class ParticleBuilder {
             send(player, newPos);
             return TaskSchedule.millis(time);
         });
-    }
-
-    public void addLine(Pos pos) {
-        this.lines.add(pos);
-    }
-
-    public void drawLines(Player player) {
-        for (Pos line : this.lines) {
-            //TODO
-        }
     }
 
     public void send(Player player, Pos pos) {
