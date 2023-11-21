@@ -33,8 +33,9 @@ public final class SwitchItem implements Item {
         this.currentItem = 0;
     }
 
-    public void addSwitch(Item item, Consumer<Player> onSwitch) {
+    public SwitchItem addSwitch(Item item, Consumer<Player> onSwitch) {
         this.switches.put(item, onSwitch);
+        return this;
     }
 
     public ItemStack getItemStack() {
