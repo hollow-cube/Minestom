@@ -1,7 +1,8 @@
-package net.bytemc.minestom.server.inventory.item.impl;
+package net.bytemc.minestom.server.inventory.item.impl.switchitem;
 
 import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
+import net.bytemc.minestom.server.inventory.item.impl.ClickableItem;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 
@@ -28,7 +29,7 @@ public final class SwitchItem implements Item {
     }
 
     public ItemStack getItemStack() {
-        return switches.get(0).getItem().getItemStack();
+        return switches.get(0).item().getItemStack();
     }
 
     public void click(Player player, SingletonInventory inventory, int slot) {
@@ -38,36 +39,12 @@ public final class SwitchItem implements Item {
         }
 
         var item = switches.get(currentItem);
-        if(item.getPredicate() != null && !item.getPredicate().test(player)) {
+        if(item.predicate() != null && !item.predicate().test(player)) {
             currentItem--;
             return;
         }
 
-        item.getConsumer().accept(player);
-        inventory.fill(slot, item.getItem());
-    }
-
-    private static class SwitchEntry {
-        private final Item item;
-        private final Consumer<Player> consumer;
-        private final Predicate<Player> predicate;
-
-        public SwitchEntry(Item item, Consumer<Player> consumer, Predicate<Player> predicate) {
-            this.item = item;
-            this.consumer = consumer;
-            this.predicate = predicate;
-        }
-
-        public Item getItem() {
-            return item;
-        }
-
-        public Consumer<Player> getConsumer() {
-            return consumer;
-        }
-
-        public Predicate<Player> getPredicate() {
-            return predicate;
-        }
+        item.consumer().accept(player);
+        inventory.fill(slot, item.item());
     }
 }
