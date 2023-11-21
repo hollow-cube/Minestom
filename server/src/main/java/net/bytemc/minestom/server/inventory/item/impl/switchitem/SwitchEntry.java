@@ -1,4 +1,4 @@
-package net.bytemc.minestom.server.inventory.item.impl.toggle;
+package net.bytemc.minestom.server.inventory.item.impl.switchitem;
 
 import net.bytemc.minestom.server.inventory.item.Item;
 import net.minestom.server.entity.Player;
