@@ -12,22 +12,21 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
 public final class SwitchItem implements Item {
-    private final ItemStack itemStack;
     private final Map<Item, Consumer<Player>> switches;
 
     private int currentItem;
     private Predicate<Player> predicate;
 
-    public SwitchItem(ItemStack itemStack) {
-        this.itemStack = itemStack;
+    public SwitchItem(ItemStack item, Consumer<Player> consumer) {
         this.switches = new HashMap<>();
+        this.switches.put(new ClickableItem(item), consumer);
 
         this.currentItem = 0;
     }
 
-    public SwitchItem(ItemStack itemStack, Predicate<Player> predicate) {
-        this.itemStack = itemStack;
+    public SwitchItem(ItemStack item, Consumer<Player> consumer, Predicate<Player> predicate) {
         this.switches = new HashMap<>();
+        this.switches.put(new ClickableItem(item), consumer);
         this.predicate = predicate;
 
         this.currentItem = 0;
@@ -39,7 +38,7 @@ public final class SwitchItem implements Item {
     }
 
     public ItemStack getItemStack() {
-        return itemStack;
+        return switches.keySet().stream().toList().get(0).getItemStack();
     }
 
     public void click(Player player, SingletonInventory inventory, int slot) {
