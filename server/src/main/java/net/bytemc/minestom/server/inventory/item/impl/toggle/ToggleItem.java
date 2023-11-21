@@ -1,7 +1,8 @@
-package net.bytemc.minestom.server.inventory.item.impl;
+package net.bytemc.minestom.server.inventory.item.impl.toggle;
 
 import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
+import net.bytemc.minestom.server.inventory.item.impl.ClickableItem;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
