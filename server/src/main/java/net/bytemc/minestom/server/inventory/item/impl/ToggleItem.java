@@ -13,17 +13,22 @@ public final class ToggleItem implements Item {
     private final ItemStack itemStack;
     private final Item change;
 
+    private int currentItem;
     private Predicate<Player> predicate;
 
     public ToggleItem(ItemStack itemStack, Item change) {
         this.itemStack = itemStack;
         this.change = change;
+
+        this.currentItem = 0;
     }
 
     public ToggleItem(ItemStack itemStack, Item change, Predicate<Player> predicate) {
         this.itemStack = itemStack;
         this.change = change;
         this.predicate = predicate;
+
+        this.currentItem = 0;
     }
 
     public ItemStack getItemStack() {
@@ -34,6 +39,12 @@ public final class ToggleItem implements Item {
         if(predicate != null && !this.predicate.test(player)) {
             return;
         }
-        inventory.fill(slot, change);
+        currentItem++;
+        if(currentItem >= 1) {
+            currentItem = 0;
+            inventory.fill(slot, new ClickableItem(itemStack));
+        } else {
+            inventory.fill(slot, change);
+        }
     }
 }
