@@ -6,7 +6,7 @@ import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
 import java.nio.ByteBuffer;
 
-public class ParticleBuilder {
+public final class ParticleBuilder {
     private final Particle particle;
 
     private final int count;

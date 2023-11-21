@@ -4,7 +4,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
-public class ParticleCycleQueue extends AbstractParticleQueue {
+public final class ParticleCycleQueue extends AbstractParticleQueue {
 
     private final Pos position;
     private final int radius;

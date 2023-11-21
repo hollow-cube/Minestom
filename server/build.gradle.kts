@@ -23,7 +23,7 @@ tasks.withType<Jar> {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(20)
 }
 
 publishing {
