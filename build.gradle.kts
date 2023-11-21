@@ -24,8 +24,8 @@ allprojects {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_20
-        targetCompatibility = JavaVersion.VERSION_20
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     tasks.withType<Zip> {
@@ -93,5 +93,5 @@ dependencies {
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
 
-    api(group = "net.bytemc.libs", name = "path", version = "1.0-SNAPSHOT", classifier = "all")
+    api(group = "net.bytemc.libs", name = "path", version = "1.1-SNAPSHOT", classifier = "all")
 }
