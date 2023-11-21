@@ -5,9 +5,9 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
 public final class ParticleCycleQueue extends AbstractParticleQueue {
-
     private final Pos position;
     private final int radius;
+
     private int max = 0;
 
     public ParticleCycleQueue(ParticleBuilder builder, int speed, Pos pos, Instance instance, int radius) {
