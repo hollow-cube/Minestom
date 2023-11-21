@@ -6,11 +6,11 @@ import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 
 public abstract class AbstractParticleQueue {
-
-    private Task task;
     private final ParticleBuilder builder;
     private final int speed;
     private final Instance instance;
+
+    private Task task;
 
     public AbstractParticleQueue(ParticleBuilder builder, int speed, Instance instance) {
         this.builder = builder;

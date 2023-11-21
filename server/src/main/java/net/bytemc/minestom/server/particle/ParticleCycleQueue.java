@@ -3,10 +3,10 @@ package net.bytemc.minestom.server.particle;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
-public class ParticleCycleQueue extends AbstractParticleQueue {
-
+public final class ParticleCycleQueue extends AbstractParticleQueue {
     private final Pos position;
     private final int radius;
+
     private int max = 0;
 
     public ParticleCycleQueue(ParticleBuilder builder, int speed, Pos pos, Instance instance, int radius) {
