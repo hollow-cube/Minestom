@@ -4,22 +4,23 @@ import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
 
 import java.util.function.Predicate;
 
 @SuppressWarnings("unused")
-public final class SwitchItem implements Item {
+public final class ToggleItem implements Item {
     private final ItemStack itemStack;
     private final Item change;
 
     private Predicate<Player> predicate;
 
-    public SwitchItem(ItemStack itemStack, Item change) {
+    public ToggleItem(ItemStack itemStack, Item change) {
         this.itemStack = itemStack;
         this.change = change;
     }
 
-    public SwitchItem(ItemStack itemStack, Item change, Predicate<Player> predicate) {
+    public ToggleItem(ItemStack itemStack, Item change, Predicate<Player> predicate) {
         this.itemStack = itemStack;
         this.change = change;
         this.predicate = predicate;
