@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.20"
-    id("com.jfrog.artifactory") version "5.1.10"
+    id("com.jfrog.artifactory") version "5.1.11"
     id ("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
