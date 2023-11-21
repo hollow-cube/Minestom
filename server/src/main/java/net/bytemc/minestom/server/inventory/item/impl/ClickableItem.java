@@ -1,5 +1,7 @@
-package net.bytemc.minestom.server.inventory.item;
+package net.bytemc.minestom.server.inventory.item.impl;
 
+import net.bytemc.minestom.server.inventory.item.ClickType;
+import net.bytemc.minestom.server.inventory.item.Item;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 
@@ -10,7 +12,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
-public final class ClickableItem {
+public final class ClickableItem implements Item {
     private final ItemStack itemStack;
     private final Map<Consumer<Player>, List<ClickType>> onClick;
 
