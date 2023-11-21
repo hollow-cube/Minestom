@@ -1,4 +1,4 @@
-package net.bytemc.minestom.server.inventory.item.impl.toggle;
+package net.bytemc.minestom.server.inventory.item.impl;
 
 import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
