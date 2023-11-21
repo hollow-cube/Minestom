@@ -1,45 +1,44 @@
 package net.bytemc.minestom.server.particle;
 
-import net.minestom.server.entity.Player;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.instance.Instance;
+import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
 
 public abstract class AbstractParticleQueue {
+
+    private Task task;
     private final ParticleBuilder builder;
-    private final List<Player> players;
+    private final int speed;
+    private final Instance instance;
 
-    private int count;
-
-    public AbstractParticleQueue(ParticleBuilder builder) {
+    public AbstractParticleQueue(ParticleBuilder builder, int speed, Instance instance) {
         this.builder = builder;
-        this.players = new ArrayList<>();
+        this.speed = speed;
+        this.instance = instance;
     }
 
-    public void addPlayer(Player player) {
-        this.players.add(player);
-    }
-
-    public void addPlayers(Collection<Player> collection) {
-        this.players.addAll(collection);
+    public Instance getInstance() {
+        return instance;
     }
 
     public ParticleBuilder getBuilder() {
         return builder;
     }
 
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
-    }
-
     public abstract void tick();
+
+    public void stop() {
+        if(task != null) {
+            task.cancel();
+            task = null;
+        }
+    }
+
+    public void run() {
+        this.task = MinecraftServer.getSchedulerManager().submitTask(() -> {
+            tick();
+            return TaskSchedule.millis(speed);
+        });
+    }
 }
