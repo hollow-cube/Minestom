@@ -93,5 +93,5 @@ dependencies {
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
 
-    api(group = "net.bytemc.libs", name = "path", version = "1.0-SNAPSHOT", classifier = "all")
+    api(group = "net.bytemc.libs", name = "path", version = "1.1-SNAPSHOT", classifier = "all")
 }
