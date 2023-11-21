@@ -24,7 +24,6 @@ public final class ToggleItem implements Item {
 
     public ToggleItem(ItemStack itemStack, Item change, Predicate<Player> predicate) {
         this(itemStack, change);
-
         this.predicate = predicate;
     }
 
