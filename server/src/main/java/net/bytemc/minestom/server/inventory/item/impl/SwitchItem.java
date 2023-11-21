@@ -1,8 +1,7 @@
-package net.bytemc.minestom.server.inventory.item.impl.switchitem;
+package net.bytemc.minestom.server.inventory.item.impl;
 
 import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
-import net.bytemc.minestom.server.inventory.item.impl.ClickableItem;
 import net.minestom.server.entity.Player;
 import net.minestom.server.item.ItemStack;
 
@@ -15,11 +14,10 @@ import java.util.function.Predicate;
 public final class SwitchItem implements Item {
     private final List<SwitchEntry> switches;
 
-    private int currentItem;
+    private int currentItem = 0;
 
     public SwitchItem(ItemStack item, Consumer<Player> consumer, Predicate<Player> predicate) {
         this.switches = new ArrayList<>();
-        this.currentItem = 0;
 
         addSwitch(new ClickableItem(item), consumer, predicate);
     }
@@ -47,5 +45,29 @@ public final class SwitchItem implements Item {
 
         item.getConsumer().accept(player);
         inventory.fill(slot, item.getItem());
+    }
+
+    private static class SwitchEntry {
+        private final Item item;
+        private final Consumer<Player> consumer;
+        private final Predicate<Player> predicate;
+
+        public SwitchEntry(Item item, Consumer<Player> consumer, Predicate<Player> predicate) {
+            this.item = item;
+            this.consumer = consumer;
+            this.predicate = predicate;
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public Consumer<Player> getConsumer() {
+            return consumer;
+        }
+
+        public Predicate<Player> getPredicate() {
+            return predicate;
+        }
     }
 }
