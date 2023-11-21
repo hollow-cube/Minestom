@@ -1,6 +1,5 @@
 package net.bytemc.minestom.server.particle;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
@@ -24,6 +23,6 @@ public class ParticleCycleQueue extends AbstractParticleQueue {
         max++;
         double particleData = (double) max / (radius * 3);
         var pos = new Pos(position.x() + Math.cos(particleData) * radius, 0, position.z() + Math.sin(particleData) * radius);
-        MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(it -> it.getInstance() != null && it.getInstance() == getInstance()).forEach(player -> getBuilder().send(player, pos));
+        getInstance().getPlayers().forEach(player -> getBuilder().send(player, pos));
     }
 }

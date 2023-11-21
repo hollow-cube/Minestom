@@ -1,6 +1,6 @@
 package net.bytemc.minestom.server.particle;
 
-import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ParticlePacket;
 import net.minestom.server.particle.Particle;
@@ -40,11 +40,11 @@ public class ParticleBuilder {
         this.speed = speed;
     }
 
-    public void send(Player player, Pos pos) {
-        player.sendPacket(toPacket(pos));
+    public void send(Player player, Point point) {
+        player.sendPacket(toPacket(point));
     }
 
-    public ParticlePacket toPacket(Pos pos) {
-        return new ParticlePacket(particle.id(), false, pos.x(), pos.y(), pos.z(), offset[0], offset[1], offset[2], speed, count, data);
+    public ParticlePacket toPacket(Point point) {
+        return new ParticlePacket(particle.id(), false, point.x(), point.y(), point.z(), offset[0], offset[1], offset[2], speed, count, data);
     }
 }
