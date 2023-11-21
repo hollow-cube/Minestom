@@ -4,6 +4,7 @@ import net.bytemc.minestom.server.inventory.SingletonInventory;
 import net.bytemc.minestom.server.inventory.item.Item;
 import net.minestom.server.item.ItemStack;
 
+@SuppressWarnings("unused")
 public final class SwitchItem implements Item {
     private final ItemStack itemStack;
     private final Item change;
