@@ -2,7 +2,7 @@ package net.bytemc.minestom.server.inventory
 
 import net.bytemc.minestom.server.inventory.item.Item
 import net.bytemc.minestom.server.inventory.item.impl.ClickableItem
-import net.bytemc.minestom.server.inventory.item.impl.SwitchItem
+import net.bytemc.minestom.server.inventory.item.impl.switchitem.SwitchItem
 import net.bytemc.minestom.server.inventory.item.impl.ToggleItem
 import net.minestom.server.entity.Player
 import net.minestom.server.inventory.Inventory
