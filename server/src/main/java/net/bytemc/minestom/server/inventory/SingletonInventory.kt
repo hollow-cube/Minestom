@@ -2,7 +2,8 @@ package net.bytemc.minestom.server.inventory
 
 import net.bytemc.minestom.server.inventory.item.Item
 import net.bytemc.minestom.server.inventory.item.impl.ClickableItem
-import net.bytemc.minestom.server.inventory.item.impl.SwitchItem
+import net.bytemc.minestom.server.inventory.item.impl.switchitem.SwitchItem
+import net.bytemc.minestom.server.inventory.item.impl.ToggleItem
 import net.minestom.server.entity.Player
 import net.minestom.server.inventory.Inventory
 import net.minestom.server.inventory.InventoryType
@@ -18,7 +19,9 @@ open class SingletonInventory(var title: String, var type: InventoryType, var cl
             if(item is ClickableItem) {
                 item.click(player, clickType.name)
             } else if(item is SwitchItem) {
-                item.click(this, slot)
+                item.click(player,this, slot)
+            } else if(item is ToggleItem) {
+                item.click(player,this, slot)
             }
 
             if (!clickable) {
