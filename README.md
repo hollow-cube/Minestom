@@ -44,7 +44,3 @@ Only our modifyed minestom version:
     <version>VERSION</version>
 </dependency>
 ```
-
-# Todo
-## Not implemented
-- [ ] HeadDisplay size [SMALL, VERY_SMALL]
