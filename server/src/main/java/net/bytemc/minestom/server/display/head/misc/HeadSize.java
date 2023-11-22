@@ -3,8 +3,8 @@ package net.bytemc.minestom.server.display.head.misc;
 public enum HeadSize {
     BIG(1.6),
     MID(2.3),
-    SMALL(3.0),
-    TINY(3.7);
+    SMALL(3.8),
+    TINY(7.6);
 
     private final double distance;
 

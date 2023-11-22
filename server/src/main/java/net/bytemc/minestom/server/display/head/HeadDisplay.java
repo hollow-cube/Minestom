@@ -1,6 +1,7 @@
 package net.bytemc.minestom.server.display.head;
 
 import net.bytemc.minestom.server.display.head.misc.HeadLetter;
+import net.bytemc.minestom.server.display.head.misc.HeadSize;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.EntityCreature;
@@ -69,25 +70,18 @@ public final class HeadDisplay {
         entity.setInvisible(true);
         entity.setInvulnerable(true);
         meta.setHasArms(true);
+        meta.setMarker(true);
 
-        switch (settings.getHeadSize()) {
-            case BIG -> {
-                meta.setSmall(false);
-                entity.setHelmet(stack);
-            }
-            case MID -> {
-                meta.setSmall(true);
-                entity.setHelmet(stack);
-            }
-            case SMALL -> {
-                // TODO: not final
-                entity.setInvisible(false);
-                meta.setSmall(false);
-                //meta.setRightArmRotation(new Vec(280, 0, 0));
-                meta.setRightArmRotation(new Vec(330, 360, 0));
-                entity.setItemInMainHand(stack);
-            }
-            // TODO: Do SMALL and TINY
+        var size = settings.getHeadSize();
+        if(size == HeadSize.BIG || size == HeadSize.MID) {
+            entity.setHelmet(stack);
+        }
+        if(size == HeadSize.MID || size == HeadSize.TINY) {
+            meta.setSmall(true);
+        }
+        if(size == HeadSize.TINY || size == HeadSize.SMALL) {
+            meta.setRightArmRotation(new Vec(-45, -135, 0));
+            entity.setItemInMainHand(stack);
         }
         return entity;
     }
