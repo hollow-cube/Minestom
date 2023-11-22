@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("com.jfrog.artifactory") version "5.1.10"
+    id("com.jfrog.artifactory") version "5.1.11"
     `maven-publish`
 }
 
@@ -93,5 +93,5 @@ dependencies {
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
 
-    api(group = "net.bytemc.libs", name = "path", version = "1.0-SNAPSHOT", classifier = "all")
+    api(group = "net.bytemc.libs", name = "path", version = "1.1-SNAPSHOT", classifier = "all")
 }

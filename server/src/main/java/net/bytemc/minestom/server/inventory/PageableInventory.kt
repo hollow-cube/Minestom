@@ -1,7 +1,7 @@
 package net.bytemc.minestom.server.inventory
 
 import net.bytemc.minestom.server.inventory.item.ClickType
-import net.bytemc.minestom.server.inventory.item.ClickableItem
+import net.bytemc.minestom.server.inventory.item.impl.ClickableItem
 import net.kyori.adventure.text.Component
 import net.minestom.server.inventory.InventoryType
 import net.minestom.server.item.ItemStack
