@@ -40,15 +40,19 @@ public final class ByteServer {
         }
 
         var port = 25565;
+        var host = "0.0.0.0";
         if (args.contains("--port")) {
             for (int i = 0; i < args.size(); i++) {
                 if (Objects.equals(args.get(i), "--port")) {
                     port = Integer.parseInt(args.get(i + 1));
                 }
+                if (Objects.equals(args.get(i), "--host")) {
+                    host = args.get(i + 1);
+                }
             }
-            System.out.println("[ByteServer] port is $port");
+            System.out.println("[ByteServer] port is " + port);
         }
-        server.start("127.0.0.1", port);
+        server.start(host, port);
         System.out.println("[ByteServer] minestom server was started!");
     }
 
