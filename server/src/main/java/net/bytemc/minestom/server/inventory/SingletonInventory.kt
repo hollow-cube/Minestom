@@ -8,6 +8,7 @@ import net.minestom.server.entity.Player
 import net.minestom.server.inventory.Inventory
 import net.minestom.server.inventory.InventoryType
 import net.minestom.server.item.Material
+import java.util.stream.IntStream
 
 open class SingletonInventory(var title: String, var type: InventoryType, var clickable: Boolean) {
     var inventory: Inventory = Inventory(type, title)
@@ -50,6 +51,12 @@ open class SingletonInventory(var title: String, var type: InventoryType, var cl
 
     fun fill(row: Int, slot: Int, item: Item) {
         fill(((row - 1) * 9) + slot, item)
+    }
+
+    fun fill(stream: IntStream, item: Item) {
+        stream.forEach {
+            fill(it, item)
+        }
     }
 
     fun fillRow(row: Int, item: Item) {
