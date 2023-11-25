@@ -1494,8 +1494,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * WARNING: this does not trigger {@link EntityDeathEvent}.
      */
     public void remove() {
-        if (isRemoved()) return;
+        remove(true);
+    }
 
+    protected void remove(boolean permanent) {
+        if (isRemoved()) return;
         EventDispatcher.call(new EntityDespawnEvent(this));
         try {
             despawn();
@@ -1511,10 +1514,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         MinecraftServer.process().dispatcher().removeElement(this);
         this.removed = true;
-        Entity.ENTITY_BY_ID.remove(id);
-        Entity.ENTITY_BY_UUID.remove(uuid);
+        if (permanent) {
+            Entity.ENTITY_BY_ID.remove(id);
+            Entity.ENTITY_BY_UUID.remove(uuid);
+        } else {
+            // Reset some other state
+            this.position = Pos.ZERO;
+            this.previousPosition = Pos.ZERO;
+            this.lastSyncedPosition = Pos.ZERO;
+        }
         Instance currentInstance = this.instance;
-        if (currentInstance != null) removeFromInstance(currentInstance);
+        if (currentInstance != null) {
+            removeFromInstance(currentInstance);
+            this.instance = null;
+        }
+
     }
 
     /**
