@@ -3,12 +3,10 @@ import net.bytemc.minestom.server.clickable.ClickableEntity;
 import net.bytemc.minestom.server.display.head.HeadDisplay;
 import net.bytemc.minestom.server.display.head.misc.HeadSize;
 import net.bytemc.minestom.server.hologram.Hologram;
+import net.bytemc.minestom.server.inventory.anvil.AnvilInventory;
 import net.bytemc.minestom.server.schematics.CuboId;
 import net.bytemc.minestom.server.schematics.Rotation;
-import net.bytemc.minestom.server.schematics.Schematic;
 import net.bytemc.minestom.server.schematics.manager.SchematicBuilder;
-import net.bytemc.minestom.server.schematics.manager.SchematicReader;
-import net.bytemc.minestom.server.schematics.manager.SchematicWriter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityType;
@@ -18,9 +16,6 @@ import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.utils.Direction;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 public final class TestServer {
 
@@ -41,9 +36,9 @@ public final class TestServer {
         head2.spawn();
 
         var head3 = new HeadDisplay("0 Player online", instance, new Pos(1, 1.25, 1), settings -> {
-            settings.withDirection(Direction.NORTH);
+            settings.withDirection(Direction.WEST);
             settings.withHeadSize(HeadSize.SMALL);
-            settings.withAdditionDistance(0.5);
+            //settings.withAdditionDistance(0.5);
             settings.withSpacer(false);
         });
         head3.spawn();
@@ -57,7 +52,7 @@ public final class TestServer {
         entity.spawn(new Pos(1, 10, 1), instance);
 
         FakePlayer.spawnPlayer(PlayerSkin.fromUsername("HttpMarco"), instance, new Pos(2, 2, 2), fakePlayer -> {
-            fakePlayer.getInteractController().subscribe(player -> {
+            fakePlayer.onInteract(player -> {
                 player.sendMessage("Click! FakePlayer");
             });
         });
@@ -96,6 +91,10 @@ public final class TestServer {
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerSpawnEvent.class, event -> {
             event.getPlayer().setGameMode(GameMode.CREATIVE);
+
+            AnvilInventory.open(event.getPlayer(), "Test", (player, s) -> {
+                player.sendMessage(s);
+            });
         });
     }
 }

@@ -6,5 +6,5 @@ import net.minestom.server.entity.Player;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-record SwitchEntry(Item item, Consumer<Player> consumer, Predicate<Player> predicate) {
+public record SwitchEntry(Item item, Consumer<Player> consumer, Predicate<Player> predicate) {
 }
