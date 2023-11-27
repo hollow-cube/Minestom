@@ -61,21 +61,23 @@ public final class Hologram {
         for (int i = 0; i < lines.length; i++) {
             var text = lines[i];
             var entity = new EntityCreature(EntityType.ARMOR_STAND);
-            var meta = (ArmorStandMeta) entity.getEntityMeta();
-
-            entity.setNoGravity(true);
-            entity.setInvisible(true);
-            meta.setHasNoBasePlate(true);
-            meta.setSmall(true);
-
-            entity.setCustomNameVisible(true);
-            entity.setCustomName(Component.text(text));
 
             if(viewerRule != null) {
                 entity.updateViewableRule(viewerRule);
             }
             entity.setInstance(instance, pos.sub(0, (i / 3.0), 0)).whenComplete((unused, throwable) -> {
                 entity.spawn();
+
+                entity.setNoGravity(true);
+                entity.setInvisible(true);
+
+                entity.setCustomNameVisible(true);
+                entity.setCustomName(Component.text(text));
+
+                entity.editEntityMeta(ArmorStandMeta.class, meta -> {
+                    meta.setHasNoBasePlate(true);
+                    meta.setSmall(true);
+                });
             });
             this.entities.add(entity);
         }
