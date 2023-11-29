@@ -26,7 +26,7 @@ jmh = "1.37"
 javaPoet = "1.13.0"
 
 # Log impl (for demo & codegen)
-logback = "1.4.11"
+logback = "1.4.13"
 
 # Gradle plugins
 shadow = "8.1.1"
