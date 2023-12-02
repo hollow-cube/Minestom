@@ -26,6 +26,9 @@ public final class ClickableItem implements Item {
     }
 
     public ClickableItem subscribe(Consumer<Player> onClick, ClickType... clickTypes) {
+        if (clickTypes.length == 0) {
+            clickTypes = new ClickType[] { ClickType.ALL };
+        }
         this.onClick.put(onClick, Arrays.stream(clickTypes).toList());
         return this;
     }

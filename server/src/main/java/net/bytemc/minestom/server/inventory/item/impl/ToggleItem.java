@@ -26,19 +26,14 @@ public final class ToggleItem implements Item {
     }
 
     public ItemStack getItemStack() {
-        return itemStack;
+        return currentItem == 0 ? itemStack : change.getItemStack();
     }
 
     public void click(Player player, SingletonInventory inventory, int slot) {
         if(predicate != null && !this.predicate.test(player)) {
             return;
         }
-        currentItem++;
-        if(currentItem >= 1) {
-            currentItem = 0;
-            inventory.fill(slot, new ClickableItem(itemStack));
-        } else {
-            inventory.fill(slot, change);
-        }
+        currentItem = 1 - currentItem; // 1 -> 0, 0 -> 1
+        inventory.fill(slot, this);
     }
 }

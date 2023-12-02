@@ -29,22 +29,19 @@ public final class SwitchItem implements Item {
     }
 
     public ItemStack getItemStack() {
-        return switches.get(0).item().getItemStack();
+        return switches.get(currentItem).item().getItemStack();
     }
 
     public void click(Player player, SingletonInventory inventory, int slot) {
-        currentItem++;
-        if(currentItem >= switches.size()) {
-            currentItem = 0;
-        }
+        var nextIndex = (currentItem + 1) % switches.size();
 
-        var item = switches.get(currentItem);
-        if(item.predicate() != null && !item.predicate().test(player)) {
-            currentItem--;
+        var nextItem = switches.get(nextIndex);
+        if(nextItem.predicate() != null && !nextItem.predicate().test(player)) {
             return;
         }
 
-        item.consumer().accept(player);
-        inventory.fill(slot, item.item());
+        currentItem = nextIndex;
+        nextItem.consumer().accept(player);
+        inventory.fill(slot, this);
     }
 }
