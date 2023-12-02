@@ -388,9 +388,9 @@ public class PlayerSocketConnection extends PlayerConnection {
             var buffer = framedPacket.body();
             writeBufferAsync(buffer, 0, buffer.limit());
         } else if (packet instanceof CachedPacket cachedPacket) {
-            var buffer = cachedPacket.body();
+            var buffer = cachedPacket.body(getServerState());
             if (buffer != null) writeBufferAsync(buffer, buffer.position(), buffer.remaining());
-            else writeServerPacketAsync(cachedPacket.packet(), compressed);
+            else writeServerPacketAsync(cachedPacket.packet(getServerState()), compressed);
         } else if (packet instanceof LazyPacket lazyPacket) {
             writeServerPacketAsync(lazyPacket.packet(), compressed);
         } else {
@@ -420,7 +420,8 @@ public class PlayerSocketConnection extends PlayerConnection {
     private void writeServerPacketAsync(ServerPacket serverPacket, boolean compressed) {
         serverPacket = translateServerPacket(serverPacket);
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(hold.get(), serverPacket, compressed);
+            var state = getServerState();
+            var buffer = PacketUtils.createFramedPacket(state, hold.get(), serverPacket, compressed);
             writeBufferAsync(buffer, 0, buffer.limit());
         }
     }
