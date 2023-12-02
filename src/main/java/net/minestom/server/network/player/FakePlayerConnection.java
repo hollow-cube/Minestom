@@ -20,6 +20,13 @@ public class FakePlayerConnection extends PlayerConnection {
         controller.consumePacket(serverPacket);
     }
 
+    @Override
+    public void sendPacketAsync(@NotNull SendablePacket packet) { // I do not know what else can be done with the packages here
+        FakePlayerController controller = getFakePlayer().getController();
+        final ServerPacket serverPacket = SendablePacket.extractServerPacket(packet);
+        controller.consumePacket(serverPacket);
+    }
+
     @NotNull
     @Override
     public SocketAddress getRemoteAddress() {

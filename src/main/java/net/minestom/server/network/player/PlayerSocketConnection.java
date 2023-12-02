@@ -51,6 +51,7 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final Worker worker;
     private final MessagePassingQueue<Runnable> workerQueue;
     private final SocketChannel channel;
+    private final Object channelWriteMonitor = new Object();
     private SocketAddress remoteAddress;
 
     private volatile boolean compressed = false;
@@ -169,6 +170,12 @@ public class PlayerSocketConnection extends PlayerConnection {
         });
     }
 
+    @Override
+    public void sendPacketAsync(@NotNull SendablePacket packet) {
+        final boolean compressed = this.compressed;
+        writePacketAsync(packet, compressed);
+    }
+
     @ApiStatus.Internal
     public void write(@NotNull ByteBuffer buffer, int index, int length) {
         this.workerQueue.relaxedOffer(() -> writeBufferSync(buffer, index, length));
@@ -200,7 +207,9 @@ public class PlayerSocketConnection extends PlayerConnection {
     public void disconnect() {
         super.disconnect();
         this.workerQueue.relaxedOffer(() -> {
-            this.worker.disconnect(this, channel);
+            synchronized (channelWriteMonitor) {
+                this.worker.disconnect(this, channel);
+            }
             final BinaryBuffer tick = tickBuffer.getAndSet(null);
             if (tick != null) POOL.add(tick);
             for (BinaryBuffer buffer : waitingBuffers) POOL.add(buffer);
@@ -333,16 +342,25 @@ public class PlayerSocketConnection extends PlayerConnection {
         this.nonce = nonce;
     }
 
-    private void writePacketSync(SendablePacket packet, boolean compressed) {
-        if (!channel.isConnected()) return;
+    /**
+     * Send Server Packet Event.
+     *
+     * @return {@link PlayerPacketOutEvent::isCancelled} state
+     **/
+    private boolean sendEvent(SendablePacket packet) {
         final Player player = getPlayer();
-        // Outgoing event
         if (player != null && outgoing.hasListener()) {
             final ServerPacket serverPacket = SendablePacket.extractServerPacket(getConnectionState(), packet);
             PlayerPacketOutEvent event = new PlayerPacketOutEvent(player, serverPacket);
             outgoing.call(event);
-            if (event.isCancelled()) return;
+            return event.isCancelled();
         }
+        return false;
+    }
+
+    private void writePacketSync(SendablePacket packet, boolean compressed) {
+        if (!channel.isConnected()) return;
+        if (sendEvent(packet)) return;
         // Write packet
         if (packet instanceof ServerPacket serverPacket) {
             writeServerPacketSync(serverPacket, compressed);
@@ -360,17 +378,50 @@ public class PlayerSocketConnection extends PlayerConnection {
         }
     }
 
-    private void writeServerPacketSync(ServerPacket serverPacket, boolean compressed) {
+    private void writePacketAsync(SendablePacket packet, boolean compressed) {
+        if (!channel.isConnected()) return;
+        if (sendEvent(packet)) return;
+        // Write packet async
+        if (packet instanceof ServerPacket serverPacket) {
+            writeServerPacketAsync(serverPacket, compressed);
+        } else if (packet instanceof FramedPacket framedPacket) {
+            var buffer = framedPacket.body();
+            writeBufferAsync(buffer, 0, buffer.limit());
+        } else if (packet instanceof CachedPacket cachedPacket) {
+            var buffer = cachedPacket.body();
+            if (buffer != null) writeBufferAsync(buffer, buffer.position(), buffer.remaining());
+            else writeServerPacketAsync(cachedPacket.packet(), compressed);
+        } else if (packet instanceof LazyPacket lazyPacket) {
+            writeServerPacketAsync(lazyPacket.packet(), compressed);
+        } else {
+            throw new RuntimeException("Unknown packet type: " + packet.getClass().getName());
+        }
+    }
+
+    private ServerPacket translateServerPacket(ServerPacket serverPacket) {
         final Player player = getPlayer();
         if (player != null) {
             if (MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION && serverPacket instanceof ComponentHoldingServerPacket) {
-                serverPacket = ((ComponentHoldingServerPacket) serverPacket).copyWithOperator(component ->
+                return ((ComponentHoldingServerPacket) serverPacket).copyWithOperator(component ->
                         MinestomAdventure.COMPONENT_TRANSLATOR.apply(component, Objects.requireNonNullElseGet(player.getLocale(), MinestomAdventure::getDefaultLocale)));
             }
         }
+        return serverPacket;
+    }
+
+    private void writeServerPacketSync(ServerPacket serverPacket, boolean compressed) {
+        serverPacket = translateServerPacket(serverPacket);
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
             var buffer = PacketUtils.createFramedPacket(getConnectionState(), hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
+        }
+    }
+
+    private void writeServerPacketAsync(ServerPacket serverPacket, boolean compressed) {
+        serverPacket = translateServerPacket(serverPacket);
+        try (var hold = ObjectPool.PACKET_POOL.hold()) {
+            var buffer = PacketUtils.createFramedPacket(hold.get(), serverPacket, compressed);
+            writeBufferAsync(buffer, 0, buffer.limit());
         }
     }
 
@@ -390,6 +441,38 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         writeBufferSync0(buffer, index, length);
+    }
+
+    private void writeBufferAsync(@NotNull ByteBuffer buffer, int index, int length) {
+        final SocketChannel channel = this.channel;
+        if (!channel.isConnected()) return;
+        // Encrypt data
+        final EncryptionContext encryptionContext = this.encryptionContext;
+        if (encryptionContext != null) { // Encryption support
+            try (var hold = ObjectPool.PACKET_POOL.hold()) {
+                ByteBuffer output = hold.get();
+                try {
+                    length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
+                    try {
+                        synchronized (channelWriteMonitor) {
+                            channel.write(output.slice(0, length));
+                        }
+                    } catch (IOException ignore) {
+                    }
+                    //Let catch this exceptions in flushSync. I'm not sure that disabling the client here would be correct.
+                } catch (ShortBufferException e) {
+                    MinecraftServer.getExceptionManager().handleException(e);
+                }
+                return;
+            }
+        }
+        try {
+            synchronized (channelWriteMonitor) {
+                channel.write(buffer.slice(index, length));
+            }
+        } catch (IOException ignore) {
+        }
+        //Let catch this exceptions in flushSync. I'm not sure that disabling the client here would be correct.
     }
 
     private void writeBufferSync0(@NotNull ByteBuffer buffer, int index, int length) {
@@ -419,13 +502,17 @@ public class PlayerSocketConnection extends PlayerConnection {
             BinaryBuffer localBuffer = tickBuffer.getPlain();
             if (localBuffer == null)
                 return; // Socket is closed
-            localBuffer.writeChannel(channel);
+            synchronized (channelWriteMonitor) {
+                localBuffer.writeChannel(channel);
+            }
         } else {
             // Write as much as possible from the waiting list
             Iterator<BinaryBuffer> iterator = waitingBuffers.iterator();
             while (iterator.hasNext()) {
                 BinaryBuffer waitingBuffer = iterator.next();
-                if (!waitingBuffer.writeChannel(channel)) break;
+                synchronized (channelWriteMonitor) {
+                    if (!waitingBuffer.writeChannel(channel)) break;
+                }
                 iterator.remove();
                 POOL.add(waitingBuffer);
             }

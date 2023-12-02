@@ -27,7 +27,9 @@ final class TestConnectionImpl implements TestConnection {
     private final ServerProcess process;
     private final PlayerConnectionImpl playerConnection = new PlayerConnectionImpl();
 
-    private final List<IncomingCollector<ServerPacket>> incomingTrackers = new CopyOnWriteArrayList<>();
+    private final List<IncomingCollector<ServerPacket>> incomingTrackersSync = new CopyOnWriteArrayList<>();
+
+    private final List<IncomingCollector<ServerPacket>> incomingTrackersAsync = new CopyOnWriteArrayList<>();
 
     TestConnectionImpl(Env env) {
         this.env = env;
@@ -55,8 +57,23 @@ final class TestConnectionImpl implements TestConnection {
 
     @Override
     public @NotNull <T extends ServerPacket> Collector<T> trackIncoming(@NotNull Class<T> type) {
-        var tracker = new IncomingCollector<>(type);
-        this.incomingTrackers.add(IncomingCollector.class.cast(tracker));
+        var tracker = new IncomingCollector<>(type, incomingTrackersSync, incomingTrackersAsync);
+        this.incomingTrackersSync.add(IncomingCollector.class.cast(tracker));
+        this.incomingTrackersAsync.add(IncomingCollector.class.cast(tracker));
+        return tracker;
+    }
+
+    @Override
+    public @NotNull <T extends ServerPacket> Collector<T> trackIncomingSync(@NotNull Class<T> type) {
+        var tracker = new IncomingCollector<>(type, incomingTrackersSync);
+        this.incomingTrackersSync.add(IncomingCollector.class.cast(tracker));
+        return tracker;
+    }
+
+    @Override
+    public @NotNull <T extends ServerPacket> Collector<T> trackIncomingAsync(@NotNull Class<T> type) {
+        var tracker = new IncomingCollector<>(type, incomingTrackersAsync);
+        this.incomingTrackersAsync.add(IncomingCollector.class.cast(tracker));
         return tracker;
     }
 
@@ -64,7 +81,15 @@ final class TestConnectionImpl implements TestConnection {
         @Override
         public void sendPacket(@NotNull SendablePacket packet) {
             final var serverPacket = this.extractPacket(packet);
-            for (var tracker : incomingTrackers) {
+            for (var tracker : incomingTrackersSync) {
+                if (tracker.type.isAssignableFrom(serverPacket.getClass())) tracker.packets.add(serverPacket);
+            }
+        }
+
+        @Override
+        public void sendPacketAsync(@NotNull SendablePacket packet) {
+            final var serverPacket = this.extractPacket(packet);
+            for (var tracker : incomingTrackersAsync) {
                 if (tracker.type.isAssignableFrom(serverPacket.getClass())) tracker.packets.add(serverPacket);
             }
         }
@@ -94,17 +119,21 @@ final class TestConnectionImpl implements TestConnection {
         }
     }
 
-    final class IncomingCollector<T extends ServerPacket> implements Collector<T> {
+    static final class IncomingCollector<T extends ServerPacket> implements Collector<T> {
         private final Class<T> type;
         private final List<T> packets = new CopyOnWriteArrayList<>();
+        private final List<IncomingCollector<ServerPacket>>[] incomingTrackers;
 
-        public IncomingCollector(Class<T> type) {
+        @SafeVarargs
+        public IncomingCollector(Class<T> type, List<IncomingCollector<ServerPacket>>... incomingTrackers) {
+            this.incomingTrackers = incomingTrackers;
             this.type = type;
         }
 
         @Override
         public @NotNull List<T> collect() {
-            incomingTrackers.remove(this);
+            for (List<IncomingCollector<ServerPacket>> incomingTracker : incomingTrackers)
+                incomingTracker.remove(this);
             return List.copyOf(packets);
         }
     }
