@@ -1326,6 +1326,21 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.playerConnection.sendPackets(packets);
     }
 
+    @ApiStatus.Experimental
+    public void sendPacketAsync(@NotNull SendablePacket packet) {
+        this.playerConnection.sendPacketAsync(packet);
+    }
+
+    @ApiStatus.Experimental
+    public void sendPacketsAsync(@NotNull SendablePacket... packets) {
+        this.playerConnection.sendPacketsAsync(packets);
+    }
+
+    @ApiStatus.Experimental
+    public void sendPacketsAsync(@NotNull Collection<SendablePacket> packets) {
+        this.playerConnection.sendPacketsAsync(packets);
+    }
+
     /**
      * Gets if the player is online or not.
      *
