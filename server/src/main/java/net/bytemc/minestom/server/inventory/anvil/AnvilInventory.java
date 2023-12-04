@@ -26,7 +26,7 @@ public final class AnvilInventory {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
             var player = event.getPlayer();
             var entry = entries.get(player);
-            if (event.getPacket() instanceof ClientClickWindowPacket packet) {
+            if (entry != null && event.getPacket() instanceof ClientClickWindowPacket packet) {
                 var inventory = entry.inventory();
                 if(packet.windowId() == inventory.getWindowId() && ((int) packet.slot()) == 2 && packet.clickedItem().getDisplayName() != null) {
                     var textComponent = ((TextComponent) packet.clickedItem().getDisplayName());
