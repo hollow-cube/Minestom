@@ -27,9 +27,7 @@ public class SchematicBuilder {
     }
 
     public void blocksFromCubo(CuboId cuboId) {
-        cuboId.blockList().forEach((block, point) -> {
-            addBlock(point, block);
-        });
+        cuboId.blockList().forEach(this::addBlock);
     }
 
     public void addBlock(@NotNull Point point, @NotNull Block block) {

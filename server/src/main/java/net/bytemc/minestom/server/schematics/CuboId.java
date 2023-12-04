@@ -39,14 +39,14 @@ public class CuboId {
         this.zMaxCentered = this.zMax + 0.5;
     }
 
-    public Map<Block, Point> blockList() {
-        Map<Block, Point> bL = new HashMap<>(this.getTotalBlockSize());
+    public Map<Point, Block> blockList() {
+        Map<Point, Block> bL = new HashMap<>(this.getTotalBlockSize());
 
         for (int x = this.xMin; x <= this.xMax; ++x) {
             for (int y = this.yMin; y <= this.yMax; ++y) {
                 for (int z = this.zMin; z <= this.zMax; ++z) {
                     Block b = this.instance.getBlock(x, y, z);
-                    bL.put(b, new Vec(x, y, z));
+                    bL.put(new Vec(x, y, z), b);
                 }
             }
         }
