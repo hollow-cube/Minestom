@@ -26,16 +26,17 @@ public final class AnvilInventory {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerPacketEvent.class, event -> {
             var player = event.getPlayer();
             var entry = entries.get(player);
-            if (event.getPacket() instanceof ClientClickWindowPacket packet) {
+            if (entry != null && event.getPacket() instanceof ClientClickWindowPacket packet) {
                 var inventory = entry.inventory();
                 if(packet.windowId() == inventory.getWindowId() && ((int) packet.slot()) == 2 && packet.clickedItem().getDisplayName() != null) {
                     var textComponent = ((TextComponent) packet.clickedItem().getDisplayName());
 
-                    entry.consumer().accept(player, textComponent.content());
                     player.closeInventory();
                     player.setLevel(entry.level());
 
                     entries.remove(player);
+
+                    entry.consumer().accept(player, textComponent.content());
                 }
             }
         });
@@ -44,7 +45,7 @@ public final class AnvilInventory {
     public static void open(Player player, String customName, BiConsumer<Player, String> onSubmit) {
         var inventory = new Inventory(InventoryType.ANVIL, "§7");
 
-        inventory.setItemStack(0, ItemStack.of(Material.BAMBOO_SIGN).withDisplayName(Component.text("Enter value")));
+        inventory.setItemStack(0, ItemStack.of(Material.BAMBOO_SIGN).withDisplayName(Component.text(customName)));
         entries.put(player, new AnvilEntry(player.getLevel(), onSubmit, inventory));
 
         player.setLevel(1);
