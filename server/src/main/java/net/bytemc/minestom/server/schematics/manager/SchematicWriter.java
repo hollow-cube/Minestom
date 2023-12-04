@@ -5,6 +5,7 @@ import net.bytemc.minestom.server.schematics.Schematic;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jglrxavpok.hephaistos.nbt.CompressedProcesser;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.jglrxavpok.hephaistos.nbt.NBTWriter;
@@ -43,8 +44,8 @@ public final class SchematicWriter {
         });
         schematicNBT.set("Palette", palette);
 
-        try (NBTWriter writer = new NBTWriter(schemPath.toAbsolutePath())) {
-            writer.writeRaw(schematicNBT.toCompound());
+        try (NBTWriter writer = new NBTWriter(schemPath.toAbsolutePath(), CompressedProcesser.GZIP)) {
+            writer.writeNamed("", schematicNBT.toCompound());
         }
     }
 }
