@@ -14,6 +14,7 @@ import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.BlockEntityDataPacket;
 import net.minestom.server.utils.Direction;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,7 @@ public class Sign {
 
     public void updateTextForPlayer(@NotNull Player player) {
         if (staticText) {
+            player.sendPacket(new BlockChangePacket(position, instance.getBlock(position)));
             return;
         }
         NBTCompound nbt;
