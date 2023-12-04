@@ -1,13 +1,14 @@
 package net.bytemc.minestom.server.clickable;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerBlockInteractEvent;
 import net.minestom.server.event.player.PlayerStartDiggingEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class ClickableBlock {
     static {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent.class, event -> {
             for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
-                if (block.getBlock() == event.getBlock()) {
+                if (block.instance.equals(event.getInstance()) && block.pos.sameBlock(event.getBlockPosition())) {
                     block.breakCallback.forEach(callback -> callback.accept(event.getPlayer()));
                     break;
                 }
@@ -29,7 +30,7 @@ public class ClickableBlock {
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerStartDiggingEvent.class, event -> {
             for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
-                if (block.getBlock() == event.getBlock()) {
+                if (block.instance.equals(event.getInstance()) && block.pos.sameBlock(event.getBlockPosition())) {
                     block.diggingCallback.forEach(callback -> callback.accept(event.getPlayer()));
                     break;
                 }
@@ -37,8 +38,11 @@ public class ClickableBlock {
         });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockInteractEvent.class, event -> {
+            if (event.getHand() != Player.Hand.MAIN) {
+                return;
+            }
             for (ClickableBlock block : CLICKABLE_BLOCKS_LIST) {
-                if (block.getBlock() == event.getBlock()) {
+                if (block.instance.equals(event.getInstance()) && block.pos.sameBlock(event.getBlockPosition())) {
                     block.interactCallback.forEach(callback -> callback.accept(event.getPlayer()));
                     break;
                 }
@@ -46,28 +50,30 @@ public class ClickableBlock {
         });
     }
 
-    private Block block;
+    @NotNull
+    private final Instance instance;
+    @NotNull
+    private final Point pos;
 
     private final List<Consumer<Player>> breakCallback = new ArrayList<>();
     private final List<Consumer<Player>> diggingCallback = new ArrayList<>();
     private final List<Consumer<Player>> interactCallback = new ArrayList<>();
 
-    public ClickableBlock(Pos pos, Instance instance) {
-        this();
-        this.block = instance.getBlock(pos);
+    public ClickableBlock(@NotNull Point pos, @NotNull Instance instance) {
+        CLICKABLE_BLOCKS_LIST.add(this);
+        this.pos = pos;
+        this.instance = instance;
     }
 
-    public ClickableBlock(Pos pos, Instance instance, Block block) {
-        this();
+    public ClickableBlock(@NotNull Point pos, @NotNull Instance instance, @NotNull Block block) {
+        this(pos, instance);
         instance.setBlock(pos, block);
-        this.block = instance.getBlock(pos);
 
     }
 
-    public ClickableBlock(Pos pos, Instance instance, Block block, boolean blockUpdate) {
-        this();
+    public ClickableBlock(@NotNull Point pos, @NotNull Instance instance, @NotNull Block block, boolean blockUpdate) {
+        this(pos, instance);
         instance.setBlock(pos, block, blockUpdate);
-        this.block = instance.getBlock(pos);
     }
 
     public ClickableBlock addBreakCallback(Consumer<Player> callback) {
@@ -87,13 +93,5 @@ public class ClickableBlock {
 
     public void remove() {
         CLICKABLE_BLOCKS_LIST.remove(this);
-    }
-
-    public ClickableBlock() {
-        CLICKABLE_BLOCKS_LIST.add(this);
-    }
-
-    public Block getBlock() {
-        return block;
     }
 }

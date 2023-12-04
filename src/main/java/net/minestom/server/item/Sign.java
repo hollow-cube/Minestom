@@ -10,6 +10,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent;
+import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
@@ -42,6 +43,7 @@ public class Sign {
     private final Loader loader;
     private final Block originalBlock;
     private final EventNode<InstanceEvent> playerRemoveEvent;
+    private final EventNode<InstanceEvent> breakBlockEvent;
     private boolean staticText = true;
 
     private Sign(@NotNull Instance instance, @NotNull Point position) {
@@ -55,6 +57,13 @@ public class Sign {
                         playerTextNbtMap.remove(player);
                     }
                 });
+        breakBlockEvent = instance.eventNode().addListener(PlayerBlockBreakEvent.class, e -> {
+            if (e.getBlockPosition().sameBlock(position)) {
+                e.setCancelled(true);
+                instance.scheduler().scheduleNextTick(
+                        () -> updateTextForPlayer(e.getPlayer()));
+            }
+        });
     }
 
     public void updateTextForPlayer(@NotNull Player player) {
@@ -112,6 +121,7 @@ public class Sign {
             instance.setBlock(position, Block.AIR);
         }
         instance.eventNode().removeChild(playerRemoveEvent);
+        instance.eventNode().removeChild(breakBlockEvent);
     }
 
     public static Sign createSign(@NotNull Instance instance,
