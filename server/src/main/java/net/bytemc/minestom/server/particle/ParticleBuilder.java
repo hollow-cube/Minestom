@@ -13,7 +13,10 @@ public final class ParticleBuilder {
     private final float speed;
 
     private byte[] data = new byte[0];
-    private final float[] offset = new float[] { 0, 0, 0 };
+
+    private float offsetX = 0;
+    private float offsetY = 0;
+    private float offsetZ = 0;
 
     public ParticleBuilder(float r, float g, float b) {
         this(r, g, b, 1, 0);
@@ -44,7 +47,13 @@ public final class ParticleBuilder {
         player.sendPacket(toPacket(point));
     }
 
+    public void withOffSet(float x, float y, float z) {
+        offsetX = x;
+        offsetY = y;
+        offsetZ = z;
+    }
+
     public ParticlePacket toPacket(Point point) {
-        return new ParticlePacket(particle.id(), false, point.x(), point.y(), point.z(), offset[0], offset[1], offset[2], speed, count, data);
+        return new ParticlePacket(particle.id(), false, point.x(), point.y(), point.z(), offsetX, offsetY, offsetZ, speed, count, data);
     }
 }
