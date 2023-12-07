@@ -47,10 +47,11 @@ public final class ParticleBuilder {
         player.sendPacket(toPacket(point));
     }
 
-    public void withOffSet(float x, float y, float z) {
+    public ParticleBuilder withOffSet(float x, float y, float z) {
         offsetX = x;
         offsetY = y;
         offsetZ = z;
+        return this;
     }
 
     public ParticlePacket toPacket(Point point) {
