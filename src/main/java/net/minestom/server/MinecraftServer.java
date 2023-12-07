@@ -66,7 +66,6 @@ public final class MinecraftServer {
     private static int entityViewDistance = Integer.getInteger("minestom.entity-view-distance", 5);
     private static int compressionThreshold = 256;
     private static boolean terminalEnabled = System.getProperty("minestom.terminal.disabled") == null;
-    private static String brandName = "Minestom";
     private static Difficulty difficulty = Difficulty.NORMAL;
 
     public static MinecraftServer init() {
@@ -93,18 +92,7 @@ public final class MinecraftServer {
      */
     @NotNull
     public static String getBrandName() {
-        return brandName;
-    }
-
-    /**
-     * Changes the server brand name and send the change to all connected players.
-     *
-     * @param brandName the server brand name
-     * @throws NullPointerException if {@code brandName} is null
-     */
-    public static void setBrandName(@NotNull String brandName) {
-        MinecraftServer.brandName = brandName;
-        PacketUtils.broadcastPacket(PluginMessagePacket.getBrandPacket());
+        return "ByteMC";
     }
 
     /**
