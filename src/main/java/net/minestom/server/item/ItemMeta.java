@@ -121,6 +121,13 @@ public sealed interface ItemMeta extends TagReadable, NetworkBuffer.Writer
             return hideFlag(result);
         }
 
+        @Contract("-> this")
+        default @NotNull Builder hideAllFlags() {
+            int result = 0;
+            for (ItemHideFlag hideFlag : ItemHideFlag.values()) result |= hideFlag.getBitFieldPart();
+            return hideFlag(result);
+        }
+
         @Contract("_ -> this")
         default @NotNull Builder displayName(@Nullable Component displayName) {
             return set(ItemTags.NAME, displayName);
