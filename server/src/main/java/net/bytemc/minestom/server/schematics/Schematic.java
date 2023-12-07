@@ -1,6 +1,8 @@
 package net.bytemc.minestom.server.schematics;
 
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import org.jglrxavpok.hephaistos.nbt.*;
 
@@ -24,7 +26,8 @@ public class Schematic {
             for (Vec vec : blocks.keySet()) {
                 var block = blocks.get(vec);
                 compounds.add(NBT.Compound(it -> {
-                    it.setInt("x", vec.blockX()).setInt("y", vec.blockY()).setInt("z", vec.blockZ()).setString("name", block.namespace().namespace());
+                    it.setInt("x", vec.blockX()).setInt("y", vec.blockY()).setInt("z", vec.blockZ()).setString("block", block.namespace().namespace());
+                    it.set("hasData", NBT.Boolean(block.nbt() != null));
                     if (block.nbt() != null) {
                         it.set("data", block.nbt());
                     }
@@ -39,7 +42,9 @@ public class Schematic {
         }
     }
 
-    public void paste() {
-        //todo
+    public void paste(Pos pos, Instance instance) {
+        for (var vec : blocks.keySet()) {
+            instance.setBlock(pos.add(vec), blocks.get(vec));
+        }
     }
 }
