@@ -4,11 +4,6 @@ import net.bytemc.minestom.server.display.head.HeadDisplay;
 import net.bytemc.minestom.server.display.head.misc.HeadSize;
 import net.bytemc.minestom.server.hologram.Hologram;
 import net.bytemc.minestom.server.inventory.anvil.AnvilInventory;
-import net.bytemc.minestom.server.schematics.CuboId;
-import net.bytemc.minestom.server.schematics.Rotation;
-import net.bytemc.minestom.server.schematics.manager.SchematicBuilder;
-import net.bytemc.minestom.server.schematics.manager.SchematicReader;
-import net.bytemc.minestom.server.schematics.manager.SchematicWriter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityType;
@@ -69,11 +64,6 @@ public final class TestServer {
             var holo = new Hologram(event.getBlockPosition().add(0, 3, 0), instance, "Test", "Test2");
             holo.spawn();
 
-            // schematic test
-            var cuboId = new CuboId(schemPos, event.getBlockPosition(), instance);
-            var builder = SchematicBuilder.builder(cuboId);
-            var schematic = builder.toSchematic();
-
             /*schematic.build(Rotation.NONE, block -> {
                 return block;
             }).apply(instance, 0, 15, 0, () -> {
@@ -86,14 +76,6 @@ public final class TestServer {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }*/
-
-            try {
-                var schematic2 = SchematicReader.read(Path.of("schematics/test.dat"));
-                schematic2.build(Rotation.NONE, block -> block).apply(instance, 0, 15, 0, () -> {
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         });
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerSpawnEvent.class, event -> {
