@@ -9,7 +9,7 @@ allprojects {
     apply(plugin = "maven-publish")
 
     group = "net.bytemc"
-    version = "1.3.9-SNAPSHOT"
+    version = "1.3.10-SNAPSHOT"
 
     repositories {
         mavenCentral()

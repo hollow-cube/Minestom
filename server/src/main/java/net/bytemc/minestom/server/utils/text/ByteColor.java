@@ -86,6 +86,10 @@ public enum ByteColor {
         return input;
     }
 
+    public DyeColor getDyeColor() {
+        return dyeColor;
+    }
+
     public boolean isColor() {
         return color;
     }
