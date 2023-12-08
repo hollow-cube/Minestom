@@ -34,6 +34,6 @@ public final class ToggleItem implements Item {
             return;
         }
         currentItem = 1 - currentItem;
-        inventory.fill(slot, this);
+        inventory.setItem(slot, this);
     }
 }

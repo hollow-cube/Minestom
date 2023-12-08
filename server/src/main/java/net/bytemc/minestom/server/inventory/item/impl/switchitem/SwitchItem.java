@@ -47,6 +47,6 @@ public final class SwitchItem implements Item {
 
         currentItem = nextIndex;
         nextItem.consumer().accept(player);
-        inventory.fill(slot, this);
+        inventory.setItem(slot, this);
     }
 }
