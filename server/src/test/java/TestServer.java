@@ -63,6 +63,7 @@ public final class TestServer {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent.class, event -> {
             var holo = new Hologram(event.getBlockPosition().add(0, 3, 0), instance, "Test", "Test2");
             holo.spawn();
+            new TestInventory().open(event.getPlayer());
 
             /*schematic.build(Rotation.NONE, block -> {
                 return block;

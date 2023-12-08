@@ -33,7 +33,7 @@ public final class ToggleItem implements Item {
         if(predicate != null && !this.predicate.test(player)) {
             return;
         }
-        currentItem = 1 - currentItem; // 1 -> 0, 0 -> 1
+        currentItem = 1 - currentItem;
         inventory.fill(slot, this);
     }
 }

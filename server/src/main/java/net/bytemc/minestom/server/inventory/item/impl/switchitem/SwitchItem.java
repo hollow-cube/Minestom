@@ -32,8 +32,13 @@ public final class SwitchItem implements Item {
         return switches.get(currentItem).item().getItemStack();
     }
 
-    public void click(Player player, SingletonInventory inventory, int slot) {
-        var nextIndex = (currentItem + 1) % switches.size();
+    public void click(String clickType, Player player, SingletonInventory inventory, int slot) {
+        var nextIndex = currentItem + ((clickType.equals("RIGHT_CLICK") || clickType.equals("SHIFT_RIGHT_CLICK")) ? -1 : 1);
+        if(nextIndex >= switches.size()) {
+            nextIndex = 0;
+        } else if(nextIndex < 0) {
+            nextIndex = switches.size() - 1;
+        }
 
         var nextItem = switches.get(nextIndex);
         if(nextItem.predicate() != null && !nextItem.predicate().test(player)) {
