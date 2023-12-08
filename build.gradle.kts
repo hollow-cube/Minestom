@@ -14,7 +14,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url = uri("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+            url = uri("https://s01.oss.sonatype.org/content/groups/staging/")
         }
     }
 
@@ -58,7 +58,7 @@ allprojects {
         repositories {
             maven {
                 name = "bytemc"
-                url = uri("https://artifactory.bytemc.de/artifactory/bytemc-public/")
+                url = uri("https://nexus.bytemc.de/repository/maven-public/")
                 credentials {
                     username = System.getenv("BYTEMC_REPO_USERNAME")
                     password = System.getenv("BYTEMC_REPO_PASSWORD")
@@ -93,5 +93,6 @@ dependencies {
     implementation(libs.jcTools)
     testImplementation(libs.bundles.junit)
 
-    api(group = "net.bytemc.libs", name = "path", version = "1.1-SNAPSHOT", classifier = "all")
+    api(group = "com.extollit", name = "data-structures", version = "2.18")
+    api(group = "com.extollit.gaming", name = "hydrazine-path-engine", version = "1.8.1")
 }
