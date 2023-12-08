@@ -136,8 +136,10 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
         byte[] result = this.propertiesArray.clone();
         for (var entry : properties.entrySet()) {
             final byte keyIndex = findKeyIndex(propertyTypes, entry.getKey(), this);
-            final byte valueIndex = findValueIndex(propertyTypes[keyIndex], entry.getValue(), this);
-            result[keyIndex] = valueIndex;
+            if (keyIndex != -1) {
+                final byte valueIndex = findValueIndex(propertyTypes[keyIndex], entry.getValue(), this);
+                result[keyIndex] = valueIndex;
+            }
         }
         return compute(result);
     }
@@ -219,7 +221,8 @@ record BlockImpl(@NotNull Registry.BlockEntry registry,
             if (properties[i].key().equals(key)) return i;
         }
         if (block != null) {
-            throw new IllegalArgumentException("Property " + key + " is not valid for block " + block);
+            //  throw new IllegalArgumentException("Property " + key + " is not valid for block " + block);
+            return -1;
         } else {
             throw new IllegalArgumentException("Unknown property key: " + key);
         }
