@@ -101,6 +101,14 @@ public class Sidebar implements Scoreboard {
                 ScoreboardObjectivePacket.Type.INTEGER));
     }
 
+    public void createLine(byte slot, String content) {
+        createLine(new ScoreboardLine("line-" + slot, Component.text(content), slot));
+    }
+
+    public void createLine(@NotNull String id, byte slot, String content) {
+        createLine(new ScoreboardLine(id, Component.text(content), slot));
+    }
+
     /**
      * Creates a new {@link ScoreboardLine}.
      *
