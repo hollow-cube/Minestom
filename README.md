@@ -1,33 +1,34 @@
 # ByteMC - Minestom
 
-> **Note**\
-> If you need help just look into our wiki:\
+> **Help**\
+> If you need help take a look into the projects wiki:\
 > https://github.com/bytemcnetzwerk/minestom/wiki
 
-
-### Description
 > **Important**\
-> We are currently in the process of adding functions. Therefore, it is not guaranteed that the current version will be stable.
-> If you have ideas write us a message: https://discord.gg/bZ7hGX4pPt
+> This project is currently under development, please be aware that the current version might not be stable.
+> If you find any bugs or have an idea which might improve this project, send us a message: https://discord.bytemc.de
 
-# Dependencies
+# About
+This is the minestom api which is used to run the ByteMC.de-network.<br>
+This project provides an optimized minestom api 
+with many useful features and a ready-to-use minestom server implementation to help you setup your own minestom server.
+
+# Usage
 
 **All available versions:** 
-<a href="https://artifactory.bytemc.de/ui/native/bytemc-public/net/bytemc/minestom/">Click </a>
+<a href="https://nexus.bytemc.de/service/rest/repository/browse/maven-public/net/bytemc/minestom">Click </a>
 
-> **Warning**
->
-> You need following repository `bytemc-public`
-> 
 Repository:
 ```xml
 <repository>
     <id>bytemc-public</id>
-    <url>https://artifactory.bytemc.de/artifactory/bytemc-public</url>
+    <url>https://nexus.bytemc.de/repository/maven-public/</url>
 </repository>
 ```
 
-Our own bytemc-server-minestom fork: 
+You have the choice between two repositories...
+
+...our directly functional minestom server implementation:
 ```xml 
 <dependency>
     <groupId>net.bytemc</groupId>
@@ -36,7 +37,7 @@ Our own bytemc-server-minestom fork:
 </dependency>
 ```
 
-Only our modifyed minestom version:
+...only our modified minestom api:
 ```xml  
 <dependency>
     <groupId>net.bytemc</groupId>
