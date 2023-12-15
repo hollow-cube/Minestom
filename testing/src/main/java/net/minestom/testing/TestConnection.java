@@ -13,10 +13,6 @@ public interface TestConnection {
 
     <T extends ServerPacket> @NotNull Collector<T> trackIncoming(@NotNull Class<T> type);
 
-    <T extends ServerPacket> @NotNull Collector<T> trackIncomingAsync(@NotNull Class<T> type);
-
-    <T extends ServerPacket> @NotNull Collector<T> trackIncomingSync(@NotNull Class<T> type);
-
     default @NotNull Collector<ServerPacket> trackIncoming() {
         return trackIncoming(ServerPacket.class);
     }

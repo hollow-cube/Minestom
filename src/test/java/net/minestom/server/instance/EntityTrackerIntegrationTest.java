@@ -137,11 +137,6 @@ public class EntityTrackerIntegrationTest {
             }
 
             @Override
-            public void sendPacketAsync(@NotNull SendablePacket packet) {
-                // also nothing
-            }
-
-            @Override
             public @NotNull SocketAddress getRemoteAddress() {
                 return null;
             }

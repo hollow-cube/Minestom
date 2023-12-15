@@ -21,10 +21,8 @@ public class FakePlayerConnection extends PlayerConnection {
     }
 
     @Override
-    public void sendPacketAsync(@NotNull SendablePacket packet) { // I do not know what else can be done with the packages here
-        FakePlayerController controller = getFakePlayer().getController();
-        final ServerPacket serverPacket = SendablePacket.extractServerPacket(getServerState(), packet);
-        controller.consumePacket(serverPacket);
+    public void sendPacketAsync(@NotNull SendablePacket packet) {
+        sendPacket(packet);
     }
 
     @NotNull
