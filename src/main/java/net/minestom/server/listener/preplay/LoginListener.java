@@ -19,11 +19,11 @@ import net.minestom.server.network.packet.client.login.ClientEncryptionResponseP
 import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
 import net.minestom.server.network.packet.client.login.ClientLoginPluginResponsePacket;
 import net.minestom.server.network.packet.client.login.ClientLoginStartPacket;
+import net.minestom.server.network.packet.server.common.DisconnectPacket;
 import net.minestom.server.network.packet.server.common.PluginMessagePacket;
 import net.minestom.server.network.packet.server.common.TagsPacket;
 import net.minestom.server.network.packet.server.configuration.RegistryDataPacket;
 import net.minestom.server.network.packet.server.login.EncryptionRequestPacket;
-import net.minestom.server.network.packet.server.login.LoginDisconnectPacket;
 import net.minestom.server.network.packet.server.login.LoginPluginRequestPacket;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
@@ -72,7 +72,7 @@ public final class LoginListener {
         if (MojangAuth.isEnabled() && isSocketConnection) {
             // Mojang auth
             if (CONNECTION_MANAGER.getPlayer(packet.username()) != null) {
-                connection.sendPacket(new LoginDisconnectPacket(ALREADY_CONNECTED));
+                connection.sendPacket(new DisconnectPacket(ALREADY_CONNECTED));
                 connection.disconnect();
                 return;
             }
@@ -210,7 +210,7 @@ public final class LoginListener {
                     socketConnection.UNSAFE_setProfile(gameProfile);
                     CONNECTION_MANAGER.createPlayer(connection, gameProfile.uuid(), gameProfile.name());
                 } else {
-                    LoginDisconnectPacket disconnectPacket = new LoginDisconnectPacket(INVALID_PROXY_RESPONSE);
+                    DisconnectPacket disconnectPacket = new DisconnectPacket(INVALID_PROXY_RESPONSE);
                     socketConnection.sendPacket(disconnectPacket);
                 }
             }

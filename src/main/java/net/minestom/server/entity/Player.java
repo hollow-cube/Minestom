@@ -60,7 +60,6 @@ import net.minestom.server.network.packet.client.ClientPacket;
 import net.minestom.server.network.packet.server.SendablePacket;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.common.*;
-import net.minestom.server.network.packet.server.login.LoginDisconnectPacket;
 import net.minestom.server.network.packet.server.play.*;
 import net.minestom.server.network.packet.server.play.data.DeathLocation;
 import net.minestom.server.network.player.GameProfile;
@@ -1529,14 +1528,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * @param component the reason
      */
     public void kick(@NotNull Component component) {
-        final ConnectionState connectionState = playerConnection.getServerState();
-        // Packet type depends on the current player connection state
-        final ServerPacket disconnectPacket;
-        if (connectionState == ConnectionState.LOGIN) {
-            disconnectPacket = new LoginDisconnectPacket(component);
-        } else {
-            disconnectPacket = new DisconnectPacket(component);
-        }
+        DisconnectPacket disconnectPacket = new DisconnectPacket(component);
         sendPacket(disconnectPacket);
         playerConnection.disconnect();
     }

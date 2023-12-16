@@ -10,7 +10,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.extras.bungee.BungeeCordProxy;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
-import net.minestom.server.network.packet.server.login.LoginDisconnectPacket;
+import net.minestom.server.network.packet.server.common.DisconnectPacket;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
@@ -131,7 +131,7 @@ public final class HandshakeListener {
     }
 
     private static void disconnect(@NotNull PlayerConnection connection, @NotNull Component reason) {
-        connection.sendPacket(new LoginDisconnectPacket(reason));
+        connection.sendPacket(new DisconnectPacket(reason));
         connection.disconnect();
     }
 

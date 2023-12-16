@@ -28,9 +28,10 @@ public record DisconnectPacket(@NotNull Component message) implements ComponentH
     @Override
     public int getId(@NotNull ConnectionState state) {
         return switch (state) {
+            case LOGIN -> ServerPacketIdentifier.LOGIN_DISCONNECT;
             case CONFIGURATION -> ServerPacketIdentifier.CONFIGURATION_DISCONNECT;
             case PLAY -> ServerPacketIdentifier.DISCONNECT;
-            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.CONFIGURATION, ConnectionState.PLAY);
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.LOGIN, ConnectionState.CONFIGURATION, ConnectionState.PLAY);
         };
     }
 
