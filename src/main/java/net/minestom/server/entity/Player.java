@@ -1495,18 +1495,18 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     @ApiStatus.Experimental
-    public void sendPacketAsync(@NotNull SendablePacket packet) {
-        this.playerConnection.sendPacketAsync(packet);
+    public void sendPacketImmediate(@NotNull SendablePacket packet) {
+        this.playerConnection.sendPacketImmediate(packet);
     }
 
     @ApiStatus.Experimental
-    public void sendPacketsAsync(@NotNull SendablePacket... packets) {
-        this.playerConnection.sendPacketsAsync(packets);
+    public void sendPacketsImmediate(@NotNull SendablePacket... packets) {
+        this.playerConnection.sendPacketsImmediate(packets);
     }
 
     @ApiStatus.Experimental
-    public void sendPacketsAsync(@NotNull Collection<SendablePacket> packets) {
-        this.playerConnection.sendPacketsAsync(packets);
+    public void sendPacketsImmediate(@NotNull Collection<SendablePacket> packets) {
+        this.playerConnection.sendPacketsImmediate(packets);
     }
 
     /**

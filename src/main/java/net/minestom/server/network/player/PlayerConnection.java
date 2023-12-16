@@ -55,7 +55,7 @@ public abstract class PlayerConnection {
      * @param packet the packet to send
      */
     @ApiStatus.Experimental
-    public abstract void sendPacketAsync(@NotNull SendablePacket packet);
+    public abstract void sendPacketImmediate(@NotNull SendablePacket packet);
 
     @ApiStatus.Experimental
     public void sendPackets(@NotNull Collection<SendablePacket> packets) {
@@ -68,13 +68,13 @@ public abstract class PlayerConnection {
     }
 
     @ApiStatus.Experimental
-    public void sendPacketsAsync(@NotNull Collection<SendablePacket> packets) {
-        packets.forEach(this::sendPacketAsync);
+    public void sendPacketsImmediate(@NotNull Collection<SendablePacket> packets) {
+        packets.forEach(this::sendPacketImmediate);
     }
 
     @ApiStatus.Experimental
-    public void sendPacketsAsync(@NotNull SendablePacket... packets) {
-        sendPacketsAsync(List.of(packets));
+    public void sendPacketsImmediate(@NotNull SendablePacket... packets) {
+        sendPacketsImmediate(List.of(packets));
     }
 
     /**

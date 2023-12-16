@@ -21,7 +21,7 @@ public class FakePlayerConnection extends PlayerConnection {
     }
 
     @Override
-    public void sendPacketAsync(@NotNull SendablePacket packet) {
+    public void sendPacketImmediate(@NotNull SendablePacket packet) {
         sendPacket(packet);
     }
 

@@ -36,6 +36,7 @@ import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.DataFormatException;
 
 /**
@@ -73,6 +74,7 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final List<BinaryBuffer> waitingBuffers = new ArrayList<>();
     private final AtomicReference<BinaryBuffer> tickBuffer = new AtomicReference<>(POOL.get());
     private BinaryBuffer cacheBuffer;
+    private ReentrantLock writeLock = new ReentrantLock();
 
     private final ListenerHandle<PlayerPacketOutEvent> outgoing = EventDispatcher.getHandle(PlayerPacketOutEvent.class);
 
@@ -161,7 +163,7 @@ public class PlayerSocketConnection extends PlayerConnection {
     }
 
     @Override
-    public void sendPacketAsync(@NotNull SendablePacket packet) {
+    public void sendPacketImmediate(@NotNull SendablePacket packet) {
         writePacket(packet, this.compressed, true);
     }
 
@@ -338,7 +340,7 @@ public class PlayerSocketConnection extends PlayerConnection {
         this.nonce = nonce;
     }
 
-    private void writePacket(SendablePacket packet, boolean compressed, boolean async) {
+    private void writePacket(SendablePacket packet, boolean compressed, boolean immediate) {
         if (!channel.isConnected()) return;
         final Player player = getPlayer();
         // Outgoing event
@@ -350,22 +352,22 @@ public class PlayerSocketConnection extends PlayerConnection {
         }
         // Write packet
         if (packet instanceof ServerPacket serverPacket) {
-            writeServerPacket(serverPacket, compressed, async);
+            writeServerPacket(serverPacket, compressed, immediate);
         } else if (packet instanceof FramedPacket framedPacket) {
             var buffer = framedPacket.body();
-            writeBuffer(buffer, 0, buffer.limit(), async);
+            writeBuffer(buffer, 0, buffer.limit(), immediate);
         } else if (packet instanceof CachedPacket cachedPacket) {
             var buffer = cachedPacket.body(getConnectionState());
-            if (buffer != null) writeBuffer(buffer, buffer.position(), buffer.remaining(), async);
-            else writeServerPacket(cachedPacket.packet(getConnectionState()), compressed, async);
+            if (buffer != null) writeBuffer(buffer, buffer.position(), buffer.remaining(), immediate);
+            else writeServerPacket(cachedPacket.packet(getConnectionState()), compressed, immediate);
         } else if (packet instanceof LazyPacket lazyPacket) {
-            writeServerPacket(lazyPacket.packet(), compressed, async);
+            writeServerPacket(lazyPacket.packet(), compressed, immediate);
         } else {
             throw new RuntimeException("Unknown packet type: " + packet.getClass().getName());
         }
     }
 
-    private void writeServerPacket(ServerPacket serverPacket, boolean compressed, boolean async) {
+    private void writeServerPacket(ServerPacket serverPacket, boolean compressed, boolean immediate) {
         final Player player = getPlayer();
         if (player != null) {
             if (MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION && serverPacket instanceof ComponentHoldingServerPacket) {
@@ -375,11 +377,11 @@ public class PlayerSocketConnection extends PlayerConnection {
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
             var buffer = PacketUtils.createFramedPacket(getConnectionState(), hold.get(), serverPacket, compressed);
-            writeBuffer(buffer, 0, buffer.limit(), async);
+            writeBuffer(buffer, 0, buffer.limit(), immediate);
         }
     }
 
-    private void writeBuffer(@NotNull ByteBuffer buffer, int index, int length, boolean async) {
+    private void writeBuffer(@NotNull ByteBuffer buffer, int index, int length, boolean immediate) {
         // Encrypt data
         final EncryptionContext encryptionContext = this.encryptionContext;
         if (encryptionContext != null) { // Encryption support
@@ -387,19 +389,19 @@ public class PlayerSocketConnection extends PlayerConnection {
                 ByteBuffer output = hold.get();
                 try {
                     length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
-                    writeBuffer0(output, 0, length, async);
+                    writeBuffer0(output, 0, length, immediate);
                 } catch (ShortBufferException e) {
                     MinecraftServer.getExceptionManager().handleException(e);
                 }
                 return;
             }
         }
-        writeBuffer0(buffer, index, length, async);
+        writeBuffer0(buffer, index, length, immediate);
     }
 
-    private void writeBuffer0(@NotNull ByteBuffer buffer, int index, int length, boolean async) {
-        if (async) {
-            writeBufferAsync0(buffer, index, length);
+    private void writeBuffer0(@NotNull ByteBuffer buffer, int index, int length, boolean immediate) {
+        if (immediate) {
+            writeBufferImmediate0(buffer, index, length);
         } else {
             writeBufferSync0(buffer, index, length);
         }
@@ -424,14 +426,15 @@ public class PlayerSocketConnection extends PlayerConnection {
         }
     }
 
-    private void writeBufferAsync0(@NotNull ByteBuffer buffer, int index, int length) {
+    private void writeBufferImmediate0(@NotNull ByteBuffer buffer, int index, int length) {
         final SocketChannel channel = this.channel;
         if (!channel.isConnected()) return;
+        writeLock.lock();
         try {
-            synchronized (channel) {
-                channel.write(buffer.slice(index, length));
-            }
+            channel.write(buffer.slice(index, length));
         } catch (IOException ignore) {
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -443,16 +446,22 @@ public class PlayerSocketConnection extends PlayerConnection {
             BinaryBuffer localBuffer = tickBuffer.getPlain();
             if (localBuffer == null)
                 return; // Socket is closed
-            synchronized (channel) {
+            writeLock.lock();
+            try {
                 localBuffer.writeChannel(channel);
+            } finally {
+                writeLock.unlock();
             }
         } else {
             // Write as much as possible from the waiting list
             Iterator<BinaryBuffer> iterator = waitingBuffers.iterator();
             while (iterator.hasNext()) {
                 BinaryBuffer waitingBuffer = iterator.next();
-                synchronized (channel) {
+                writeLock.lock();
+                try {
                     if (!waitingBuffer.writeChannel(channel)) break;
+                } finally {
+                    writeLock.unlock();
                 }
                 iterator.remove();
                 POOL.add(waitingBuffer);
