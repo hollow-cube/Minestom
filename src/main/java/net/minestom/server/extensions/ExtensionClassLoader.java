@@ -6,26 +6,15 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class ExtensionClassLoader extends URLClassLoader {
-    private final List<ExtensionClassLoader> children = new ArrayList<>();
-    private final DiscoveredExtension discoveredExtension;
     private EventNode<Event> eventNode;
     private ComponentLogger logger;
 
-    public ExtensionClassLoader(String name, URL[] urls, DiscoveredExtension discoveredExtension) {
-        super("Ext_" + name, urls, MinecraftServer.class.getClassLoader());
-        this.discoveredExtension = discoveredExtension;
-    }
-
-    public ExtensionClassLoader(String name, URL[] urls, ClassLoader parent, DiscoveredExtension discoveredExtension) {
-        super("Ext_" + name, urls, parent);
-        this.discoveredExtension = discoveredExtension;
+    public ExtensionClassLoader() {
+        super(new URL[]{}, MinecraftServer.class.getClassLoader());
     }
 
     @Override
@@ -33,44 +22,9 @@ public final class ExtensionClassLoader extends URLClassLoader {
         super.addURL(url);
     }
 
-    public void addChild(@NotNull ExtensionClassLoader loader) {
-        children.add(loader);
-    }
-
-    @Override
-    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        try {
-            return super.loadClass(name, resolve);
-        } catch (ClassNotFoundException e) {
-            for (ExtensionClassLoader child : children) {
-                try {
-                    return child.loadClass(name, resolve);
-                } catch (ClassNotFoundException ignored) {}
-            }
-            throw e;
-        }
-    }
-
-    public InputStream getResourceAsStreamWithChildren(@NotNull String name) {
-        InputStream in = getResourceAsStream(name);
-        if (in != null) return in;
-
-        for (ExtensionClassLoader child : children) {
-            InputStream childInput = child.getResourceAsStreamWithChildren(name);
-            if (childInput != null)
-                return childInput;
-        }
-
-        return null;
-    }
-
-    public DiscoveredExtension getDiscoveredExtension() {
-        return discoveredExtension;
-    }
-
-    public EventNode<Event> getEventNode() {
+    public EventNode<Event> getEventNode(String name) {
         if (eventNode == null) {
-            eventNode = EventNode.all(discoveredExtension.getName());
+            eventNode = EventNode.all(name);
             MinecraftServer.getGlobalEventHandler().addChild(eventNode);
         }
         return eventNode;
@@ -78,7 +32,7 @@ public final class ExtensionClassLoader extends URLClassLoader {
 
     public ComponentLogger getLogger() {
         if (logger == null) {
-            logger = ComponentLogger.logger(discoveredExtension.getName());
+            logger = ComponentLogger.logger();
         }
         return logger;
     }

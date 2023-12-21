@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class Extension {
     /**
@@ -24,7 +25,7 @@ public abstract class Extension {
     private final Path configPath;
 
     protected Extension() {
-        this.configPath = Path.of("extensions/" + getOrigin().getName()).toAbsolutePath();
+        this.configPath = Path.of("extensions/" + ThreadLocalRandom.current().nextInt(200)).toAbsolutePath(); // TODO: Fix this
     }
 
     public void preInitialize() {
@@ -66,11 +67,6 @@ public abstract class Extension {
         throw new IllegalStateException("Extension class loader is not an ExtensionClassLoader");
     }
 
-    @NotNull
-    public DiscoveredExtension getOrigin() {
-        return getExtensionClassLoader().getDiscoveredExtension();
-    }
-
     /**
      * Gets the logger for the extension
      *
@@ -81,12 +77,12 @@ public abstract class Extension {
         return getExtensionClassLoader().getLogger();
     }
 
-    public @NotNull EventNode<Event> getEventNode() {
-        return getExtensionClassLoader().getEventNode();
+    public @NotNull EventNode<Event> getEventNode(String name) {
+        return getExtensionClassLoader().getEventNode(name);
     }
 
     public @NotNull Path getDataDirectory() {
-        return getOrigin().getDataDirectory();
+        return configPath; // TODO: Fix this
     }
 
     /**
@@ -140,7 +136,7 @@ public abstract class Extension {
      */
     public @Nullable InputStream getPackagedResource(@NotNull String fileName) {
         try {
-            final URL url = getOrigin().getClassLoader().getResource(fileName);
+            final URL url = getExtensionClassLoader().getResource(fileName);
             if (url == null) {
                 getLogger().debug("Resource not found: {}", fileName);
                 return null;

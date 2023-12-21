@@ -5,15 +5,14 @@ plugins {
 }
 
 group = "net.bytemc"
-version = "1.3.10-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    api(project(mapOf("path" to ":")))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.21")
-    implementation(project(mapOf("path" to ":")))
 }
 
 tasks.withType<Jar> {

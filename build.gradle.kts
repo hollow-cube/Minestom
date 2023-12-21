@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    id("com.jfrog.artifactory") version "5.1.11"
     `maven-publish`
 }
 
@@ -9,7 +8,7 @@ allprojects {
     apply(plugin = "maven-publish")
 
     group = "net.bytemc"
-    version = "1.3.10-SNAPSHOT"
+    version = "1.4.0-SNAPSHOT"
 
     repositories {
         mavenCentral()

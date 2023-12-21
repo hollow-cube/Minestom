@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ public class ExtensionManager {
     public final static String INDEV_CLASSES_FOLDER = "minestom.extension.indevfolder.classes";
     public final static String INDEV_RESOURCES_FOLDER = "minestom.extension.indevfolder.resources";
     private final static Gson GSON = new Gson();
+    private final static ExtensionClassLoader EXTENSION_CLASS_LOADER = new ExtensionClassLoader();
 
     private final ServerProcess serverProcess;
 
@@ -211,7 +213,7 @@ public class ExtensionManager {
             while (extensionIterator.hasNext()) {
                 DiscoveredExtension discoveredExtension = extensionIterator.next();
                 try {
-                    discoveredExtension.createClassLoader();
+                    //discoveredExtension.createClassLoader();
                 } catch (Exception e) {
                     discoveredExtension.loadStatus = DiscoveredExtension.LoadStatus.FAILED_TO_SETUP_CLASSLOADER;
                     serverProcess.exception().handleException(e);
@@ -262,8 +264,6 @@ public class ExtensionManager {
         String extensionName = discoveredExtension.getName();
         String mainClass = discoveredExtension.getEntrypoint();
 
-        ExtensionClassLoader loader = discoveredExtension.getClassLoader();
-
         if (extensions.containsKey(extensionName.toLowerCase())) {
             LOGGER.error("An extension called '{}' has already been registered.", extensionName);
             return null;
@@ -271,7 +271,7 @@ public class ExtensionManager {
 
         Class<?> jarClass;
         try {
-            jarClass = Class.forName(mainClass, true, loader);
+            jarClass = Class.forName(mainClass, true, EXTENSION_CLASS_LOADER);
         } catch (ClassNotFoundException e) {
             LOGGER.error("Could not find main class '{}' in extension '{}'.",
                     mainClass, extensionName, e);
@@ -353,6 +353,12 @@ public class ExtensionManager {
                 // Ignore non .jar files
                 if (!file.getName().endsWith(".jar")) {
                     continue;
+                }
+
+                try {
+                    EXTENSION_CLASS_LOADER.addURL(file.toURI().toURL());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace(System.err);
                 }
 
                 DiscoveredExtension extension = discoverFromJar(file);
@@ -451,7 +457,7 @@ public class ExtensionManager {
                         // attempt to see if it is not already loaded (happens with dynamic (re)loading)
                         if (extensions.containsKey(dependencyName.toLowerCase())) {
 
-                            dependencies.add(extensions.get(dependencyName.toLowerCase()).getOrigin());
+                            //dependencies.add(extensions.get(dependencyName.toLowerCase()).getOrigin()); // TODO: Fix this
                             continue; // Go to the next loop in this dependency loop, this iteration is done.
 
                         } else {
@@ -615,8 +621,8 @@ public class ExtensionManager {
         ext.postTerminate();
 
         // remove from loaded extensions
-        String id = ext.getOrigin().getName().toLowerCase();
-        extensions.remove(id);
+        /*String id = ext.getOrigin().getName().toLowerCase();
+        extensions.remove(id);*/ // TODO: Fix this
 
         // cleanup classloader
         // TODO: Is it necessary to remove the CLs since this is only called on shutdown?
