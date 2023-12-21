@@ -208,21 +208,6 @@ public class ExtensionManager {
             // Don't waste resources on doing extra actions if there is nothing to do.
             if (discoveredExtensions.isEmpty()) return;
 
-            // Create classloaders for each extension (so that they can be used during dependency resolution)
-            Iterator<DiscoveredExtension> extensionIterator = discoveredExtensions.iterator();
-            while (extensionIterator.hasNext()) {
-                DiscoveredExtension discoveredExtension = extensionIterator.next();
-                try {
-                    //discoveredExtension.createClassLoader();
-                } catch (Exception e) {
-                    discoveredExtension.loadStatus = DiscoveredExtension.LoadStatus.FAILED_TO_SETUP_CLASSLOADER;
-                    serverProcess.exception().handleException(e);
-                    LOGGER.error("Failed to load extension {}", discoveredExtension.getName());
-                    LOGGER.error("Failed to load extension", e);
-                    extensionIterator.remove();
-                }
-            }
-
             discoveredExtensions = generateLoadOrder(discoveredExtensions);
 
             // remove invalid extensions
@@ -298,6 +283,7 @@ public class ExtensionManager {
         Extension extension = null;
         try {
             extension = constructor.newInstance();
+            extension.setDiscovered(discoveredExtension);
         } catch (InstantiationException e) {
             LOGGER.error("Main class '{}' in '{}' cannot be an abstract class.", mainClass, extensionName, e);
             return null;

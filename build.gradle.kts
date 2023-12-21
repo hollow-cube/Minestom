@@ -59,7 +59,7 @@ allprojects {
                 name = "bytemc"
                 url = uri("https://nexus.bytemc.de/repository/maven-public/")
                 credentials {
-                    username = System.getenv("BYTEMC_REPO_USERNAME")
+                    username = System.getenv("BYTEMC_REPO_USER")
                     password = System.getenv("BYTEMC_REPO_PASSWORD")
                 }
             }

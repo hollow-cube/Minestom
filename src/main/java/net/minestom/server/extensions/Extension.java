@@ -22,11 +22,8 @@ public abstract class Extension {
      * List of extensions that depend on this extension.
      */
     protected final Set<String> dependents = new HashSet<>();
-    private final Path configPath;
-
-    protected Extension() {
-        this.configPath = Path.of("extensions/" + ThreadLocalRandom.current().nextInt(200)).toAbsolutePath(); // TODO: Fix this
-    }
+    private Path configPath;
+    private DiscoveredExtension discovered;
 
     public void preInitialize() {
 
@@ -77,8 +74,8 @@ public abstract class Extension {
         return getExtensionClassLoader().getLogger();
     }
 
-    public @NotNull EventNode<Event> getEventNode(String name) {
-        return getExtensionClassLoader().getEventNode(name);
+    public @NotNull EventNode<Event> getEventNode() {
+        return getExtensionClassLoader().getEventNode();
     }
 
     public @NotNull Path getDataDirectory() {
@@ -198,5 +195,13 @@ public abstract class Extension {
      */
     public Set<String> getDependents() {
         return dependents;
+    }
+
+    public void setDiscovered(DiscoveredExtension discovered) {
+        if (this.discovered != null) {
+            throw new UnsupportedOperationException("Discovered extension cannot be changed after it has been set.");
+        }
+        this.discovered = discovered;
+        this.configPath = Path.of("extensions/" + discovered.getName()).toAbsolutePath();
     }
 }

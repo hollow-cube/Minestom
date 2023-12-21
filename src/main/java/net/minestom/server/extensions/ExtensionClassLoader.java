@@ -22,9 +22,9 @@ public final class ExtensionClassLoader extends URLClassLoader {
         super.addURL(url);
     }
 
-    public EventNode<Event> getEventNode(String name) {
+    public EventNode<Event> getEventNode() {
         if (eventNode == null) {
-            eventNode = EventNode.all(name);
+            eventNode = EventNode.all("global");
             MinecraftServer.getGlobalEventHandler().addChild(eventNode);
         }
         return eventNode;
