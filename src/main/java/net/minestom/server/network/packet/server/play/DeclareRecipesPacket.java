@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static net.minestom.server.network.NetworkBuffer.*;
@@ -30,7 +29,8 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
                 case "smoking" -> new DeclaredSmokingRecipe(reader);
                 case "campfire_cooking" -> new DeclaredCampfireCookingRecipe(reader);
                 case "stonecutting" -> new DeclaredStonecutterRecipe(reader);
-                case "smithing" -> new DeclaredSmithingRecipe(reader);
+                case "smithing_trim" -> new DeclaredSmithingTrimRecipe(reader);
+                case "smithing_transform" -> new DeclaredSmithingTransformRecipe(reader);
                 default -> throw new UnsupportedOperationException("Unrecognized type: " + type);
             };
         }));
@@ -53,7 +53,8 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     public sealed interface DeclaredRecipe extends NetworkBuffer.Writer
             permits DeclaredShapelessCraftingRecipe, DeclaredShapedCraftingRecipe,
             DeclaredSmeltingRecipe, DeclaredBlastingRecipe, DeclaredSmokingRecipe,
-            DeclaredCampfireCookingRecipe, DeclaredStonecutterRecipe, DeclaredSmithingRecipe {
+            DeclaredCampfireCookingRecipe, DeclaredStonecutterRecipe,
+            DeclaredSmithingTrimRecipe, DeclaredSmithingTransformRecipe {
         @NotNull String type();
 
         @NotNull String recipeId();
@@ -262,14 +263,16 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         }
     }
 
-    public record DeclaredSmithingRecipe(String recipeId, Ingredient base, Ingredient addition,
-                                         ItemStack result) implements DeclaredRecipe {
-        public DeclaredSmithingRecipe(@NotNull NetworkBuffer reader) {
-            this(reader.read(STRING), new Ingredient(reader), new Ingredient(reader), reader.read(ITEM));
+    public record DeclaredSmithingTransformRecipe(String recipeId, Ingredient template,
+                                                  Ingredient base, Ingredient addition,
+                                                  ItemStack result) implements DeclaredRecipe {
+        public DeclaredSmithingTransformRecipe(@NotNull NetworkBuffer reader) {
+            this(reader.read(STRING), new Ingredient(reader), new Ingredient(reader), new Ingredient(reader), reader.read(ITEM));
         }
 
         @Override
         public void write(@NotNull NetworkBuffer writer) {
+            writer.write(template);
             writer.write(base);
             writer.write(addition);
             writer.write(ITEM, result);
@@ -277,7 +280,26 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
 
         @Override
         public @NotNull String type() {
-            return "smithing";
+            return "smithing_transform";
+        }
+    }
+
+    public record DeclaredSmithingTrimRecipe(String recipeId, Ingredient template,
+                                             Ingredient base, Ingredient addition) implements DeclaredRecipe {
+        public DeclaredSmithingTrimRecipe(@NotNull NetworkBuffer reader) {
+            this(reader.read(STRING), new Ingredient(reader), new Ingredient(reader), new Ingredient(reader));
+        }
+
+        @Override
+        public void write(@NotNull NetworkBuffer writer) {
+            writer.write(template);
+            writer.write(base);
+            writer.write(addition);
+        }
+
+        @Override
+        public @NotNull String type() {
+            return "smithing_trim";
         }
     }
 

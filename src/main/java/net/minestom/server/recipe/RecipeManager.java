@@ -124,14 +124,24 @@ public class RecipeManager {
                                     stonecuttingRecipe.getIngredient(),
                                     stonecuttingRecipe.getResult()));
                 }
-                case SMITHING -> {
-                    SmithingRecipe smithingRecipe = (SmithingRecipe) recipe;
+                case SMITHING_TRANSFORM -> {
+                    SmithingTransformRecipe smithingTransformRecipe = (SmithingTransformRecipe) recipe;
                     recipesCache.add(
-                            new DeclareRecipesPacket.DeclaredSmithingRecipe(
-                                    smithingRecipe.getRecipeId(),
-                                    smithingRecipe.getBaseIngredient(),
-                                    smithingRecipe.getAdditionIngredient(),
-                                    smithingRecipe.getResult()));
+                            new DeclareRecipesPacket.DeclaredSmithingTransformRecipe(
+                                    smithingTransformRecipe.getRecipeId(),
+                                    smithingTransformRecipe.getTemplate(),
+                                    smithingTransformRecipe.getBaseIngredient(),
+                                    smithingTransformRecipe.getAdditionIngredient(),
+                                    smithingTransformRecipe.getResult()));
+                }
+                case SMITHING_TRIM -> {
+                    SmithingTrimRecipe smithingTrimRecipe = (SmithingTrimRecipe) recipe;
+                    recipesCache.add(
+                            new DeclareRecipesPacket.DeclaredSmithingTrimRecipe(
+                                    smithingTrimRecipe.getRecipeId(),
+                                    smithingTrimRecipe.getTemplate(),
+                                    smithingTrimRecipe.getBaseIngredient(),
+                                    smithingTrimRecipe.getAdditionIngredient()));
                 }
             }
         }

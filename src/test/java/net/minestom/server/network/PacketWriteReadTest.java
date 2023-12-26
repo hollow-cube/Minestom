@@ -115,7 +115,21 @@ public class PacketWriteReadTest {
                                 ItemStack.of(Material.IRON_INGOT),
                                 5,
                                 5
-                        ))));
+                        ),
+                        new DeclareRecipesPacket.DeclaredSmithingTransformRecipe(
+                                "minecraft:iron_to_diamond",
+                                new Ingredient(List.of(ItemStack.of(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE))),
+                                new Ingredient(List.of(ItemStack.of(Material.DIAMOND))),
+                                new Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                                ItemStack.of(Material.DIAMOND)
+                        ),
+                        new DeclareRecipesPacket.DeclaredSmithingTrimRecipe(
+                                "minecraft:iron_to_coast",
+                                new Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                                new Ingredient(List.of(ItemStack.of(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE))),
+                                new Ingredient(List.of(ItemStack.of(Material.COAL)))
+                        )
+                )));
 
         SERVER_PACKETS.add(new DestroyEntitiesPacket(List.of(5, 5, 5)));
         SERVER_PACKETS.add(new DisconnectPacket(COMPONENT));
