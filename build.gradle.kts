@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("com.jfrog.artifactory") version "5.1.11"
+    id("com.jfrog.artifactory") version "5.1.12"
     `maven-publish`
 }
 
