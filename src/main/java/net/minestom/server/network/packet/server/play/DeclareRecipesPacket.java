@@ -4,9 +4,12 @@ import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.recipe.RecipeCategory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static net.minestom.server.network.NetworkBuffer.*;
@@ -56,17 +59,20 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         @NotNull String recipeId();
     }
 
-    public record DeclaredShapelessCraftingRecipe(String recipeId, String group,
-                                                  List<Ingredient> ingredients,
-                                                  ItemStack result) implements DeclaredRecipe {
+    public record DeclaredShapelessCraftingRecipe(@NotNull String recipeId, @NotNull String group,
+                                                  @NotNull RecipeCategory.Crafting crafting,
+                                                  @NotNull List<Ingredient> ingredients,
+                                                  @NotNull ItemStack result) implements DeclaredRecipe {
         private DeclaredShapelessCraftingRecipe(@NotNull NetworkBuffer reader) {
             this(reader.read(STRING), reader.read(STRING),
+                    reader.readEnum(RecipeCategory.Crafting.class),
                     reader.readCollection(Ingredient::new), reader.read(ITEM));
         }
 
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Crafting.class, crafting);
             writer.writeCollection(ingredients);
             writer.write(ITEM, result);
         }
@@ -78,14 +84,15 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     }
 
     public record DeclaredShapedCraftingRecipe(@NotNull String recipeId, int width, int height,
-                                               @NotNull String group, @NotNull List<Ingredient> ingredients,
-                                               @NotNull ItemStack result) implements DeclaredRecipe {
+                                               @NotNull String group, @NotNull RecipeCategory.Crafting category,
+                                               @NotNull List<Ingredient> ingredients,
+                                               @NotNull ItemStack result, boolean showNotification) implements DeclaredRecipe {
         public DeclaredShapedCraftingRecipe {
             ingredients = List.copyOf(ingredients);
         }
 
         private DeclaredShapedCraftingRecipe(DeclaredShapedCraftingRecipe packet) {
-            this(packet.recipeId, packet.width, packet.height, packet.group, packet.ingredients, packet.result);
+            this(packet.recipeId, packet.width, packet.height, packet.group, packet.category, packet.ingredients, packet.result, packet.showNotification);
         }
 
         public DeclaredShapedCraftingRecipe(@NotNull NetworkBuffer reader) {
@@ -98,12 +105,14 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
             int width = reader.read(VAR_INT);
             int height = reader.read(VAR_INT);
             String group = reader.read(STRING);
+            RecipeCategory.Crafting category = reader.readEnum(RecipeCategory.Crafting.class);
             List<Ingredient> ingredients = new ArrayList<>();
             for (int slot = 0; slot < width * height; slot++) {
                 ingredients.add(new Ingredient(reader));
             }
             ItemStack result = reader.read(ITEM);
-            return new DeclaredShapedCraftingRecipe(recipeId, width, height, group, ingredients, result);
+            boolean showNotification = reader.read(BOOLEAN);
+            return new DeclaredShapedCraftingRecipe(recipeId, width, height, group, category, ingredients, result, showNotification);
         }
 
         @Override
@@ -111,10 +120,12 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
             writer.write(VAR_INT, width);
             writer.write(VAR_INT, height);
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Crafting.class, category);
             for (Ingredient ingredient : ingredients) {
                 ingredient.write(writer);
             }
             writer.write(ITEM, result);
+            writer.write(BOOLEAN, showNotification);
         }
 
         @Override
@@ -124,10 +135,12 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     }
 
     public record DeclaredSmeltingRecipe(@NotNull String recipeId, @NotNull String group,
-                                         @NotNull Ingredient ingredient, @NotNull ItemStack result,
-                                         float experience, int cookingTime) implements DeclaredRecipe {
+                                         @NotNull RecipeCategory.Cooking category, @NotNull Ingredient ingredient,
+                                         @NotNull ItemStack result, float experience,
+                                         int cookingTime) implements DeclaredRecipe {
         public DeclaredSmeltingRecipe(@NotNull NetworkBuffer reader) {
             this(reader.read(STRING), reader.read(STRING),
+                    reader.readEnum(RecipeCategory.Cooking.class),
                     new Ingredient(reader), reader.read(ITEM),
                     reader.read(FLOAT), reader.read(VAR_INT));
         }
@@ -135,6 +148,7 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Cooking.class, category);
             writer.write(ingredient);
             writer.write(ITEM, result);
             writer.write(FLOAT, experience);
@@ -148,10 +162,12 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     }
 
     public record DeclaredBlastingRecipe(@NotNull String recipeId, @NotNull String group,
-                                         @NotNull Ingredient ingredient, @NotNull ItemStack result,
-                                         float experience, int cookingTime) implements DeclaredRecipe {
+                                         @NotNull RecipeCategory.Cooking category, @NotNull Ingredient ingredient,
+                                         @NotNull ItemStack result, float experience,
+                                         int cookingTime) implements DeclaredRecipe {
         public DeclaredBlastingRecipe(@NotNull NetworkBuffer reader) {
             this(reader.read(STRING), reader.read(STRING),
+                    reader.readEnum(RecipeCategory.Cooking.class),
                     new Ingredient(reader), reader.read(ITEM),
                     reader.read(FLOAT), reader.read(VAR_INT));
         }
@@ -159,6 +175,7 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Cooking.class, category);
             writer.write(ingredient);
             writer.write(ITEM, result);
             writer.write(FLOAT, experience);
@@ -172,10 +189,12 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     }
 
     public record DeclaredSmokingRecipe(@NotNull String recipeId, @NotNull String group,
-                                        @NotNull Ingredient ingredient, @NotNull ItemStack result,
-                                        float experience, int cookingTime) implements DeclaredRecipe {
+                                        @NotNull RecipeCategory.Cooking category, @NotNull Ingredient ingredient,
+                                        @NotNull ItemStack result, float experience,
+                                        int cookingTime) implements DeclaredRecipe {
         public DeclaredSmokingRecipe(@NotNull NetworkBuffer reader) {
             this(reader.read(STRING), reader.read(STRING),
+                    reader.readEnum(RecipeCategory.Cooking.class),
                     new Ingredient(reader), reader.read(ITEM),
                     reader.read(FLOAT), reader.read(VAR_INT));
         }
@@ -183,6 +202,7 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Cooking.class, category);
             writer.write(ingredient);
             writer.write(ITEM, result);
             writer.write(FLOAT, experience);
@@ -196,10 +216,12 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
     }
 
     public record DeclaredCampfireCookingRecipe(@NotNull String recipeId, @NotNull String group,
-                                                @NotNull Ingredient ingredient, @NotNull ItemStack result,
-                                                float experience, int cookingTime) implements DeclaredRecipe {
+                                                @NotNull RecipeCategory.Cooking category, @NotNull Ingredient ingredient,
+                                                @NotNull ItemStack result, float experience,
+                                                int cookingTime) implements DeclaredRecipe {
         public DeclaredCampfireCookingRecipe(@NotNull NetworkBuffer reader) {
             this(reader.read(STRING), reader.read(STRING),
+                    reader.readEnum(RecipeCategory.Cooking.class),
                     new Ingredient(reader), reader.read(ITEM),
                     reader.read(FLOAT), reader.read(VAR_INT));
         }
@@ -207,6 +229,7 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.write(STRING, group);
+            writer.writeEnum(RecipeCategory.Cooking.class, category);
             writer.write(ingredient);
             writer.write(ITEM, result);
             writer.write(FLOAT, experience);
@@ -258,9 +281,9 @@ public record DeclareRecipesPacket(@NotNull List<DeclaredRecipe> recipes) implem
         }
     }
 
-    public record Ingredient(@NotNull List<ItemStack> items) implements NetworkBuffer.Writer {
+    public record Ingredient(@Nullable List<ItemStack> items) implements NetworkBuffer.Writer {
         public Ingredient {
-            items = List.copyOf(items);
+            items = items == null ? null : List.copyOf(items);
         }
 
         public Ingredient(@NotNull NetworkBuffer reader) {
