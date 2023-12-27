@@ -9,4 +9,3 @@ plugins {
 
 rootProject.name = "minestom"
 include("server")
-include("pvp")
