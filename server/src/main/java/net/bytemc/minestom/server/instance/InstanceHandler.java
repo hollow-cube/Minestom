@@ -12,13 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class InstanceHandler {
     private final Map<String, InstanceContainer> instances;
     private InstanceContainer spawnInstance;
 
     public InstanceHandler() {
-        this.instances = new HashMap<>();
+        this.instances = new ConcurrentHashMap<>();
         this.spawnInstance = create("Default", Generators.FLAT_GENERATOR);
 
         MinecraftServer.getGlobalEventHandler().addListener(PlayerLoginEvent.class, event -> {
@@ -42,8 +43,13 @@ public final class InstanceHandler {
         return byteInstance;
     }
 
+    public void unregister(Instance instance) {
+        instances.remove(getNameFromInstance(instance));
+        MinecraftServer.getInstanceManager().unregisterInstance(instance);
+    }
+
     @Nullable
-    public String getNameFromInstance(InstanceContainer instance) {
+    public String getNameFromInstance(Instance instance) {
         return this.getNameFromUUID(instance.getUniqueId());
     }
 
