@@ -13,6 +13,7 @@ public abstract class ShapedRecipe extends Recipe {
     private final int width;
     private final int height;
     private String group;
+    private RecipeCategory.Crafting category;
     private final List<DeclareRecipesPacket.Ingredient> ingredients;
     private ItemStack result;
     private boolean showNotification;
@@ -21,13 +22,14 @@ public abstract class ShapedRecipe extends Recipe {
                            int width,
                            int height,
                            @NotNull String group,
+                            @NotNull RecipeCategory.Crafting category,
                            @Nullable List<DeclareRecipesPacket.Ingredient> ingredients,
-                           @NotNull ItemStack result,
-                           boolean showNotification) {
+                           @NotNull ItemStack result, boolean showNotification) {
         super(Type.SHAPED, recipeId);
         this.width = width;
         this.height = height;
         this.group = group;
+        this.category = category;
         this.ingredients = Objects.requireNonNullElseGet(ingredients, LinkedList::new);
         this.result = result;
         this.showNotification = showNotification;
@@ -48,6 +50,15 @@ public abstract class ShapedRecipe extends Recipe {
 
     public void setGroup(@NotNull String group) {
         this.group = group;
+    }
+
+    @NotNull
+    public RecipeCategory.Crafting getCategory() {
+        return category;
+    }
+
+    public void setCategory(@NotNull RecipeCategory.Crafting category) {
+        this.category = category;
     }
 
     public void addIngredient(DeclareRecipesPacket.Ingredient ingredient) {
@@ -72,7 +83,7 @@ public abstract class ShapedRecipe extends Recipe {
         this.result = result;
     }
 
-    public boolean shouldShowNotification() {
+    public boolean getShowNotification() {
         return showNotification;
     }
 

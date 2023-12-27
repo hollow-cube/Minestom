@@ -50,6 +50,7 @@ public class RecipeManager {
                             new DeclareRecipesPacket.DeclaredShapelessCraftingRecipe(
                                     shapelessRecipe.getRecipeId(),
                                     shapelessRecipe.getGroup(),
+                                    shapelessRecipe.getCategory(),
                                     shapelessRecipe.getIngredients(),
                                     shapelessRecipe.getResult()));
                 }
@@ -61,9 +62,10 @@ public class RecipeManager {
                                     shapedRecipe.getWidth(),
                                     shapedRecipe.getHeight(),
                                     shapedRecipe.getGroup(),
+                                    shapedRecipe.getCategory(),
                                     shapedRecipe.getIngredients(),
                                     shapedRecipe.getResult(),
-                                    shapedRecipe.shouldShowNotification()));
+                                    shapedRecipe.getShowNotification()));
                 }
                 case SMELTING -> {
                     SmeltingRecipe smeltingRecipe = (SmeltingRecipe) recipe;
@@ -71,6 +73,7 @@ public class RecipeManager {
                             new DeclareRecipesPacket.DeclaredSmeltingRecipe(
                                     smeltingRecipe.getRecipeId(),
                                     smeltingRecipe.getGroup(),
+                                    smeltingRecipe.getCategory(),
                                     smeltingRecipe.getIngredient(),
                                     smeltingRecipe.getResult(),
                                     smeltingRecipe.getExperience(),
@@ -82,6 +85,7 @@ public class RecipeManager {
                             new DeclareRecipesPacket.DeclaredBlastingRecipe(
                                     blastingRecipe.getRecipeId(),
                                     blastingRecipe.getGroup(),
+                                    blastingRecipe.getCategory(),
                                     blastingRecipe.getIngredient(),
                                     blastingRecipe.getResult(),
                                     blastingRecipe.getExperience(),
@@ -93,6 +97,7 @@ public class RecipeManager {
                             new DeclareRecipesPacket.DeclaredSmokingRecipe(
                                     smokingRecipe.getRecipeId(),
                                     smokingRecipe.getGroup(),
+                                    smokingRecipe.getCategory(),
                                     smokingRecipe.getIngredient(),
                                     smokingRecipe.getResult(),
                                     smokingRecipe.getExperience(),
@@ -104,6 +109,7 @@ public class RecipeManager {
                             new DeclareRecipesPacket.DeclaredCampfireCookingRecipe(
                                     campfireCookingRecipe.getRecipeId(),
                                     campfireCookingRecipe.getGroup(),
+                                    campfireCookingRecipe.getCategory(),
                                     campfireCookingRecipe.getIngredient(),
                                     campfireCookingRecipe.getResult(),
                                     campfireCookingRecipe.getExperience(),
@@ -118,14 +124,24 @@ public class RecipeManager {
                                     stonecuttingRecipe.getIngredient(),
                                     stonecuttingRecipe.getResult()));
                 }
-                case SMITHING -> {
-                    SmithingRecipe smithingRecipe = (SmithingRecipe) recipe;
+                case SMITHING_TRANSFORM -> {
+                    SmithingTransformRecipe smithingTransformRecipe = (SmithingTransformRecipe) recipe;
                     recipesCache.add(
-                            new DeclareRecipesPacket.DeclaredSmithingRecipe(
-                                    smithingRecipe.getRecipeId(),
-                                    smithingRecipe.getBaseIngredient(),
-                                    smithingRecipe.getAdditionIngredient(),
-                                    smithingRecipe.getResult()));
+                            new DeclareRecipesPacket.DeclaredSmithingTransformRecipe(
+                                    smithingTransformRecipe.getRecipeId(),
+                                    smithingTransformRecipe.getTemplate(),
+                                    smithingTransformRecipe.getBaseIngredient(),
+                                    smithingTransformRecipe.getAdditionIngredient(),
+                                    smithingTransformRecipe.getResult()));
+                }
+                case SMITHING_TRIM -> {
+                    SmithingTrimRecipe smithingTrimRecipe = (SmithingTrimRecipe) recipe;
+                    recipesCache.add(
+                            new DeclareRecipesPacket.DeclaredSmithingTrimRecipe(
+                                    smithingTrimRecipe.getRecipeId(),
+                                    smithingTrimRecipe.getTemplate(),
+                                    smithingTrimRecipe.getBaseIngredient(),
+                                    smithingTrimRecipe.getAdditionIngredient()));
                 }
             }
         }
