@@ -15,17 +15,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class Extension {
     /**
      * List of extensions that depend on this extension.
      */
     protected final Set<String> dependents = new HashSet<>();
-    private final Path configPath;
-
-    protected Extension() {
-        this.configPath = Path.of("extensions/" + getOrigin().getName()).toAbsolutePath();
-    }
+    private Path configPath;
+    private DiscoveredExtension discovered;
 
     public void preInitialize() {
 
@@ -66,11 +64,6 @@ public abstract class Extension {
         throw new IllegalStateException("Extension class loader is not an ExtensionClassLoader");
     }
 
-    @NotNull
-    public DiscoveredExtension getOrigin() {
-        return getExtensionClassLoader().getDiscoveredExtension();
-    }
-
     /**
      * Gets the logger for the extension
      *
@@ -86,7 +79,7 @@ public abstract class Extension {
     }
 
     public @NotNull Path getDataDirectory() {
-        return getOrigin().getDataDirectory();
+        return configPath; // TODO: Fix this
     }
 
     /**
@@ -140,7 +133,7 @@ public abstract class Extension {
      */
     public @Nullable InputStream getPackagedResource(@NotNull String fileName) {
         try {
-            final URL url = getOrigin().getClassLoader().getResource(fileName);
+            final URL url = getExtensionClassLoader().getResource(fileName);
             if (url == null) {
                 getLogger().debug("Resource not found: {}", fileName);
                 return null;
@@ -202,5 +195,13 @@ public abstract class Extension {
      */
     public Set<String> getDependents() {
         return dependents;
+    }
+
+    public void setDiscovered(DiscoveredExtension discovered) {
+        if (this.discovered != null) {
+            throw new UnsupportedOperationException("Discovered extension cannot be changed after it has been set.");
+        }
+        this.discovered = discovered;
+        this.configPath = Path.of("extensions/" + discovered.getName()).toAbsolutePath();
     }
 }

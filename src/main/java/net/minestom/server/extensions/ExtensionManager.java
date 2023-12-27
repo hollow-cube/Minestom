@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ public class ExtensionManager {
     public final static String INDEV_CLASSES_FOLDER = "minestom.extension.indevfolder.classes";
     public final static String INDEV_RESOURCES_FOLDER = "minestom.extension.indevfolder.resources";
     private final static Gson GSON = new Gson();
+    private final static ExtensionClassLoader EXTENSION_CLASS_LOADER = new ExtensionClassLoader();
 
     private final ServerProcess serverProcess;
 
@@ -206,21 +208,6 @@ public class ExtensionManager {
             // Don't waste resources on doing extra actions if there is nothing to do.
             if (discoveredExtensions.isEmpty()) return;
 
-            // Create classloaders for each extension (so that they can be used during dependency resolution)
-            Iterator<DiscoveredExtension> extensionIterator = discoveredExtensions.iterator();
-            while (extensionIterator.hasNext()) {
-                DiscoveredExtension discoveredExtension = extensionIterator.next();
-                try {
-                    discoveredExtension.createClassLoader();
-                } catch (Exception e) {
-                    discoveredExtension.loadStatus = DiscoveredExtension.LoadStatus.FAILED_TO_SETUP_CLASSLOADER;
-                    serverProcess.exception().handleException(e);
-                    LOGGER.error("Failed to load extension {}", discoveredExtension.getName());
-                    LOGGER.error("Failed to load extension", e);
-                    extensionIterator.remove();
-                }
-            }
-
             discoveredExtensions = generateLoadOrder(discoveredExtensions);
 
             // remove invalid extensions
@@ -262,8 +249,6 @@ public class ExtensionManager {
         String extensionName = discoveredExtension.getName();
         String mainClass = discoveredExtension.getEntrypoint();
 
-        ExtensionClassLoader loader = discoveredExtension.getClassLoader();
-
         if (extensions.containsKey(extensionName.toLowerCase())) {
             LOGGER.error("An extension called '{}' has already been registered.", extensionName);
             return null;
@@ -271,7 +256,7 @@ public class ExtensionManager {
 
         Class<?> jarClass;
         try {
-            jarClass = Class.forName(mainClass, true, loader);
+            jarClass = Class.forName(mainClass, true, EXTENSION_CLASS_LOADER);
         } catch (ClassNotFoundException e) {
             LOGGER.error("Could not find main class '{}' in extension '{}'.",
                     mainClass, extensionName, e);
@@ -298,6 +283,7 @@ public class ExtensionManager {
         Extension extension = null;
         try {
             extension = constructor.newInstance();
+            extension.setDiscovered(discoveredExtension);
         } catch (InstantiationException e) {
             LOGGER.error("Main class '{}' in '{}' cannot be an abstract class.", mainClass, extensionName, e);
             return null;
@@ -353,6 +339,12 @@ public class ExtensionManager {
                 // Ignore non .jar files
                 if (!file.getName().endsWith(".jar")) {
                     continue;
+                }
+
+                try {
+                    EXTENSION_CLASS_LOADER.addURL(file.toURI().toURL());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace(System.err);
                 }
 
                 DiscoveredExtension extension = discoverFromJar(file);
@@ -451,7 +443,7 @@ public class ExtensionManager {
                         // attempt to see if it is not already loaded (happens with dynamic (re)loading)
                         if (extensions.containsKey(dependencyName.toLowerCase())) {
 
-                            dependencies.add(extensions.get(dependencyName.toLowerCase()).getOrigin());
+                            //dependencies.add(extensions.get(dependencyName.toLowerCase()).getOrigin()); // TODO: Fix this
                             continue; // Go to the next loop in this dependency loop, this iteration is done.
 
                         } else {
@@ -615,8 +607,8 @@ public class ExtensionManager {
         ext.postTerminate();
 
         // remove from loaded extensions
-        String id = ext.getOrigin().getName().toLowerCase();
-        extensions.remove(id);
+        /*String id = ext.getOrigin().getName().toLowerCase();
+        extensions.remove(id);*/ // TODO: Fix this
 
         // cleanup classloader
         // TODO: Is it necessary to remove the CLs since this is only called on shutdown?

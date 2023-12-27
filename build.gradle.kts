@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    id("com.jfrog.artifactory") version "5.1.11"
     `maven-publish`
 }
 
@@ -9,7 +8,7 @@ allprojects {
     apply(plugin = "maven-publish")
 
     group = "net.bytemc"
-    version = "1.3.10-SNAPSHOT"
+    version = "1.4.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -60,7 +59,7 @@ allprojects {
                 name = "bytemc"
                 url = uri("https://nexus.bytemc.de/repository/maven-public/")
                 credentials {
-                    username = System.getenv("BYTEMC_REPO_USERNAME")
+                    username = System.getenv("BYTEMC_REPO_USER")
                     password = System.getenv("BYTEMC_REPO_PASSWORD")
                 }
             }
