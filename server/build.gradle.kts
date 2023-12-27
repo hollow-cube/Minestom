@@ -1,6 +1,3 @@
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-
 plugins {
     kotlin("jvm") version "1.9.21"
     id("com.jfrog.artifactory") version "5.1.11"
@@ -27,14 +24,4 @@ tasks.withType<Jar> {
 
 kotlin {
     jvmToolchain(17)
-}
-
-tasks.shadowJar {
-    doLast {
-        Files.copy(
-            projectDir.resolve("build").resolve("libs").resolve("server-1.4.0-SNAPSHOT-all.jar").toPath(),
-            File("\\\\wsl.localhost\\Debian\\home\\admin\\bytemc\\lobby\\data\\storage\\platforms\\minestom-latest.jar").toPath(),
-            StandardCopyOption.REPLACE_EXISTING
-        )
-    }
 }
