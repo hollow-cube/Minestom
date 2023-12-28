@@ -101,7 +101,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     protected Pos lastSyncedPosition;
     protected boolean onGround;
 
-    private BoundingBox boundingBox;
+    protected BoundingBox boundingBox;
     private PhysicsResult lastPhysicsResult = null;
 
     protected Entity vehicle;
@@ -1475,6 +1475,36 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             }
             return false;
         });
+    }
+
+    /**
+     * If the entity has the specified effect.
+     *
+     * @param effect the effect to check
+     */
+    public boolean hasEffect(@NotNull PotionEffect effect) {
+        return this.effects.stream().anyMatch(timedPotion -> timedPotion.getPotion().effect() == effect);
+    }
+
+    /**
+     * Gets the TimedPotion of the specified effect.
+     *
+     * @param effect the effect type
+     * @return the effect, null if not found
+     */
+    public @Nullable TimedPotion getEffect(@NotNull PotionEffect effect) {
+        return this.effects.stream().filter(timedPotion -> timedPotion.getPotion().effect() == effect).findFirst().orElse(null);
+    }
+
+    /**
+     * Gets the level of the specified effect.
+     *
+     * @param effect the effect type
+     * @return the effect level, 0 if not found
+     */
+    public int getEffectLevel(@NotNull PotionEffect effect) {
+        TimedPotion timedPotion = getEffect(effect);
+        return timedPotion == null ? 0 : timedPotion.getPotion().amplifier();
     }
 
     /**

@@ -66,7 +66,9 @@ public class BlockPlacementListener {
             }
         }
         if (blockUse) {
-            refresh(player, interactedChunk);
+            // If the usage was blocked then the world is already up-to-date (from the prior handlers),
+            // So ack the change with the current world state.
+            player.sendPacket(new AcknowledgeBlockChangePacket(packet.sequence()));
             return;
         }
 
@@ -95,8 +97,8 @@ public class BlockPlacementListener {
         //todo it feels like it should be possible to have better replacement rules than this, feels pretty scuffed.
         Point placementPosition = blockPosition;
         var interactedPlacementRule = BLOCK_MANAGER.getBlockPlacementRule(interactedBlock);
-        if (interactedPlacementRule == null || !interactedPlacementRule.isSelfReplaceable(
-                new BlockPlacementRule.Replacement(interactedBlock, blockFace, cursorPosition, useMaterial))) {
+        if (!interactedBlock.isAir() && (interactedPlacementRule == null || !interactedPlacementRule.isSelfReplaceable(
+                new BlockPlacementRule.Replacement(interactedBlock, blockFace, cursorPosition, useMaterial)))) {
             // If the block is not replaceable, try to place next to it.
             final int offsetX = blockFace == BlockFace.WEST ? -1 : blockFace == BlockFace.EAST ? 1 : 0;
             final int offsetY = blockFace == BlockFace.BOTTOM ? -1 : blockFace == BlockFace.TOP ? 1 : 0;
@@ -112,8 +114,13 @@ public class BlockPlacementListener {
             }
         }
 
-        if(placementPosition.y() >= instance.getDimensionType().getMaxY()
-                || placementPosition.y() <= instance.getDimensionType().getMinY()) return;
+        if (placementPosition.y() >= instance.getDimensionType().getMaxY()
+                || placementPosition.y() < instance.getDimensionType().getMinY()) return;
+
+        // Ensure that the final placement position is inside the world border.
+        if (!instance.getWorldBorder().isInside(placementPosition)) {
+            canPlaceBlock = false;
+        }
 
         if (!canPlaceBlock) {
             // Send a block change with the real block in the instance to keep the client in sync,
