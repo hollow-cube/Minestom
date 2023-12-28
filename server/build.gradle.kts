@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     api(project(mapOf("path" to ":")))
-    api("net.kyori:adventure-text-minimessage:4.14.0")
+    api("net.kyori:adventure-text-minimessage:4.15.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
 }
 
