@@ -10,6 +10,8 @@ public class ArmorStandMeta extends LivingEntityMeta {
     public static final byte OFFSET = LivingEntityMeta.MAX_OFFSET;
     public static final byte MAX_OFFSET = OFFSET + 7;
 
+    private static final Vec DEFAULT_ARM_ROTATION = new Vec(-45.0, -135.0, 0.0);
+
     private final static byte IS_SMALL_BIT = 0x01;
     private final static byte HAS_ARMS_BIT = 0x04;
     private final static byte HAS_NO_BASE_PLATE_BIT = 0x08;
@@ -49,6 +51,14 @@ public class ArmorStandMeta extends LivingEntityMeta {
 
     public void setMarker(boolean value) {
         setMaskBit(OFFSET, IS_MARKER_BIT, value);
+    }
+
+    public void centerRightArmPosition() {
+        setRightArmRotation(DEFAULT_ARM_ROTATION);
+    }
+
+    public void centerLeftArmPosition() {
+        setLeftArmRotation(DEFAULT_ARM_ROTATION);
     }
 
     @NotNull
@@ -104,5 +114,7 @@ public class ArmorStandMeta extends LivingEntityMeta {
     public void setRightLegRotation(@NotNull Vec value) {
         super.metadata.setIndex(OFFSET + 6, Metadata.Rotation(value));
     }
+
+
 
 }
