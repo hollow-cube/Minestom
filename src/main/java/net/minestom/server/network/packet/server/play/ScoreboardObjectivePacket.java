@@ -26,12 +26,12 @@ public record ScoreboardObjectivePacket(@NotNull String objectiveName, byte mode
     }
 
     private ScoreboardObjectivePacket(ScoreboardObjectivePacket packet) {
-        this(packet.objectiveName, packet.mode, packet.objectiveValue, packet.type, null);
+        this(packet.objectiveName, packet.mode, packet.objectiveValue, packet.type, packet.numberFormat);
     }
 
     private static ScoreboardObjectivePacket read(@NotNull NetworkBuffer reader) {
-        var objectiveName = reader.read(STRING);
-        var mode = reader.read(BYTE);
+        String objectiveName = reader.read(STRING);
+        byte mode = reader.read(BYTE);
         Component objectiveValue = null;
         Type type = null;
         Sidebar.NumberFormat numberFormat = null;
