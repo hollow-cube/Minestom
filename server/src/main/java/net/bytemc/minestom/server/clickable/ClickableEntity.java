@@ -20,8 +20,8 @@ public class ClickableEntity {
             for (var entity : ENTITY_LIST) {
                 if(event.getTarget().getUuid().equals(entity.entity.getUuid())) {
                     entity.interactionPlayer.accept(event.getPlayer());
+                    break;
                 }
-                break;
             }
         });
     }
