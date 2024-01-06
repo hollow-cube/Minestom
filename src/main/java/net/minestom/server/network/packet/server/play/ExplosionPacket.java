@@ -9,7 +9,6 @@ import net.minestom.server.sound.SoundEvent;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.binary.BinaryWriter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static net.minestom.server.network.NetworkBuffer.*;
 
@@ -19,8 +18,7 @@ public record ExplosionPacket(double x, double y, double z, float radius,
                               @NotNull BlockInteraction blockInteraction,
                               int smallParticleId, byte @NotNull [] smallParticleData,
                               int largeParticleId, byte @NotNull [] largeParticleData,
-                              @Nullable SoundEvent soundEvent, @Nullable String soundName,
-                              boolean hasFixedSoundRange, float soundRange) implements ServerPacket {
+                              @NotNull String soundName, boolean hasFixedSoundRange, float soundRange) implements ServerPacket {
     private static @NotNull ExplosionPacket fromReader(@NotNull NetworkBuffer reader) {
         double x = reader.read(DOUBLE), y = reader.read(DOUBLE), z = reader.read(DOUBLE);
         float radius = reader.read(FLOAT);
@@ -36,7 +34,7 @@ public record ExplosionPacket(double x, double y, double z, float radius,
         float soundRange = hasFixedSoundRange ? reader.read(FLOAT) : 0;
         return new ExplosionPacket(x, y, z, radius, records, playerMotionX, playerMotionY, playerMotionZ,
                 blockInteraction, smallParticleId, smallParticleData, largeParticleId, largeParticleData,
-                null, soundName, hasFixedSoundRange, soundRange);
+                soundName, hasFixedSoundRange, soundRange);
     }
 
     private static byte @NotNull [] readParticleData(@NotNull NetworkBuffer reader, Particle particle) {
@@ -78,13 +76,13 @@ public record ExplosionPacket(double x, double y, double z, float radius,
         this(x, y, z, radius, records, playerMotionX, playerMotionY, playerMotionZ,
                 BlockInteraction.DESTROY, Particle.EXPLOSION.id(), new byte[] {},
                 Particle.EXPLOSION_EMITTER.id(), new byte[] {},
-                SoundEvent.ENTITY_GENERIC_EXPLODE, null, false, 0);
+                SoundEvent.ENTITY_GENERIC_EXPLODE.name(), false, 0);
     }
 
     private ExplosionPacket(@NotNull ExplosionPacket packet) {
         this(packet.x, packet.y, packet.z, packet.radius, packet.records, packet.playerMotionX, packet.playerMotionY, packet.playerMotionZ,
                 packet.blockInteraction, packet.smallParticleId, packet.smallParticleData, packet.largeParticleId, packet.largeParticleData,
-                packet.soundEvent, packet.soundName, packet.hasFixedSoundRange, packet.soundRange);
+                packet.soundName, packet.hasFixedSoundRange, packet.soundRange);
     }
 
     @Override
@@ -103,8 +101,7 @@ public record ExplosionPacket(double x, double y, double z, float radius,
         writer.write(RAW_BYTES, smallParticleData);
         writer.write(VAR_INT, largeParticleId);
         writer.write(RAW_BYTES, largeParticleData);
-        if (soundEvent != null) writer.write(STRING, soundEvent.name());
-        else writer.write(STRING, soundName != null ? soundName : "");
+        writer.write(STRING, soundName);
         writer.write(BOOLEAN, hasFixedSoundRange);
         if (hasFixedSoundRange) writer.write(FLOAT, soundRange);
     }
