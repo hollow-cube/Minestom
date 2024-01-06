@@ -39,7 +39,7 @@ public class ChatMessageListener {
         }
 
         final Collection<Player> players = CONNECTION_MANAGER.getOnlinePlayers();
-        PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> buildDefaultChatMessage(player, message), message);
+        PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> Component.text(message), message);
 
         // Call the event
         EventDispatcher.callCancellable(playerChatEvent, () -> {
@@ -62,16 +62,4 @@ public class ChatMessageListener {
             }
         });
     }
-
-    private static @NotNull Component buildDefaultChatMessage(@NotNull Player player, @NotNull String message) {
-        final String username = player.getUsername();
-        return Component.translatable("chat.type.text")
-                .args(Component.text(username)
-                                .insertion(username)
-                                .clickEvent(ClickEvent.suggestCommand("/msg " + username + " "))
-                                .hoverEvent(player),
-                        Component.text(message)
-                );
-    }
-
 }
