@@ -1,14 +1,12 @@
 package net.minestom.server.command;
 
-import java.util.UUID;
-
 import net.kyori.adventure.audience.MessageType;
-import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.permission.Permission;
+import net.minestom.server.permission.DefaultPermissionHandler;
+import net.minestom.server.permission.PermissionHandler;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,13 +19,24 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class ConsoleSender implements CommandSender {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ConsoleSender.class);
 
-    private final Set<Permission> permissions = new CopyOnWriteArraySet<>();
     private final TagHandler tagHandler = TagHandler.newHandler();
 
     private final Identity identity = Identity.nil();
     private final Pointers pointers = Pointers.builder()
             .withStatic(Identity.UUID, this.identity.uuid())
             .build();
+
+    private PermissionHandler permissionHandler = new DefaultPermissionHandler();
+
+    @Override
+    public @NotNull PermissionHandler getPermissionHandler() {
+        return permissionHandler;
+    }
+
+    @Override
+    public void setPermissionHandler(@NotNull PermissionHandler handler) {
+        this.permissionHandler = handler;
+    }
 
     @Override
     public void sendMessage(@NotNull String message) {
@@ -37,12 +46,6 @@ public class ConsoleSender implements CommandSender {
     @Override
     public void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
         LOGGER.info(message);
-    }
-
-    @NotNull
-    @Override
-    public Set<Permission> getAllPermissions() {
-        return permissions;
     }
 
     @Override

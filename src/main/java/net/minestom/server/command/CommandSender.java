@@ -13,7 +13,31 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Main implementations are {@link Player} and {@link ConsoleSender}.
  */
-public interface CommandSender extends PermissionHandler, Audience, Taggable, Identified {
+public interface CommandSender extends Audience, Taggable, Identified {
+
+    /**
+     * Gets a permission handler of the sender.
+     *
+     * @return a permission handler of the sender
+     */
+    @NotNull PermissionHandler getPermissionHandler();
+
+    /**
+     * Sets a permission handler for the sender.
+     *
+     * @param handler the permission handler
+     */
+    void setPermissionHandler(@NotNull PermissionHandler handler);
+
+    /**
+     * Gets if this sender has the permission {@code permission}.
+     *
+     * @param permission the permission to check
+     * @return true if the sender has the permission, false otherwise
+     */
+    default boolean hasPermission(@NotNull String permission) {
+        return getPermissionHandler().hasPermission(permission);
+    }
 
     /**
      * Sends a raw string message.
