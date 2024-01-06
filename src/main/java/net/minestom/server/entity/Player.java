@@ -22,8 +22,6 @@ import net.minestom.server.adventure.Localizable;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.collision.BoundingBox;
-import net.minestom.server.collision.CollisionUtils;
-import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
@@ -31,7 +29,6 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.effects.Effects;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
-import net.minestom.server.entity.metadata.LivingEntityMeta;
 import net.minestom.server.entity.metadata.PlayerMeta;
 import net.minestom.server.entity.vehicle.PlayerVehicleInformation;
 import net.minestom.server.event.EventDispatcher;
@@ -65,6 +62,8 @@ import net.minestom.server.network.packet.server.play.data.DeathLocation;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
+import net.minestom.server.permission.DefaultPermissionHandler;
+import net.minestom.server.permission.PermissionHandler;
 import net.minestom.server.recipe.Recipe;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.registry.Registry;
@@ -215,6 +214,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // Adventure
     private Identity identity;
     private final Pointers pointers;
+
+    private PermissionHandler permissionHandler = new DefaultPermissionHandler();
 
     public Player(@NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
         super(EntityType.PLAYER, uuid);
@@ -2218,6 +2219,16 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         super.setUuid(uuid);
         // update identity
         this.identity = Identity.identity(uuid);
+    }
+
+    @Override
+    public @NotNull PermissionHandler getPermissionHandler() {
+        return permissionHandler;
+    }
+
+    @Override
+    public void setPermissionHandler(@NotNull PermissionHandler handler) {
+        this.permissionHandler = handler;
     }
 
     @Override

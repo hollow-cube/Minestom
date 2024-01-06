@@ -4,11 +4,10 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.permission.Permission;
+import net.minestom.server.permission.PermissionHandler;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -20,19 +19,17 @@ public class CommandSenderTest {
 
     @Test
     public void testSenderPermissions() {
+        TestPermissionHandler handler = new TestPermissionHandler();
 
-        CommandSender sender = new SenderTest();
+        String permission = "permission.test";
 
-        Permission permission = new Permission("permission.test", new NBTCompound());
+        assertEquals(handler.getAllPermissions(), Set.of());
 
-        assertEquals(sender.getAllPermissions(), Set.of());
+        handler.addPermission(permission);
+        assertEquals(handler.getAllPermissions(), Set.of(permission));
 
-        sender.addPermission(permission);
-        assertEquals(sender.getPermission(permission.getPermissionName()), permission);
-        assertEquals(sender.getAllPermissions(), Set.of(permission));
-
-        sender.removePermission(permission.getPermissionName());
-        assertEquals(sender.getAllPermissions(), Set.of());
+        handler.removePermission(permission);
+        assertEquals(handler.getAllPermissions(), Set.of());
     }
 
     @Test
@@ -53,15 +50,9 @@ public class CommandSenderTest {
 
     private static final class SenderTest implements CommandSender {
 
-        private final Set<Permission> permissions = new HashSet<>();
         private final TagHandler handler = TagHandler.newHandler();
 
         private Component mostRecentMessage = null;
-
-        @Override
-        public @NotNull Set<Permission> getAllPermissions() {
-            return permissions;
-        }
 
         @Override
         public @NotNull TagHandler tagHandler() {
@@ -80,6 +71,38 @@ public class CommandSenderTest {
         @Override
         public @NotNull Identity identity() {
             return Identity.nil();
+        }
+
+        @Override
+        public @NotNull PermissionHandler getPermissionHandler() {
+            return null;
+        }
+
+        @Override
+        public void setPermissionHandler(@NotNull PermissionHandler handler) {
+
+        }
+    }
+
+    private static final class TestPermissionHandler implements PermissionHandler {
+
+        private final Set<String> permissions = new HashSet<>();
+
+        @Override
+        public boolean hasPermission(@NotNull String permission) {
+            return permissions.contains(permission);
+        }
+
+        public @NotNull Set<String> getAllPermissions() {
+            return Set.copyOf(this.permissions);
+        }
+
+        public void addPermission(@NotNull String permission) {
+            this.permissions.add(permission);
+        }
+
+        public void removePermission(@NotNull String permission) {
+            this.permissions.remove(permission);
         }
     }
 }
