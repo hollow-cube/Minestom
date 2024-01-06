@@ -23,10 +23,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static net.minestom.server.network.NetworkBuffer.BYTE_ARRAY;
 
@@ -75,7 +72,11 @@ public record EncryptionResponsePacket(byte[] sharedSecret,
             final HttpClient client = HttpClient.newHttpClient();
             final HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete((response, throwable) -> {
-                if (throwable != null) {
+                final boolean ok =
+                        throwable == null && response.statusCode() == 200
+                                && response.body() != null && !response.body().isEmpty();
+
+                if (!ok) {
                     MinecraftServer.getExceptionManager().handleException(throwable);
                     if (socketConnection.getPlayer() != null) {
                         socketConnection.getPlayer().kick(Component.text("Failed to contact Mojang's Session Servers (Are they down?)"));
@@ -86,15 +87,6 @@ public record EncryptionResponsePacket(byte[] sharedSecret,
                 }
                 try {
                     final JsonObject gameProfile = GSON.fromJson(response.body(), JsonObject.class);
-                    if (gameProfile == null) {
-                        // Invalid response
-                        if (socketConnection.getPlayer() != null) {
-                            socketConnection.getPlayer().kick(Component.text("Failed to get data from Mojang's Session Servers (Are they down?)"));
-                        } else {
-                            socketConnection.disconnect();
-                        }
-                        return;
-                    }
                     socketConnection.setEncryptionKey(getSecretKey());
                     UUID profileUUID = java.util.UUID.fromString(gameProfile.get("id").getAsString()
                             .replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
