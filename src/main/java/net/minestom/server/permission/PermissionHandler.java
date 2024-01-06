@@ -4,9 +4,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an object which can have permissions.
- * <p>
- * Permissions are in-memory only by default.
  */
+@FunctionalInterface
 public interface PermissionHandler {
     /**
      * Gets if this handler has the permission {@code permission}.
