@@ -39,7 +39,7 @@ public class ChatMessageListener {
         }
 
         final Collection<Player> players = CONNECTION_MANAGER.getOnlinePlayers();
-        PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> Component.text(message), message);
+        PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> Component.text(player.getUsername() + ": " + message), message);
 
         // Call the event
         EventDispatcher.callCancellable(playerChatEvent, () -> {
