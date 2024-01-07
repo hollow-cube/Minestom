@@ -132,6 +132,10 @@ public final class Server {
         return port;
     }
 
+    public synchronized void wakeupWorkers() {
+        workers.forEach(worker -> worker.selector.wakeup());
+    }
+
     private Worker findWorker() {
         this.index = ++index % WORKER_COUNT;
         return workers.get(index);

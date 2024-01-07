@@ -27,6 +27,7 @@ import net.minestom.server.thread.Acquirable;
 import net.minestom.server.thread.ThreadDispatcher;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.PacketUtils;
+import net.minestom.server.utils.PropertyUtils;
 import net.minestom.server.utils.collection.MappedCollection;
 import net.minestom.server.world.DimensionTypeManager;
 import net.minestom.server.world.biomes.BiomeManager;
@@ -251,6 +252,8 @@ final class ServerProcessImpl implements ServerProcess {
     }
 
     private final class TickerImpl implements Ticker {
+        private static final boolean END_OF_TICK_WAKEUP = PropertyUtils.getBoolean("minestom.end-of-tick-wake-up", false);
+
         @Override
         public void tick(long nanoTime) {
             final long msTime = System.currentTimeMillis();
@@ -272,6 +275,11 @@ final class ServerProcessImpl implements ServerProcess {
                 final double tickTimeMs = (System.nanoTime() - nanoTime) / 1e6D;
                 final TickMonitor tickMonitor = new TickMonitor(tickTimeMs, acquisitionTimeMs);
                 EventDispatcher.call(new ServerTickMonitorEvent(tickMonitor));
+            }
+
+            // Tell workers to send queued outbound packets immediately
+            if (END_OF_TICK_WAKEUP) {
+                server.wakeupWorkers();
             }
         }
 
