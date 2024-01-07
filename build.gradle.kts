@@ -76,6 +76,7 @@ dependencies {
     implementation(libs.bundles.flare)
     api(libs.gson)
     implementation(libs.jcTools)
+    api(libs.jgrapht)
 
     // Testing
     testImplementation(libs.bundles.junit)

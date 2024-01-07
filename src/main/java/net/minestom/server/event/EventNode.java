@@ -36,6 +36,7 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
         return type(name, EventFilter.ALL);
     }
 
+
     /**
      * Creates an event node which accepts any event of the given type. The type is provided
      * by the {@link EventFilter}.
@@ -189,6 +190,20 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
         //noinspection unchecked
         getHandle((Class<T>) event.getClass()).call(event);
     }
+
+    /**
+     * Sets a relative priority between two child nodes.
+     * First is called before/after second.
+     * If a relative priority is already defined between the two nodes, it will update or raise an exception based on the policy.
+     */
+    void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, EventNodePriority.Relative priority);
+
+    /**
+     * Sets an absolute priority for a child node.
+     * If the priority already exists, it will update or raise an exception based on the policy.
+     */
+    void setChildPriority(EventNode<? extends T> child, EventNodePriority.Absolute priority);
+
 
     default boolean hasListener(@NotNull Class<? extends T> type) {
         return getHandle(type).hasListener();

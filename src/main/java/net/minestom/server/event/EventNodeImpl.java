@@ -7,18 +7,24 @@ import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleDirectedGraph;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     private static final boolean ALLOW_MULTIPLE_PARENTS = Boolean.getBoolean("minestom.event.multiple-parents");
+    private static final boolean RELATIVE_PRIORITY_UPDATE = Boolean.getBoolean("minestom.event.priority.update-absolute");
+    private static final boolean ABSOLUTE_PRIORITY_UPDATE = Boolean.getBoolean("minestom.event.priority.update-relative");
 
     static final Object GLOBAL_CHILD_LOCK = new Object();
 
@@ -34,6 +40,8 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     final EventFilter<T, ?> filter;
     final BiPredicate<T, Object> predicate;
     final Class<T> eventType;
+    final Map<EventNode<? extends T>,Map<EventNode<? extends T>, EventNodePriority.Relative>> relativePriorities;
+    final Map<EventNodePriority.Absolute, EventNode<? extends T>> absolutePriorities;
     volatile int priority;
     volatile EventNodeImpl<? super T> parent;
 
@@ -44,6 +52,77 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
         this.filter = filter;
         this.predicate = predicate;
         this.eventType = filter.eventType();
+        relativePriorities = new HashMap<>();
+        absolutePriorities = new HashMap<>();
+        absolutePriorities.put(EventNodePriority.Absolute.FIRST, null);
+        absolutePriorities.put(EventNodePriority.Absolute.LAST, null);
+    }
+
+
+    public void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, EventNodePriority.Relative priority) {
+        Check.argCondition(!(this.getChildren().contains(first) && this.getChildren().contains(second)),
+                "Both first and second must be children of the event node");
+        this.relativePriorities.putIfAbsent(first, new HashMap<>());
+        this.relativePriorities.putIfAbsent(second, new HashMap<>());
+        if (priority == EventNodePriority.Relative.NONE) {
+            this.relativePriorities.get(first).remove(second);
+            this.relativePriorities.get(second).remove(first);
+        }
+        else {
+            if (!RELATIVE_PRIORITY_UPDATE) {
+                Check.stateCondition(this.relativePriorities.get(first).getOrDefault(second,priority) != priority,
+                        "the priority is already declared. either clear it or set the update policy to true.");
+            }
+            this.relativePriorities.get(first).put(second, priority);
+            this.relativePriorities.get(second).put(first, priority.reverse());
+        }
+        resolveChildrenPriorities();
+    }
+
+    public void setChildPriority(EventNode<? extends T> child, EventNodePriority.Absolute priority) {
+        Check.argCondition(!this.getChildren().contains(child),
+                "Both first and second must be children of the event node");
+        if (priority == EventNodePriority.Absolute.NONE) {
+            this.absolutePriorities.remove(EventNodePriority.Absolute.FIRST, child);
+            this.absolutePriorities.remove(EventNodePriority.Absolute.LAST, child);
+        } else {
+            if (!ABSOLUTE_PRIORITY_UPDATE) {
+                Check.stateCondition(this.absolutePriorities.get(priority) != null,
+                        "the priority is already declared. either clear it or set the update policy to true.");
+            }
+            this.absolutePriorities.put(priority, child);
+        }
+        resolveChildrenPriorities();
+    }
+
+    /**
+     * Uses topological sort to translate absolute/relative priorities into integer priorities.
+     */
+    void resolveChildrenPriorities() {
+        SimpleDirectedGraph<EventNode<? extends T>, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
+        this.getChildren().forEach(graph::addVertex);
+        if (this.absolutePriorities.get(EventNodePriority.Absolute.FIRST) != null) {
+            EventNode<? extends T> first = this.absolutePriorities.get(EventNodePriority.Absolute.FIRST);
+            this.getChildren().forEach(node -> {
+                if (node != first) graph.addEdge(first, node);
+            });
+        }
+        if (this.absolutePriorities.get(EventNodePriority.Absolute.LAST) != null) {
+            EventNode<? extends T> last = this.absolutePriorities.get(EventNodePriority.Absolute.LAST);
+            this.getChildren().forEach(node -> {
+                if (node != last) graph.addEdge(node, last);
+            });
+        }
+        this.relativePriorities.forEach((first,val) -> val.forEach((second, priority) -> {
+            if (priority == EventNodePriority.Relative.BEFORE) graph.addEdge(first,second);
+        }));
+
+        TopologicalOrderIterator<EventNode<? extends T>, DefaultEdge> iterator = new TopologicalOrderIterator<>(graph);
+        AtomicInteger i = new AtomicInteger();
+        iterator.forEachRemaining(node -> {
+            node.setPriority(i.get());
+            i.getAndIncrement();
+        });
     }
 
     @Override
