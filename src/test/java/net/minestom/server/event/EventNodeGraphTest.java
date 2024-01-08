@@ -65,13 +65,13 @@ public class EventNodeGraphTest {
             node.addChild(child6);
             node.addChild(child7);
 
-            node.setChildPriority(child1, child2, EventNodePriority.Relative.BEFORE);
-            node.setChildPriority(child1, child3, EventNodePriority.Relative.AFTER);
-            node.setChildPriority(child3, child5, EventNodePriority.Relative.BEFORE);
-            node.setChildPriority(child4, child2, EventNodePriority.Relative.AFTER);
-            node.setChildPriority(child5, child4, EventNodePriority.Relative.BEFORE);
-            node.setChildPriority(child6, EventNodePriority.Absolute.FIRST);
-            node.setChildPriority(child7, EventNodePriority.Absolute.LAST);
+            node.setChildPriority(child1, child2, EventNode.Relative.BEFORE);
+            node.setChildPriority(child1, child3, EventNode.Relative.AFTER);
+            node.setChildPriority(child3, child5, EventNode.Relative.BEFORE);
+            node.setChildPriority(child4, child2, EventNode.Relative.AFTER);
+            node.setChildPriority(child5, child4, EventNode.Relative.BEFORE);
+            node.setChildPriority(child6, EventNode.Absolute.FIRST);
+            node.setChildPriority(child7, EventNode.Absolute.LAST);
 
             assert (child1.getPriority() < child2.getPriority());
             assert (child1.getPriority() > child3.getPriority());

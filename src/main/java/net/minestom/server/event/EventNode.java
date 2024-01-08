@@ -196,13 +196,13 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * First is called before/after second.
      * If a relative priority is already defined between the two nodes, it will update or raise an exception based on the policy.
      */
-    void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, EventNodePriority.Relative priority);
+    void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, Relative priority);
 
     /**
      * Sets an absolute priority for a child node.
      * If the priority already exists, it will update or raise an exception based on the policy.
      */
-    void setChildPriority(EventNode<? extends T> child, EventNodePriority.Absolute priority);
+    void setChildPriority(EventNode<? extends T> child, Absolute priority);
 
 
     default boolean hasListener(@NotNull Class<? extends T> type) {
@@ -373,4 +373,31 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
 
     @ApiStatus.Experimental
     void unregister(@NotNull EventBinding<? extends T> binding);
+
+    enum Absolute {
+        FIRST,
+        LAST,
+        NONE;
+
+        public Absolute reverse() {
+            return switch (this) {
+                case FIRST -> LAST;
+                case LAST -> FIRST;
+                case NONE -> NONE;
+            };
+        }
+    }
+
+    enum Relative {
+        BEFORE,
+        AFTER,
+        NONE;
+        public Relative reverse() {
+            return switch (this) {
+                case BEFORE -> AFTER;
+                case AFTER -> BEFORE;
+                case NONE -> NONE;
+            };
+        }
+    }
 }

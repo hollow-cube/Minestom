@@ -40,8 +40,8 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     final EventFilter<T, ?> filter;
     final BiPredicate<T, Object> predicate;
     final Class<T> eventType;
-    final Map<EventNode<? extends T>,Map<EventNode<? extends T>, EventNodePriority.Relative>> relativePriorities;
-    final Map<EventNodePriority.Absolute, EventNode<? extends T>> absolutePriorities;
+    final Map<EventNode<? extends T>,Map<EventNode<? extends T>, Relative>> relativePriorities;
+    final Map<Absolute, EventNode<? extends T>> absolutePriorities;
     volatile int priority;
     volatile EventNodeImpl<? super T> parent;
 
@@ -54,17 +54,17 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
         this.eventType = filter.eventType();
         relativePriorities = new HashMap<>();
         absolutePriorities = new HashMap<>();
-        absolutePriorities.put(EventNodePriority.Absolute.FIRST, null);
-        absolutePriorities.put(EventNodePriority.Absolute.LAST, null);
+        absolutePriorities.put(EventNode.Absolute.FIRST, null);
+        absolutePriorities.put(EventNode.Absolute.LAST, null);
     }
 
 
-    public void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, EventNodePriority.Relative priority) {
+    public void setChildPriority(EventNode<? extends T> first,EventNode<? extends T> second, Relative priority) {
         Check.argCondition(!(this.getChildren().contains(first) && this.getChildren().contains(second)),
                 "Both first and second must be children of the event node");
         this.relativePriorities.putIfAbsent(first, new HashMap<>());
         this.relativePriorities.putIfAbsent(second, new HashMap<>());
-        if (priority == EventNodePriority.Relative.NONE) {
+        if (priority == EventNode.Relative.NONE) {
             this.relativePriorities.get(first).remove(second);
             this.relativePriorities.get(second).remove(first);
         }
@@ -79,12 +79,12 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
         resolveChildrenPriorities();
     }
 
-    public void setChildPriority(EventNode<? extends T> child, EventNodePriority.Absolute priority) {
+    public void setChildPriority(EventNode<? extends T> child, Absolute priority) {
         Check.argCondition(!this.getChildren().contains(child),
                 "Both first and second must be children of the event node");
-        if (priority == EventNodePriority.Absolute.NONE) {
-            this.absolutePriorities.remove(EventNodePriority.Absolute.FIRST, child);
-            this.absolutePriorities.remove(EventNodePriority.Absolute.LAST, child);
+        if (priority == EventNode.Absolute.NONE) {
+            this.absolutePriorities.remove(EventNode.Absolute.FIRST, child);
+            this.absolutePriorities.remove(EventNode.Absolute.LAST, child);
         } else {
             if (!ABSOLUTE_PRIORITY_UPDATE) {
                 Check.stateCondition(this.absolutePriorities.get(priority) != null,
@@ -101,20 +101,20 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     void resolveChildrenPriorities() {
         SimpleDirectedGraph<EventNode<? extends T>, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
         this.getChildren().forEach(graph::addVertex);
-        if (this.absolutePriorities.get(EventNodePriority.Absolute.FIRST) != null) {
-            EventNode<? extends T> first = this.absolutePriorities.get(EventNodePriority.Absolute.FIRST);
+        if (this.absolutePriorities.get(EventNode.Absolute.FIRST) != null) {
+            EventNode<? extends T> first = this.absolutePriorities.get(EventNode.Absolute.FIRST);
             this.getChildren().forEach(node -> {
                 if (node != first) graph.addEdge(first, node);
             });
         }
-        if (this.absolutePriorities.get(EventNodePriority.Absolute.LAST) != null) {
-            EventNode<? extends T> last = this.absolutePriorities.get(EventNodePriority.Absolute.LAST);
+        if (this.absolutePriorities.get(EventNode.Absolute.LAST) != null) {
+            EventNode<? extends T> last = this.absolutePriorities.get(EventNode.Absolute.LAST);
             this.getChildren().forEach(node -> {
                 if (node != last) graph.addEdge(node, last);
             });
         }
         this.relativePriorities.forEach((first,val) -> val.forEach((second, priority) -> {
-            if (priority == EventNodePriority.Relative.BEFORE) graph.addEdge(first,second);
+            if (priority == EventNode.Relative.BEFORE) graph.addEdge(first,second);
         }));
 
         TopologicalOrderIterator<EventNode<? extends T>, DefaultEdge> iterator = new TopologicalOrderIterator<>(graph);
