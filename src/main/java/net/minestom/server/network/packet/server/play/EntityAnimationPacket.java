@@ -26,6 +26,7 @@ public record EntityAnimationPacket(int entityId, @NotNull Animation animation) 
 
     public enum Animation {
         SWING_MAIN_ARM,
+        TAKE_DAMAGE,
         LEAVE_BED,
         SWING_OFF_HAND,
         CRITICAL_EFFECT,
