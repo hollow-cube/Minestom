@@ -19,8 +19,8 @@ public class InteractItem {
             for (InteractItem item : ITEM_LIST) {
                 if (event.getPlayer().getItemInMainHand().equals(item.item)) {
                     item.interactionPlayer.accept(event.getPlayer());
+                    break;
                 }
-                break;
             }
         });
     }
