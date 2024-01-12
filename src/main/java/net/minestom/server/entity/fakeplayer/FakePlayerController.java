@@ -9,10 +9,12 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.client.ClientPacket;
+import net.minestom.server.network.packet.client.common.ClientKeepAlivePacket;
+import net.minestom.server.network.packet.client.common.ClientPluginMessagePacket;
 import net.minestom.server.network.packet.client.play.*;
 import net.minestom.server.network.packet.server.SendablePacket;
 import net.minestom.server.network.packet.server.ServerPacket;
-import net.minestom.server.network.packet.server.play.KeepAlivePacket;
+import net.minestom.server.network.packet.server.common.KeepAlivePacket;
 import net.minestom.server.network.packet.server.play.PlayerPositionAndLookPacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.utils.MathUtils;
@@ -204,6 +206,7 @@ public class FakePlayerController {
      * @param clientPlayPacket The packet to add in the queue.
      */
     private void addToQueue(ClientPacket clientPlayPacket) {
-        this.fakePlayer.addPacketToQueue(clientPlayPacket);
+        //todo fix me
+//        this.fakePlayer.addPacketToQueue(clientPlayPacket);
     }
 }

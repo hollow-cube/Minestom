@@ -1,6 +1,5 @@
 package net.minestom.server.network.player;
 
-import net.kyori.adventure.translation.GlobalTranslator;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.entity.Player;
@@ -11,6 +10,7 @@ import net.minestom.server.extras.mojangAuth.MojangCrypt;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.PacketProcessor;
 import net.minestom.server.network.packet.client.ClientPacket;
+import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
 import net.minestom.server.network.packet.server.*;
 import net.minestom.server.network.packet.server.login.SetCompressionPacket;
 import net.minestom.server.network.socket.Worker;
@@ -112,7 +112,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                             MinecraftServer.getExceptionManager().handleException(e);
                         } finally {
                             if (payload.position() != payload.limit()) {
-                                LOGGER.warn("WARNING: Packet 0x{} not fully read ({}) {}", Integer.toHexString(id), payload, packet);
+                                LOGGER.warn("WARNING: Packet ({}) 0x{} not fully read ({}) {}", getClientState(), Integer.toHexString(id), payload, packet);
                             }
                         }
                     });
@@ -275,7 +275,7 @@ public class PlayerSocketConnection extends PlayerConnection {
     }
 
     /**
-     * Used in {@link net.minestom.server.network.packet.client.handshake.HandshakePacket} to change the internal fields.
+     * Used in {@link ClientHandshakePacket} to change the internal fields.
      *
      * @param serverAddress   the server address which the client used
      * @param serverPort      the server port which the client used
@@ -290,14 +290,14 @@ public class PlayerSocketConnection extends PlayerConnection {
     /**
      * Adds an entry to the plugin request map.
      * <p>
-     * Only working if {@link #getConnectionState()} is {@link net.minestom.server.network.ConnectionState#LOGIN}.
+     * Only working if {@link #getServerState()} ()} is {@link net.minestom.server.network.ConnectionState#LOGIN}.
      *
      * @param messageId the message id
      * @param channel   the packet channel
      * @throws IllegalStateException if a messageId with the value {@code messageId} already exists for this connection
      */
     public void addPluginRequestEntry(int messageId, @NotNull String channel) {
-        if (!getConnectionState().equals(ConnectionState.LOGIN)) {
+        if (getServerState() != ConnectionState.LOGIN) {
             return;
         }
         Check.stateCondition(pluginRequestMap.containsKey(messageId), "You cannot have two messageId with the same value");
@@ -317,10 +317,10 @@ public class PlayerSocketConnection extends PlayerConnection {
     }
 
     @Override
-    public void setConnectionState(@NotNull ConnectionState connectionState) {
-        super.setConnectionState(connectionState);
+    public void setClientState(@NotNull ConnectionState state) {
+        super.setClientState(state);
         // Clear the plugin request map (since it is not used anymore)
-        if (connectionState.equals(ConnectionState.PLAY)) {
+        if (state == ConnectionState.PLAY) {
             this.pluginRequestMap.clear();
         }
     }
@@ -338,7 +338,7 @@ public class PlayerSocketConnection extends PlayerConnection {
         final Player player = getPlayer();
         // Outgoing event
         if (player != null && outgoing.hasListener()) {
-            final ServerPacket serverPacket = SendablePacket.extractServerPacket(packet);
+            final ServerPacket serverPacket = SendablePacket.extractServerPacket(getServerState(), packet);
             PlayerPacketOutEvent event = new PlayerPacketOutEvent(player, serverPacket);
             outgoing.call(event);
 
@@ -351,15 +351,18 @@ public class PlayerSocketConnection extends PlayerConnection {
 
     private void writeAbstractPacketSync(SendablePacket packet, boolean compressed) {
         // Write packet
+        // WARNING: A cached or framed packet will currently never go through writeServerPacketSync,
+        // so a state change inside one of them will never actually be triggered. Currently, cached
+        // packets are never used for packets that change state, so this is not a problem.
         if (packet instanceof ServerPacket serverPacket) {
             writeServerPacketSync(serverPacket, compressed);
         } else if (packet instanceof FramedPacket framedPacket) {
             var buffer = framedPacket.body();
             writeBufferSync(buffer, 0, buffer.limit());
         } else if (packet instanceof CachedPacket cachedPacket) {
-            var buffer = cachedPacket.body();
+            var buffer = cachedPacket.body(getServerState());
             if (buffer != null) writeBufferSync(buffer, buffer.position(), buffer.remaining());
-            else writeServerPacketSync(cachedPacket.packet(), compressed);
+            else writeServerPacketSync(cachedPacket.packet(getServerState()), compressed);
         } else if (packet instanceof LazyPacket lazyPacket) {
             writeServerPacketSync(lazyPacket.packet(), compressed);
         } else {
@@ -375,8 +378,15 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(hold.get(), serverPacket, compressed);
+            var state = getServerState();
+            var buffer = PacketUtils.createFramedPacket(state, hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
+
+            // If this packet has a state change, apply it.
+            var nextState = serverPacket.nextState();
+            if (nextState != null && state != nextState) {
+                setServerState(nextState);
+            }
         }
     }
 

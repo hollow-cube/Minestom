@@ -6,7 +6,6 @@ import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.exception.ExceptionManager;
-import net.minestom.server.extensions.ExtensionManager;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.block.BlockManager;
@@ -14,7 +13,7 @@ import net.minestom.server.listener.manager.PacketListenerManager;
 import net.minestom.server.monitoring.BenchmarkManager;
 import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.PacketProcessor;
-import net.minestom.server.network.packet.server.play.PluginMessagePacket;
+import net.minestom.server.network.packet.server.common.PluginMessagePacket;
 import net.minestom.server.network.packet.server.play.ServerDifficultyPacket;
 import net.minestom.server.network.socket.Server;
 import net.minestom.server.recipe.RecipeManager;
@@ -45,8 +44,8 @@ public final class MinecraftServer {
 
     public static final ComponentLogger LOGGER = ComponentLogger.logger(MinecraftServer.class);
 
-    public static final String VERSION_NAME = "1.20.1";
-    public static final int PROTOCOL_VERSION = 763;
+    public static final String VERSION_NAME = "1.20.4";
+    public static final int PROTOCOL_VERSION = 765;
 
     // Threads
     public static final String THREAD_NAME_BENCHMARK = "Ms-Benchmark";
@@ -112,7 +111,7 @@ public final class MinecraftServer {
      */
     public static void setDifficulty(@NotNull Difficulty difficulty) {
         MinecraftServer.difficulty = difficulty;
-        PacketUtils.broadcastPacket(new ServerDifficultyPacket(difficulty, true));
+        PacketUtils.broadcastPlayPacket(new ServerDifficultyPacket(difficulty, true));
     }
 
     @ApiStatus.Experimental
@@ -251,7 +250,7 @@ public final class MinecraftServer {
      * @throws IllegalStateException if this is called after the server started
      */
     public static void setCompressionThreshold(int compressionThreshold) {
-        Check.stateCondition(serverProcess.isAlive(), "The compression threshold cannot be changed after the server has been started.");
+        Check.stateCondition(serverProcess != null && serverProcess.isAlive(), "The compression threshold cannot be changed after the server has been started.");
         MinecraftServer.compressionThreshold = compressionThreshold;
     }
 

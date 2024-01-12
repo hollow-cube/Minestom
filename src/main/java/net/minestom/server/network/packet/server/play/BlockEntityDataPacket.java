@@ -1,9 +1,11 @@
 package net.minestom.server.network.packet.server.play;
 
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
@@ -29,7 +31,10 @@ public record BlockEntityDataPacket(@NotNull Point blockPosition, int action,
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.BLOCK_ENTITY_DATA;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.BLOCK_ENTITY_DATA;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 }

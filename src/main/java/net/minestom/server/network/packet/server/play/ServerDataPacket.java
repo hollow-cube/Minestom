@@ -1,9 +1,11 @@
 package net.minestom.server.network.packet.server.play;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +26,10 @@ public record ServerDataPacket(@Nullable Component motd, byte @Nullable [] iconB
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.SERVER_DATA;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.SERVER_DATA;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 }

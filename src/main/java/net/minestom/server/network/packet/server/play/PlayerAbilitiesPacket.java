@@ -1,14 +1,16 @@
 package net.minestom.server.network.packet.server.play;
 
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static net.minestom.server.network.NetworkBuffer.BYTE;
 import static net.minestom.server.network.NetworkBuffer.FLOAT;
 
-public record PlayerAbilitiesPacket(byte flags, float flyingSpeed, float fieldViewModifier) implements ServerPacket {
+public record PlayerAbilitiesPacket(byte flags, float flyingSpeed, float walkingSpeed) implements ServerPacket {
     public static final byte FLAG_INVULNERABLE = 0x01;
     public static final byte FLAG_FLYING = 0x02;
     public static final byte FLAG_ALLOW_FLYING = 0x04;
@@ -22,11 +24,14 @@ public record PlayerAbilitiesPacket(byte flags, float flyingSpeed, float fieldVi
     public void write(@NotNull NetworkBuffer writer) {
         writer.write(BYTE, flags);
         writer.write(FLOAT, flyingSpeed);
-        writer.write(FLOAT, fieldViewModifier);
+        writer.write(FLOAT, walkingSpeed);
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.PLAYER_ABILITIES;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.PLAYER_ABILITIES;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 }

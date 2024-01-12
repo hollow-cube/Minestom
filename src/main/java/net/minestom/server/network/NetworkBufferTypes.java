@@ -2,6 +2,7 @@ package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.minestom.server.adventure.serializer.nbt.NbtComponentSerializer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -240,7 +241,8 @@ final class NetworkBufferTypes {
                         // Kotlin - https://discord.com/channels/706185253441634317/706186227493109860/1163703658341478462
                         buffer.write(BYTE, (byte) NBTType.TAG_End.getOrdinal());
                     } else {
-                        nbtWriter.writeNamed("", value);
+                        buffer.write(BYTE, (byte) value.getID().getOrdinal());
+                        nbtWriter.writeRaw(value);
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -264,7 +266,10 @@ final class NetworkBufferTypes {
                     buffer.nbtReader = nbtReader;
                 }
                 try {
-                    return nbtReader.read();
+                    byte tagId = buffer.read(BYTE);
+                    if (tagId == NBTType.TAG_End.getOrdinal())
+                        return NBTEnd.INSTANCE;
+                    return nbtReader.readRaw(tagId);
                 } catch (IOException | NBTException e) {
                     throw new RuntimeException(e);
                 }
@@ -288,6 +293,16 @@ final class NetworkBufferTypes {
                 return new Vec(x, y, z);
             });
     static final TypeImpl<Component> COMPONENT = new TypeImpl<>(Component.class,
+            (buffer, value) -> {
+                final NBT nbt = NbtComponentSerializer.nbt().serialize(value);
+                buffer.write(NBT, nbt);
+                return -1;
+            },
+            buffer -> {
+                final NBT nbt = buffer.read(NBT);
+                return NbtComponentSerializer.nbt().deserialize(nbt);
+            });
+    static final TypeImpl<Component> JSON_COMPONENT = new TypeImpl<>(Component.class,
             (buffer, value) -> {
                 final String json = GsonComponentSerializer.gson().serialize(value);
                 buffer.write(STRING, json);

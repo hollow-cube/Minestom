@@ -48,8 +48,8 @@ final class ServerProcessImpl implements ServerProcess {
     private final ExceptionManager exception;
     private final ExtensionManager extension;
     private final ConnectionManager connection;
-    private final PacketProcessor packetProcessor;
     private final PacketListenerManager packetListener;
+    private final PacketProcessor packetProcessor;
     private final InstanceManager instance;
     private final BlockManager block;
     private final CommandManager command;
@@ -75,8 +75,8 @@ final class ServerProcessImpl implements ServerProcess {
         this.exception = new ExceptionManager();
         this.extension = new ExtensionManager(this);
         this.connection = new ConnectionManager();
-        this.packetProcessor = new PacketProcessor();
-        this.packetListener = new PacketListenerManager(this);
+        this.packetListener = new PacketListenerManager();
+        this.packetProcessor = new PacketProcessor(packetListener);
         this.instance = new InstanceManager();
         this.block = new BlockManager();
         this.command = new CommandManager();
@@ -273,11 +273,8 @@ final class ServerProcessImpl implements ServerProcess {
 
             scheduler().processTick();
 
-            // Waiting players update (newly connected clients waiting to get into the server)
-            connection().updateWaitingPlayers();
-
-            // Keep Alive Handling
-            connection().handleKeepAlive(msTime);
+            // Connection tick (let waiting clients in, send keep alives, handle configuration players packets)
+            connection().tick(msTime);
 
             // Server tick (chunks/entities)
             serverTick(msTime);

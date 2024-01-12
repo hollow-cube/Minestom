@@ -2,10 +2,12 @@ package net.minestom.server.network.packet.server.play;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.item.ItemStack;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ComponentHoldingServerPacket;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,8 +37,11 @@ public record WindowItemsPacket(byte windowId, int stateId, @NotNull List<ItemSt
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.WINDOW_ITEMS;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.WINDOW_ITEMS;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 
     @Override

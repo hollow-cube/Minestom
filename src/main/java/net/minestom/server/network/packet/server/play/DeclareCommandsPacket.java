@@ -1,10 +1,12 @@
 package net.minestom.server.network.packet.server.play;
 
 import net.minestom.server.command.builder.arguments.Argument;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
 import net.minestom.server.registry.ProtocolObject;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,8 +35,11 @@ public record DeclareCommandsPacket(@NotNull List<Node> nodes,
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.DECLARE_COMMANDS;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.DECLARE_COMMANDS;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 
     public static final class Node implements NetworkBuffer.Writer {
