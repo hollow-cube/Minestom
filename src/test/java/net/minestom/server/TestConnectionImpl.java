@@ -1,6 +1,7 @@
-package net.minestom.server;
+package net.minestom.testing;
 
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
@@ -35,7 +36,10 @@ final class TestConnectionImpl implements TestConnection {
 
     @Override
     public @NotNull CompletableFuture<Player> connect(@NotNull Instance instance, @NotNull Pos pos) {
-        playerConnection.setServerState(ConnectionState.LOGIN);
+        // Use player provider to disable queued chunk sending
+        process.connection().setPlayerProvider(TestPlayerImpl::new);
+
+        playerConnection.setConnectionState(ConnectionState.LOGIN);
         var player = process.connection().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
         player.eventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
@@ -43,10 +47,8 @@ final class TestConnectionImpl implements TestConnection {
         });
 
         // Force the player through the entirety of the login process manually
-        playerConnection.setServerState(ConnectionState.CONFIGURATION);
         process.connection().doConfiguration(player, true);
         process.connection().transitionConfigToPlay(player);
-        playerConnection.setServerState(ConnectionState.PLAY);
         process.connection().updateWaitingPlayers();
         return CompletableFuture.completedFuture(player);
     }
@@ -68,7 +70,7 @@ final class TestConnectionImpl implements TestConnection {
         }
 
         private ServerPacket extractPacket(final SendablePacket packet) {
-            if (!(packet instanceof ServerPacket serverPacket)) return SendablePacket.extractServerPacket(getServerState(), packet);
+            if (!(packet instanceof ServerPacket serverPacket)) return SendablePacket.extractServerPacket(getConnectionState(), packet);
 
             final Player player = getPlayer();
             if (player == null) return serverPacket;
