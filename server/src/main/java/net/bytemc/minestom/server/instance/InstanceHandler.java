@@ -1,7 +1,7 @@
 package net.bytemc.minestom.server.instance;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.player.PlayerLoginEvent;
+import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.generator.Generator;
@@ -22,7 +22,7 @@ public final class InstanceHandler {
         this.instances = new ConcurrentHashMap<>();
         this.spawnInstance = create("Default", Generators.FLAT_GENERATOR);
 
-        MinecraftServer.getGlobalEventHandler().addListener(PlayerLoginEvent.class, event -> {
+        MinecraftServer.getGlobalEventHandler().addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(spawnInstance);
         });
     }

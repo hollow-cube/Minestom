@@ -47,9 +47,6 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
 
 # Miscellaneous
-minestomData = { group = "dev.hollowcube", name = "minestom-ce-data", version.ref = "data" }
-hydrazine = { group = "com.github.MadMartian", name = "hydrazine-path-finding", version.ref = "hydrazine" }
-minestomData = { group = "net.minestom", name = "data", version.ref = "data" }
 hydrazine = { group = "com.github.MadMartian", name = "hydrazine-path-finding", version.ref = "hydrazine" }
 minestomData = { group = "net.minestom", name = "data", version.ref = "data" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
