@@ -160,7 +160,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     protected UUID uuid;
     private boolean isActive; // False if entity has only been instanced without being added somewhere
-    private boolean removed;
+    protected boolean removed;
 
     private final Set<Entity> passengers = new CopyOnWriteArraySet<>();
     protected EntityType entityType; // UNSAFE to change, modify at your own risk
@@ -724,7 +724,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         final List<TimedPotion> effects = this.effects;
         if (effects.isEmpty()) return;
         effects.removeIf(timedPotion -> {
-            final long potionTime = (long) timedPotion.getPotion().duration() * MinecraftServer.TICK_MS;
+            long duration = timedPotion.getPotion().duration();
+            if (duration == Potion.INFINITE_DURATION) return false;
+            final long potionTime = duration * MinecraftServer.TICK_MS;
             // Remove if the potion should be expired
             if (time >= timedPotion.getStartingTime() + potionTime) {
                 // Send the packet that the potion should no longer be applied
@@ -1524,8 +1526,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * WARNING: this does not trigger {@link EntityDeathEvent}.
      */
     public void remove() {
-        if (isRemoved()) return;
+        remove(true);
+    }
 
+    protected void remove(boolean permanent) {
+        if (isRemoved()) return;
         EventDispatcher.call(new EntityDespawnEvent(this));
         try {
             despawn();
@@ -1541,10 +1546,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         MinecraftServer.process().dispatcher().removeElement(this);
         this.removed = true;
-        Entity.ENTITY_BY_ID.remove(id);
-        Entity.ENTITY_BY_UUID.remove(uuid);
+        if (permanent) {
+            Entity.ENTITY_BY_ID.remove(id);
+            Entity.ENTITY_BY_UUID.remove(uuid);
+        } else {
+            // Reset some other state
+            this.position = Pos.ZERO;
+            this.previousPosition = Pos.ZERO;
+            this.lastSyncedPosition = Pos.ZERO;
+        }
         Instance currentInstance = this.instance;
-        if (currentInstance != null) removeFromInstance(currentInstance);
+        if (currentInstance != null) {
+            removeFromInstance(currentInstance);
+            this.instance = null;
+        }
+
     }
 
     /**
@@ -1829,6 +1845,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         ROARING,
         SNIFFING,
         EMERGING,
-        DIGGING
+        DIGGING,
+        SLIDING,
+        SHOOTING,
+        INHALING;
     }
 }

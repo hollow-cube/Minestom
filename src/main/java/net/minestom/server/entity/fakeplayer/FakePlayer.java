@@ -1,17 +1,18 @@
 package net.minestom.server.entity.fakeplayer;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
-import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.listener.manager.PacketListenerManager;
 import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionState;
+import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
 import net.minestom.server.network.player.FakePlayerConnection;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.utils.time.TimeUnit;
@@ -33,10 +34,10 @@ import java.util.function.Consumer;
 public class FakePlayer extends Player implements NavigableEntity {
 
     private static final ConnectionManager CONNECTION_MANAGER = MinecraftServer.getConnectionManager();
+    private static final PacketListenerManager PACKET_LISTENER_MANAGER = MinecraftServer.getPacketListenerManager();
 
     private final FakePlayerOption option;
     private final FakePlayerController fakePlayerController;
-    private final FakePlayerInteractController fakePlayerInteract;
 
     private final Navigator navigator = new Navigator(this);
 
@@ -57,10 +58,10 @@ public class FakePlayer extends Player implements NavigableEntity {
         this.option = option;
 
         this.fakePlayerController = new FakePlayerController(this);
-        this.fakePlayerInteract = new FakePlayerInteractController(this);
 
         if (spawnCallback != null) {
             spawnListener = EventListener.builder(PlayerSpawnEvent.class)
+                    .expireWhen(ignored -> this.isRemoved())
                     .handler(event -> {
                         if (event.getPlayer().equals(this))
                             if (event.isFirstSpawn()) {
@@ -70,7 +71,12 @@ public class FakePlayer extends Player implements NavigableEntity {
                     }).build();
             MinecraftServer.getGlobalEventHandler().addListener(spawnListener);
         }
-        CONNECTION_MANAGER.startPlayState(this, option.isRegistered());
+
+        playerConnection.setConnectionState(ConnectionState.LOGIN);
+        CONNECTION_MANAGER.transitionLoginToConfig(this).thenRun(() -> {
+            // Need to immediately reply with login acknowledged for the player to enter config.
+            PACKET_LISTENER_MANAGER.processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
+        });
     }
 
     /**
@@ -83,42 +89,6 @@ public class FakePlayer extends Player implements NavigableEntity {
     public static void initPlayer(@NotNull UUID uuid, @NotNull String username,
                                   @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
         new FakePlayer(uuid, username, option, spawnCallback);
-    }
-
-    public static void spawnPlayer(@NotNull PlayerSkin skin, @NotNull Instance instance, @NotNull Pos pos, @NotNull Consumer<FakePlayer> spawnCallback) {
-        var id = UUID.randomUUID();
-        var options = new FakePlayerOption().setInTabList(false).setRegistered(false);
-
-        initPlayer(id, id.toString().substring(0, 16), options, fakePlayer -> {
-            if (instance == fakePlayer.instance) {
-                fakePlayer.refreshPosition(pos);
-            } else {
-                fakePlayer.setInstance(instance, pos).whenComplete((i, i2) -> {
-                    fakePlayer.teleport(pos);
-                });
-            }
-
-            // update design
-            var meta = fakePlayer.getEntityMeta();
-            meta.allowAllSkinLayers();
-
-            fakePlayer.setCustomName(Component.empty());
-            fakePlayer.setCustomNameVisible(false);
-            fakePlayer.setNoGravity(true);
-            fakePlayer.setInvulnerable(true);
-            fakePlayer.setSkin(skin);
-
-            spawnCallback.accept(fakePlayer);
-        });
-    }
-
-    public void onInteract(Consumer<Player> onInteract) {
-        fakePlayerInteract.subscribe(onInteract);
-    }
-
-    @Deprecated
-    public FakePlayerInteractController getInteractController() {
-        return fakePlayerInteract;
     }
 
     /**

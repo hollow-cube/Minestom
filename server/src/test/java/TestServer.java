@@ -2,8 +2,8 @@ import net.bytemc.minestom.server.ByteServer;
 import net.bytemc.minestom.server.clickable.ClickableEntity;
 import net.bytemc.minestom.server.display.head.HeadDisplay;
 import net.bytemc.minestom.server.display.head.misc.HeadSize;
-import net.bytemc.minestom.server.hologram.Hologram;
 import net.bytemc.minestom.server.inventory.anvil.AnvilInventory;
+import net.bytemc.minestom.server.utils.FlyingItem;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityType;
@@ -13,10 +13,9 @@ import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
 import net.minestom.server.utils.Direction;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 public final class TestServer {
 
@@ -52,17 +51,13 @@ public final class TestServer {
         });
         entity.spawn(new Pos(1, 10, 1), instance);
 
-        FakePlayer.spawnPlayer(PlayerSkin.fromUsername("HttpMarco"), instance, new Pos(2, 2, 2), fakePlayer -> {
-            fakePlayer.onInteract(player -> {
-                player.sendMessage("Click! FakePlayer");
-            });
-        });
 
         var schemPos = new Pos(0, 0, 0);
         instance.setBlock(schemPos, Block.DIAMOND_BLOCK);
         MinecraftServer.getGlobalEventHandler().addListener(PlayerBlockBreakEvent.class, event -> {
-            var holo = new Hologram(event.getBlockPosition().add(0, 3, 0), instance, "Test", "Test2");
-            holo.spawn();
+            FlyingItem flyingItem = new FlyingItem(ItemStack.of(Material.ITEM_FRAME), event.getPlayer().getInstance(), event.getPlayer().getPosition().add(0, 2, 0));
+
+            flyingItem.spawn();
 
             /*schematic.build(Rotation.NONE, block -> {
                 return block;

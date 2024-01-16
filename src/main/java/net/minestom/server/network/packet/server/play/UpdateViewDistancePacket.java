@@ -1,8 +1,10 @@
 package net.minestom.server.network.packet.server.play;
 
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static net.minestom.server.network.NetworkBuffer.VAR_INT;
@@ -18,7 +20,10 @@ public record UpdateViewDistancePacket(int viewDistance) implements ServerPacket
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.UPDATE_VIEW_DISTANCE;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.UPDATE_VIEW_DISTANCE;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 }

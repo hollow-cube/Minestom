@@ -1,19 +1,17 @@
 package net.minestom.server.command;
 
-import net.minestom.server.Env;
-import net.minestom.server.EnvTest;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.client.play.ClientTabCompletePacket;
 import net.minestom.server.network.packet.server.play.TabCompletePacket;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static net.minestom.server.command.builder.arguments.ArgumentType.Literal;
-import static net.minestom.server.command.builder.arguments.ArgumentType.Word;
-import static net.minestom.server.command.builder.arguments.ArgumentType.Integer;
+import static net.minestom.server.command.builder.arguments.ArgumentType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

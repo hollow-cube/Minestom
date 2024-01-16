@@ -1,7 +1,10 @@
 package net.minestom.server.network.packet.server;
 
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.player.PlayerConnection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a packet which can be sent to a player using {@link PlayerConnection#sendPacket(SendablePacket)}.
@@ -17,5 +20,6 @@ public non-sealed interface ServerPacket extends NetworkBuffer.Writer, SendableP
      *
      * @return the id of this packet
      */
-    int getId();
+    int getId(@NotNull ConnectionState state);
+
 }

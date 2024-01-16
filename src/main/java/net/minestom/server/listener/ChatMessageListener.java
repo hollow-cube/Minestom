@@ -10,6 +10,7 @@ import net.minestom.server.event.player.PlayerChatEvent;
 import net.minestom.server.message.ChatPosition;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.play.ClientChatMessagePacket;
 import net.minestom.server.network.packet.client.play.ClientCommandChatPacket;
 import org.jetbrains.annotations.NotNull;
