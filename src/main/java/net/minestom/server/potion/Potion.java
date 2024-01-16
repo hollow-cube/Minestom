@@ -49,7 +49,7 @@ public record Potion(@NotNull PotionEffect effect, byte amplifier,
     public static final byte ICON_FLAG = 0x04;
 
     /**
-     * a duration constant which sets aqgit s Potion duration to infinite.
+     * A duration constant which sets a Potion duration to infinite.
      */
     public static final int INFINITE_DURATION = -1;
 
