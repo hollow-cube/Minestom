@@ -1,7 +1,5 @@
 package net.minestom.server.entity;
 
-import it.unimi.dsi.fastutil.longs.LongArrayPriorityQueue;
-import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.identity.Identified;
@@ -83,6 +81,7 @@ import net.minestom.server.utils.PropertyUtils;
 import net.minestom.server.utils.async.AsyncUtils;
 import net.minestom.server.utils.chunk.ChunkUpdateLimitChecker;
 import net.minestom.server.utils.chunk.ChunkUtils;
+import net.minestom.server.utils.fastutils.LongArrayPriorityQueue;
 import net.minestom.server.utils.function.IntegerBiConsumer;
 import net.minestom.server.utils.identity.NamedAndIdentified;
 import net.minestom.server.utils.instance.InstanceUtils;
@@ -150,7 +149,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     private Vec chunksLoadedByClient = Vec.ZERO;
     private final ReentrantLock chunkQueueLock = new ReentrantLock();
-    private final LongPriorityQueue chunkQueue = new LongArrayPriorityQueue(this::compareChunkDistance);
+    private final LongArrayPriorityQueue chunkQueue = new LongArrayPriorityQueue(this::compareChunkDistance);
     private float targetChunksPerTick = 9f; // Always send 9 chunks immediately
     private float pendingChunkCount = 0f; // Number of chunks to send on the current tick (ie 0.5 means we cannot send a chunk yet, 1.5 would send a single chunk with a 0.5 remainder)
     private int maxChunkBatchLead = 1; // Maximum number of batches to send before waiting for a reply

@@ -12,7 +12,6 @@ import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.network.ConnectionManager;
-import net.minestom.server.network.ConnectionState;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.math.IntRange;
 import net.minestom.server.utils.validate.Check;
