@@ -1,9 +1,9 @@
 package net.minestom.server.network;
 
-import it.unimi.dsi.fastutil.Pair;
 import net.minestom.server.network.packet.client.common.ClientPluginMessagePacket;
 import net.minestom.server.utils.ObjectPool;
 import net.minestom.server.utils.PacketUtils;
+import net.minestom.server.utils.Pair;
 import net.minestom.server.utils.Utils;
 import net.minestom.server.utils.binary.BinaryBuffer;
 import org.junit.jupiter.params.ParameterizedTest;

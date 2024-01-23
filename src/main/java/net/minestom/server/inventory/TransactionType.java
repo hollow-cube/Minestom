@@ -1,10 +1,10 @@
 package net.minestom.server.inventory;
 
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.StackingRule;
+import net.minestom.server.utils.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
