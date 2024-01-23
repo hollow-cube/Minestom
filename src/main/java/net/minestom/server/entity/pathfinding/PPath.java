@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class PPath {
-    private final Consumer<Void> onComplete;
+    private final Runnable onComplete;
     private final List<PNode> nodes = new ArrayList<>();
 
     private final double pathVariance;
@@ -53,7 +53,7 @@ public class PPath {
         return nodes;
     }
 
-    public PPath(double maxDistance, double pathVariance, PathfinderCapabilities capabilities, Consumer<Void> onComplete) {
+    public PPath(double maxDistance, double pathVariance, PathfinderCapabilities capabilities, Runnable onComplete) {
         this.onComplete = onComplete;
         this.maxDistance = maxDistance;
         this.pathVariance = pathVariance;
@@ -61,7 +61,7 @@ public class PPath {
     }
 
     void runComplete() {
-        if (onComplete != null) onComplete.accept(null);
+        if (onComplete != null) onComplete.run();
     }
 
     @Override

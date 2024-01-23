@@ -355,8 +355,9 @@ public class PNode {
 
             while (iterator.hasNext()) {
                 var block = iterator.next();
+
                 if (instance.getBlock(block, Block.Getter.Condition.TYPE).isSolid()) {
-                    return Pos.fromPoint(point.withY(Math.floor(point.y() - axis + 1)));
+                    return Pos.fromPoint(point.withY(block.blockY() + 1));
                 }
             }
         }

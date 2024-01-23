@@ -166,7 +166,24 @@ public class PathfinderIntegrationTest {
         nav.setPathTo(new Pos(0, 40, 10));
         while (nav.getState() == PPath.PathState.CALCULATING) {}
 
+        System.out.println(nav.getNodes());
+
         assert(nav.getNodes() != null);
         validateNodes(nav.getNodes(), i);
+    }
+
+    @Test
+    public void testGravitySnap(Env env) {
+        var i = env.createFlatInstance();
+        i.getWorldBorder().setCenter(0, 0);
+        i.getWorldBorder().setDiameter(10000);
+
+        ChunkUtils.forChunksInRange(0, 0, 10, (x, z) -> {
+            i.loadChunk(x, z).join();
+        });
+
+        var zombie = new LivingEntity(EntityType.ZOMBIE);
+        var snapped = PNode.gravitySnap(i, new Pos(-140.74433362614695, 40.58268292446131, 18.87966960447388), zombie.getBoundingBox(), 100);
+        assertEquals(new Pos(-140.74433362614695, 40.0, 18.87966960447388), snapped);
     }
 }

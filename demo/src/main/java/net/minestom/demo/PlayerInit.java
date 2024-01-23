@@ -9,10 +9,7 @@ import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.GameMode;
-import net.minestom.server.entity.ItemEntity;
-import net.minestom.server.entity.Player;
+import net.minestom.server.entity.*;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.event.Event;
@@ -76,18 +73,17 @@ public class PlayerInit {
             })
             .addListener(ItemDropEvent.class, event -> {
                 final Player player = event.getPlayer();
-                ItemStack droppedItem = event.getItemStack();
 
-                Pos playerPos = player.getPosition();
-                ItemEntity itemEntity = new ItemEntity(droppedItem);
-                itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
-                itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
-                Vec velocity = playerPos.direction().mul(6);
-                itemEntity.setVelocity(velocity);
-
-                FakePlayer.initPlayer(UUID.randomUUID(), "fake123", fp -> {
-                    System.out.println("fp = " + fp);
-                });
+                for (int x = 0; x < 1; ++x) {
+                    var zombie = new EntityCreature(EntityType.ZOMBIE) {
+                        @Override
+                        public void update(long time) {
+                            super.update(time);
+                            this.getNavigator().setPathTo(player.getPosition());
+                        }
+                    };
+                    zombie.setInstance(player.getInstance(), player.getPosition());
+                }
             })
             .addListener(PlayerDisconnectEvent.class, event -> System.out.println("DISCONNECTION " + event.getPlayer().getUsername()))
             .addListener(AsyncPlayerConfigurationEvent.class, event -> {

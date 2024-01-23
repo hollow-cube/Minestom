@@ -22,8 +22,6 @@ import net.minestom.server.network.packet.server.play.*;
 import net.minestom.server.network.packet.server.play.DeclareRecipesPacket.Ingredient;
 import net.minestom.server.network.packet.server.status.PongPacket;
 import net.minestom.server.recipe.RecipeCategory;
-import net.minestom.server.utils.crypto.KeyUtils;
-import org.apache.commons.net.util.Base64;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

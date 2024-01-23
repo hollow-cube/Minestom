@@ -25,7 +25,7 @@ public class PathGenerator {
     }
 
     static Comparator<PNode> pNodeComparator = (s1, s2) -> (int) (((s1.g + s1.h) - (s2.g + s2.h)) * 1000);
-    public static PPath generate(Instance instance, Pos orgStart, Point orgTarget, double closeDistance, double maxDistance, double pathVariance, BoundingBox boundingBox, PPath.PathfinderCapabilities capabilities, Consumer<Void> onComplete) {
+    public static PPath generate(Instance instance, Pos orgStart, Point orgTarget, double closeDistance, double maxDistance, double pathVariance, BoundingBox boundingBox, PPath.PathfinderCapabilities capabilities, Runnable onComplete) {
         Pos start = (capabilities.type() == PPath.PathfinderType.AQUATIC
                 || capabilities.type() == PPath.PathfinderType.FLYING
                 || (capabilities.type() == PPath.PathfinderType.AMPHIBIOUS && instance.getBlock(orgStart).compare(Block.WATER)))
@@ -85,7 +85,8 @@ public class PathGenerator {
                 closestFoundNodes = List.of(current);
             }
 
-            current.getNearby(instance, closed, target, boundingBox, path.capabilities()).forEach(p -> {
+            var found = current.getNearby(instance, closed, target, boundingBox, path.capabilities());
+            found.forEach(p -> {
                 if (p.point.distance(start) <= maxDistance) {
                     open.enqueue(p);
                     closed.add(p);
@@ -96,7 +97,7 @@ public class PathGenerator {
         PNode current = open.isEmpty() ? null : open.dequeue();
 
         if (current == null || open.isEmpty() || !withinDistance(current.point, target, closeDistance)) {
-            if (closestFoundNodes.size() == 0) {
+            if (closestFoundNodes.isEmpty()) {
                 path.setState(PPath.PathState.INVALID);
                 return;
             }
@@ -116,9 +117,14 @@ public class PathGenerator {
 
         Collections.reverse(path.getNodes());
 
+        if (path.getCurrentType() == PNode.NodeType.REPATH) {
+            path.setState(PPath.PathState.INVALID);
+            path.getNodes().clear();
+            return;
+        }
+
         PNode pEnd = new PNode(target, 0, 0, PNode.NodeType.WALK, null);
         path.getNodes().add(pEnd);
-
         path.setState(PPath.PathState.COMPUTED);
     }
 

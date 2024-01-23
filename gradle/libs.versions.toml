@@ -49,7 +49,7 @@ kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", vers
 kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
 
 # Miscellaneous
-minestomData = { group = "dev.hollowcube", name = "minestom-ce-data", version.ref = "data" }
+minestomData = { group = "net.minestom", name = "data", version.ref = "data" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
 hephaistos-common = { group = "io.github.jglrxavpok.hephaistos", name = "common", version.ref = "hephaistos" }
 hephaistos-gson = { group = "io.github.jglrxavpok.hephaistos", name = "gson", version.ref = "hephaistos" }

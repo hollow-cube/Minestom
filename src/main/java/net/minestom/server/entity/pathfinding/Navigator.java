@@ -19,6 +19,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.SQLOutput;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -40,10 +41,6 @@ public final class Navigator {
 
     public Navigator(@NotNull Entity entity) {
         this.entity = entity;
-
-        if (entity instanceof LivingEntity living) {
-            movementSpeed = living.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
-        }
     }
 
     public PPath.PathState getState() {
@@ -112,8 +109,8 @@ public final class Navigator {
         return setPathTo(point, centerToCorner, null);
     }
 
-    public synchronized boolean setPathTo(@Nullable Point point, double minimumDistance, Consumer<Void> onComplete) {
-        return setPathTo(point, minimumDistance, 100, 20, PPath.PathfinderType.LAND, onComplete);
+    public synchronized boolean setPathTo(@Nullable Point point, double minimumDistance, Runnable onComplete) {
+        return setPathTo(point, minimumDistance, 50, 20, PPath.PathfinderType.LAND, onComplete);
     }
 
     /**
@@ -126,7 +123,7 @@ public final class Navigator {
      * @param onComplete called when the path has been completed
      * @return true if a path has been found
      */
-    public synchronized boolean setPathTo(@Nullable Point point, double minimumDistance, double maxDistance, double pathVariance, PPath.PathfinderType type, Consumer<Void> onComplete) {
+    public synchronized boolean setPathTo(@Nullable Point point, double minimumDistance, double maxDistance, double pathVariance, PPath.PathfinderType type, Runnable onComplete) {
         double previousDistance = point == null || goalPosition == null ? 0 : entity.getPosition().distance(goalPosition);
         double currentDistance = point == null ? 0 : point.distance(entity.getPosition());
 
@@ -161,12 +158,12 @@ public final class Navigator {
 
         this.minimumDistance = minimumDistance;
         if (this.entity.getPosition().distance(point) < minimumDistance) {
-            if (onComplete != null) onComplete.accept(null);
+            if (onComplete != null) onComplete.run();
             return false;
         }
 
         if (goalPosition != null && point.sameBlock(goalPosition)) {
-            if (onComplete != null) onComplete.accept(null);
+            if (onComplete != null) onComplete.run();
             return false;
         }
 
@@ -190,7 +187,7 @@ public final class Navigator {
         if (goalPosition == null) return; // No path
         if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) return; // No pathfinding tick for dead entities
         if (computingPath != null && computingPath.getState() == PPath.PathState.COMPUTED) {
-            if (path != null) {
+            if (path != null && path.getCurrentType() != PNode.NodeType.REPATH) {
                 var currentNode = path.getCurrent();
                 if (currentNode != null) {
                     for (int i = 0; i < computingPath.getNodes().size(); ++i) {
@@ -209,6 +206,7 @@ public final class Navigator {
 
         if (path == null) return;
 
+        // If the path is computed start following it
         if (path.getState() == PPath.PathState.COMPUTED) {
             path.setState(PPath.PathState.FOLLOWING);
             // Remove nodes that are too close to the start. Prevents doubling back to hit points that have already been hit
@@ -220,8 +218,10 @@ public final class Navigator {
             }
         }
 
+        // If the state is not following, wait until it is
         if (path.getState() != PPath.PathState.FOLLOWING) return;
 
+        // If we're near the entity, we're done
         if (this.entity.getPosition().distance(goalPosition) < minimumDistance) {
             path.runComplete();
             path = null;
@@ -232,8 +232,10 @@ public final class Navigator {
         Point currentTarget = path.getCurrent();
         Point nextTarget = path.getNext();
 
+        // If we're at the end of the path, navigate directly to the entity
         if (nextTarget == null) nextTarget = goalPosition;
 
+        // Repath
         if (currentTarget == null || path.getCurrentType() == PNode.NodeType.REPATH || path.getCurrentType() == null) {
             computingPath = PathGenerator.generate(entity.getInstance(),
                     entity.getPosition(),
@@ -244,7 +246,14 @@ public final class Navigator {
             return;
         }
 
-        moveTowards(currentTarget, movementSpeed, path.capabilities(), nextTarget);
+        if (entity instanceof LivingEntity living) {
+            movementSpeed = living.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
+        }
+
+        boolean nextIsRepath = nextTarget.sameBlock(Pos.ZERO);
+
+        // drawPath(path);
+        moveTowards(currentTarget, movementSpeed, path.capabilities(), nextIsRepath ? currentTarget : nextTarget);
 
         if ((path.getCurrentType() == PNode.NodeType.JUMP || currentTarget.y() > entity.getPosition().y() + 0.1)
                 && entity.isOnGround()
