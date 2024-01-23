@@ -11,15 +11,19 @@ import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.network.packet.client.ClientPacket;
-import net.minestom.server.network.packet.client.handshake.HandshakePacket;
+import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
 import net.minestom.server.network.packet.server.ServerPacket;
-import net.minestom.server.network.packet.server.handshake.ResponsePacket;
+import net.minestom.server.network.packet.server.common.DisconnectPacket;
+import net.minestom.server.network.packet.server.status.ResponsePacket;
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket;
 import net.minestom.server.network.packet.server.login.LoginSuccessPacket;
 import net.minestom.server.network.packet.server.login.SetCompressionPacket;
 import net.minestom.server.network.packet.server.play.*;
 import net.minestom.server.network.packet.server.play.DeclareRecipesPacket.Ingredient;
 import net.minestom.server.network.packet.server.status.PongPacket;
+import net.minestom.server.recipe.RecipeCategory;
+import net.minestom.server.utils.crypto.KeyUtils;
+import org.apache.commons.net.util.Base64;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -82,6 +86,7 @@ public class PacketWriteReadTest {
                 List.of(new DeclareRecipesPacket.DeclaredShapelessCraftingRecipe(
                                 "minecraft:sticks",
                                 "sticks",
+                                RecipeCategory.Crafting.MISC,
                                 List.of(new Ingredient(List.of(ItemStack.of(Material.OAK_PLANKS)))),
                                 ItemStack.of(Material.STICK)
                         ),
@@ -90,10 +95,35 @@ public class PacketWriteReadTest {
                                 1,
                                 2,
                                 "",
+                                RecipeCategory.Crafting.MISC,
                                 List.of(new Ingredient(List.of(ItemStack.of(Material.COAL))),
                                         new Ingredient(List.of(ItemStack.of(Material.STICK)))),
-                                ItemStack.of(Material.TORCH)
-                        ))));
+                                ItemStack.of(Material.TORCH),
+                                true
+                        ),
+                        new DeclareRecipesPacket.DeclaredBlastingRecipe(
+                                "minecraft:coal",
+                                "forging",
+                                RecipeCategory.Cooking.MISC,
+                                new Ingredient(List.of(ItemStack.of(Material.COAL))),
+                                ItemStack.of(Material.IRON_INGOT),
+                                5,
+                                5
+                        ),
+                        new DeclareRecipesPacket.DeclaredSmithingTransformRecipe(
+                                "minecraft:iron_to_diamond",
+                                new Ingredient(List.of(ItemStack.of(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE))),
+                                new Ingredient(List.of(ItemStack.of(Material.DIAMOND))),
+                                new Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                                ItemStack.of(Material.DIAMOND)
+                        ),
+                        new DeclareRecipesPacket.DeclaredSmithingTrimRecipe(
+                                "minecraft:iron_to_coast",
+                                new Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                                new Ingredient(List.of(ItemStack.of(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE))),
+                                new Ingredient(List.of(ItemStack.of(Material.COAL)))
+                        )
+                )));
 
         SERVER_PACKETS.add(new DestroyEntitiesPacket(List.of(5, 5, 5)));
         SERVER_PACKETS.add(new DisconnectPacket(COMPONENT));
@@ -131,7 +161,7 @@ public class PacketWriteReadTest {
 
     @BeforeAll
     public static void setupClient() {
-        CLIENT_PACKETS.add(new HandshakePacket(755, "localhost", 25565, 2));
+        CLIENT_PACKETS.add(new ClientHandshakePacket(755, "localhost", 25565, 2));
     }
 
     @Test

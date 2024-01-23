@@ -8,7 +8,10 @@ import net.minestom.server.entity.pathfinding.Navigator;
 import net.minestom.server.event.EventListener;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.listener.manager.PacketListenerManager;
 import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionState;
+import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
 import net.minestom.server.network.player.FakePlayerConnection;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.utils.time.TimeUnit;
@@ -30,6 +33,7 @@ import java.util.function.Consumer;
 public class FakePlayer extends Player implements NavigableEntity {
 
     private static final ConnectionManager CONNECTION_MANAGER = MinecraftServer.getConnectionManager();
+    private static final PacketListenerManager PACKET_LISTENER_MANAGER = MinecraftServer.getPacketListenerManager();
 
     private final FakePlayerOption option;
     private final FakePlayerController fakePlayerController;
@@ -56,6 +60,7 @@ public class FakePlayer extends Player implements NavigableEntity {
 
         if (spawnCallback != null) {
             spawnListener = EventListener.builder(PlayerSpawnEvent.class)
+                    .expireWhen(ignored -> this.isRemoved())
                     .handler(event -> {
                         if (event.getPlayer().equals(this))
                             if (event.isFirstSpawn()) {
@@ -65,7 +70,12 @@ public class FakePlayer extends Player implements NavigableEntity {
                     }).build();
             MinecraftServer.getGlobalEventHandler().addListener(spawnListener);
         }
-        CONNECTION_MANAGER.startPlayState(this, option.isRegistered());
+
+        playerConnection.setConnectionState(ConnectionState.LOGIN);
+        CONNECTION_MANAGER.transitionLoginToConfig(this).thenRun(() -> {
+            // Need to immediately reply with login acknowledged for the player to enter config.
+            PACKET_LISTENER_MANAGER.processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
+        });
     }
 
     /**

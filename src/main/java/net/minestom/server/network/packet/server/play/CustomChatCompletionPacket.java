@@ -1,8 +1,10 @@
 package net.minestom.server.network.packet.server.play;
 
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,8 +28,11 @@ public record CustomChatCompletionPacket(@NotNull Action action,
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.CUSTOM_CHAT_COMPLETIONS;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.CUSTOM_CHAT_COMPLETIONS;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 
     public enum Action {

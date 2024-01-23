@@ -4,10 +4,12 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.advancements.FrameType;
 import net.minestom.server.adventure.ComponentHolder;
 import net.minestom.server.item.ItemStack;
+import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.ComponentHoldingServerPacket;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.ServerPacketIdentifier;
+import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +45,11 @@ public record AdvancementsPacket(boolean reset, @NotNull List<AdvancementMapping
     }
 
     @Override
-    public int getId() {
-        return ServerPacketIdentifier.ADVANCEMENTS;
+    public int getId(@NotNull ConnectionState state) {
+        return switch (state) {
+            case PLAY -> ServerPacketIdentifier.ADVANCEMENTS;
+            default -> PacketUtils.invalidPacketState(getClass(), state, ConnectionState.PLAY);
+        };
     }
 
     // TODO is the display-item needed to be updated?
@@ -99,27 +104,21 @@ public record AdvancementsPacket(boolean reset, @NotNull List<AdvancementMapping
     }
 
     public record Advancement(@Nullable String parentIdentifier, @Nullable DisplayData displayData,
-                              @NotNull List<String> criteria,
                               @NotNull List<Requirement> requirements,
                               boolean sendTelemetryData) implements NetworkBuffer.Writer, ComponentHolder<Advancement> {
         public Advancement {
-            criteria = List.copyOf(criteria);
             requirements = List.copyOf(requirements);
         }
 
         public Advancement(@NotNull NetworkBuffer reader) {
-            this(reader.read(BOOLEAN) ? reader.read(STRING) : null,
-                    reader.read(BOOLEAN) ? new DisplayData(reader) : null,
-                    reader.readCollection(STRING),
-                    reader.readCollection(Requirement::new),
-                    reader.read(BOOLEAN));
+            this(reader.readOptional(STRING), reader.readOptional(DisplayData::new),
+                    reader.readCollection(Requirement::new), reader.read(BOOLEAN));
         }
 
         @Override
         public void write(@NotNull NetworkBuffer writer) {
             writer.writeOptional(STRING, parentIdentifier);
             writer.writeOptional(displayData);
-            writer.writeCollection(STRING, criteria);
             writer.writeCollection(requirements);
             writer.write(BOOLEAN, sendTelemetryData);
         }
@@ -131,7 +130,7 @@ public record AdvancementsPacket(boolean reset, @NotNull List<AdvancementMapping
 
         @Override
         public @NotNull Advancement copyWithOperator(@NotNull UnaryOperator<Component> operator) {
-            return this.displayData == null ? this : new Advancement(this.parentIdentifier, this.displayData.copyWithOperator(operator), this.criteria, this.requirements, this.sendTelemetryData);
+            return this.displayData == null ? this : new Advancement(this.parentIdentifier, this.displayData.copyWithOperator(operator), this.requirements, this.sendTelemetryData);
         }
     }
 
@@ -185,7 +184,7 @@ public record AdvancementsPacket(boolean reset, @NotNull List<AdvancementMapping
             writer.write(COMPONENT, title);
             writer.write(COMPONENT, description);
             writer.write(ITEM, icon);
-            writer.write(VAR_INT, frameType.ordinal());
+            writer.writeEnum(FrameType.class, frameType);
             writer.write(INT, flags);
             if ((flags & 0x1) != 0) {
                 assert backgroundTexture != null;

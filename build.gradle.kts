@@ -1,3 +1,5 @@
+import java.time.Duration
+
 plugins {
     `java-library`
     alias(libs.plugins.blossom)
@@ -7,14 +9,18 @@ plugins {
     alias(libs.plugins.nexuspublish)
 }
 
-version = System.getenv("SHORT_COMMIT_HASH") ?: "dev"
+// Read env vars (used for publishing generally)
+version = System.getenv("MINESTOM_VERSION") ?: "dev"
+val channel = System.getenv("MINESTOM_CHANNEL") ?: "local" // local, snapshot, release
+
+val shortDescription = "1.20.4 Lightweight Minecraft server"
 
 allprojects {
     apply(plugin = "java")
 
     group = "net.minestom"
     version = rootProject.version
-    description = "Lightweight and multi-threaded Minecraft server implementation"
+    description = shortDescription
 
     repositories {
         mavenCentral()
@@ -44,6 +50,10 @@ allprojects {
         // Viewable packets make tracking harder. Could be re-enabled later.
         jvmArgs("-Dminestom.viewable-packet=false")
         jvmArgs("-Dminestom.inside-test=true")
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
     }
 }
 
@@ -107,6 +117,11 @@ tasks {
         useStaging.set(true)
         this.packageGroup.set("dev.hollowcube")
 
+        transitionCheckOptions {
+            maxRetries.set(360) // 1 hour
+            delayBetween.set(Duration.ofSeconds(10))
+        }
+
         repositories.sonatype {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
@@ -120,14 +135,14 @@ tasks {
 
     publishing.publications.create<MavenPublication>("maven") {
         groupId = "dev.hollowcube"
-        artifactId = "minestom-ce"
+        artifactId = if (channel == "snapshot") "minestom-ce-snapshots" else "minestom-ce"
         version = project.version.toString()
 
         from(project.components["java"])
 
         pom {
-            name.set("minestom-ce")
-            description.set("Lightweight and multi-threaded 1.19.3 Minecraft server")
+            name.set(this@create.artifactId)
+            description.set(shortDescription)
             url.set("https://github.com/hollow-cube/minestom-ce")
 
             licenses {

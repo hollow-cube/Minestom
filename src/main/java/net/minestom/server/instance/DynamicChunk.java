@@ -10,6 +10,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.CachedPacket;
+import net.minestom.server.network.packet.server.SendablePacket;
 import net.minestom.server.network.packet.server.play.ChunkDataPacket;
 import net.minestom.server.network.packet.server.play.UpdateLightPacket;
 import net.minestom.server.network.packet.server.play.data.ChunkData;
@@ -182,15 +183,8 @@ public class DynamicChunk extends Chunk {
     }
 
     @Override
-    public void sendChunk(@NotNull Player player) {
-        if (!isLoaded()) return;
-        player.sendPacket(chunkCache);
-    }
-
-    @Override
-    public void sendChunk() {
-        if (!isLoaded()) return;
-        sendPacketToViewers(chunkCache);
+    public @NotNull SendablePacket getFullDataPacket() {
+        return chunkCache;
     }
 
     @Override
