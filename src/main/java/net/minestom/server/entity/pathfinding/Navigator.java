@@ -237,6 +237,8 @@ public final class Navigator {
 
         // Repath
         if (currentTarget == null || path.getCurrentType() == PNode.NodeType.REPATH || path.getCurrentType() == null) {
+            if (computingPath != null && computingPath.getState() == PPath.PathState.CALCULATING) return;
+
             computingPath = PathGenerator.generate(entity.getInstance(),
                     entity.getPosition(),
                     Pos.fromPoint(goalPosition),
