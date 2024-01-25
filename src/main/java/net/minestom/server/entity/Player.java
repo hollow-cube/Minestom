@@ -1175,6 +1175,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         sendPacket(destroyEntitiesPacket);
         sendPacket(addPlayerPacket);
         sendPacket(respawnPacket);
+        // Tell the client to leave the loading terrain screen
+        sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
         refreshClientStateAfterRespawn();
 
         {
