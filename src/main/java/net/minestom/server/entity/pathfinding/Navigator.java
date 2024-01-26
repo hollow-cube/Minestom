@@ -235,7 +235,7 @@ public final class Navigator {
 
         boolean nextIsRepath = nextTarget.sameBlock(Pos.ZERO);
 
-        drawPath(path);
+        // drawPath(path);
         moveTowards(currentTarget, movementSpeed, path.capabilities(), nextIsRepath ? currentTarget : nextTarget);
 
         if ((path.getCurrentType() == PNode.NodeType.JUMP)
