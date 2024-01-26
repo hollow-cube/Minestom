@@ -245,7 +245,7 @@ public final class Navigator {
             jump(4f);
         }
 
-        if (entity.getPosition().distance(currentTarget) < 0.1 && entity.isOnGround()) {
+        if (entity.getPosition().sameBlock(currentTarget) && entity.isOnGround()) {
             path.next();
         }
     }
