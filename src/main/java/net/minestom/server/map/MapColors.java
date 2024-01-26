@@ -120,12 +120,12 @@ public enum MapColors {
         this.blue = blue;
     }
 
-    // From the wiki: https://minecraft.gamepedia.com/Map_item_format
+    // From the wiki: https://minecraft.wiki/w/Map_item_format
     // Map Color ID 	Multiply R,G,B By 	= Multiplier
-    //Base Color ID*4 + 0 	180 	0.71
-    //Base Color ID*4 + 1 	220 	0.86
-    //Base Color ID*4 + 2 	255 (same color) 	1
-    //Base Color ID*4 + 3 	135 	0.53
+    // Base Color ID*4 + 0 	180 	0.71
+    // Base Color ID*4 + 1 	220 	0.86
+    // Base Color ID*4 + 2 	255 (same color) 	1
+    // Base Color ID*4 + 3 	135 	0.53
 
     /**
      * Returns the color index with RGB multiplied by 0.53, to use on a map

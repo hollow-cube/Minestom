@@ -39,7 +39,7 @@ public class DyeColorGenerator extends MinestomCodeGenerator {
             LOGGER.error("Output folder for code generation does not exist and could not be created.");
             return;
         }
-        // Important classes we use alot
+        // Important classes that we use frequently.
         ClassName colorCN = ClassName.get("net.minestom.server.color", "Color");
 
         JsonArray dyeColors = GSON.fromJson(new InputStreamReader(dyeColorsFile), JsonArray.class);

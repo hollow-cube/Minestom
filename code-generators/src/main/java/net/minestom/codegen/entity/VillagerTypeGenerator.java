@@ -37,7 +37,7 @@ public final class VillagerTypeGenerator extends MinestomCodeGenerator {
             LOGGER.error("Output folder for code generation does not exist and could not be created.");
             return;
         }
-        // Important classes we use alot
+        // Important classes we use a lot
         ClassName namespaceIDClassName = ClassName.get("net.minestom.server.utils", "NamespaceID");
         ClassName registryClassName = ClassName.get("net.minestom.server.registry", "Registry");
 

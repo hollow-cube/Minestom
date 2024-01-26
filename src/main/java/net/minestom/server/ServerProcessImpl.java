@@ -259,7 +259,7 @@ final class ServerProcessImpl implements ServerProcess {
 
             scheduler().processTick();
 
-            // Connection tick (let waiting clients in, send keep alives, handle configuration players packets)
+            // Connection tick (let waiting clients in, send keep alive, handle configuration players packets)
             connection().tick(msTime);
 
             // Server tick (chunks/entities)

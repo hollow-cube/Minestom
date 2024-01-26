@@ -38,7 +38,7 @@ public final class VillagerProfessionGenerator extends MinestomCodeGenerator {
             LOGGER.error("Output folder for code generation does not exist and could not be created.");
             return;
         }
-        // Important classes we use alot
+        // Important classes that we use frequently
         ClassName namespaceIDClassName = ClassName.get("net.minestom.server.utils", "NamespaceID");
         ClassName rawVillagerProfessionDataClassName = ClassName.get("net.minestom.server.raw_data", "RawVillagerProfessionData");
         ClassName registryClassName = ClassName.get("net.minestom.server.registry", "Registry");

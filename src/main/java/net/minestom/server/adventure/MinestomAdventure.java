@@ -30,7 +30,7 @@ public final class MinestomAdventure {
      * If components should be automatically translated in outgoing packets.
      */
     public static boolean AUTOMATIC_COMPONENT_TRANSLATION = false;
-    // todo: Need to properly add a translator interface so it can check for presence of a key for the flattener.
+    // TODO: Need to properly add a translator interface so it can check for presence of a key for the flattener.
     public static BiFunction<Component, Locale, Component> COMPONENT_TRANSLATOR = GlobalTranslator::render;
 
     static final Localizable NULL_LOCALIZABLE = () -> null;

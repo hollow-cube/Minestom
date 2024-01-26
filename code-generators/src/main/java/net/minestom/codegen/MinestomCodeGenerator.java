@@ -23,7 +23,7 @@ public abstract class MinestomCodeGenerator {
             try {
                 javaFile.writeTo(outputFolder);
             } catch (IOException e) {
-                LOGGER.error("An error occured while writing source code to the file system.", e);
+                LOGGER.error("An error occurred while writing source code to the file system.", e);
             }
         }
     }

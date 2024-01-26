@@ -38,7 +38,7 @@ public final class AttributeGenerator extends MinestomCodeGenerator {
             LOGGER.error("Output folder for code generation does not exist and could not be created.");
             return;
         }
-        // Important classes we use alot
+        // Important classes that we use frequently
         ClassName namespaceIDClassName = ClassName.get("net.minestom.server.utils", "NamespaceID");
         ClassName registryClassName = ClassName.get("net.minestom.server.registry", "Registry");
 
@@ -101,7 +101,7 @@ public final class AttributeGenerator extends MinestomCodeGenerator {
                         .addModifiers(Modifier.PUBLIC)
                         .build()
         );
-        // isClientSyncable
+        // isClientSyncAble
         attributeClass.addMethod(
                 MethodSpec.methodBuilder("isClientSyncable")
                         .returns(TypeName.BOOLEAN)

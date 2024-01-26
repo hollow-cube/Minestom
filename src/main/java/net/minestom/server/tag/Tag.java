@@ -69,7 +69,7 @@ public class Tag<T> {
     static <T> Tag<T> fromSerializer(@NotNull String key, @NotNull TagSerializer<T> serializer) {
         if (serializer instanceof TagRecord.Serializer recordSerializer) {
             // Allow fast retrieval
-            //noinspection unchecked
+            // noinspection unchecked
             return tag(key, recordSerializer.serializerEntry);
         }
         return tag(key, Serializers.fromTagSerializer(serializer));
