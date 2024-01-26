@@ -102,7 +102,7 @@ public class PathGenerator {
                 return;
             }
 
-            current = closestFoundNodes.get(closestFoundNodes.size() - 1);
+            current = closestFoundNodes.get(0);
 
             if (!open.isEmpty()) {
                 repathNode.parent = current;

@@ -124,15 +124,6 @@ public final class Navigator {
      * @return true if a path has been found
      */
     public synchronized boolean setPathTo(@Nullable Point point, double minimumDistance, double maxDistance, double pathVariance, PPath.PathfinderType type, Runnable onComplete) {
-        double previousDistance = point == null || goalPosition == null ? 0 : entity.getPosition().distance(goalPosition);
-        double currentDistance = point == null ? 0 : point.distance(entity.getPosition());
-
-        double percentageDifference = previousDistance == 0 ? 0 : Math.abs(currentDistance - previousDistance) / previousDistance;
-
-        if (point != null && goalPosition != null && this.path != null && percentageDifference < 0.01) {
-            return false;
-        }
-
         final Instance instance = entity.getInstance();
         if (point == null) {
             this.path = null;
@@ -162,7 +153,7 @@ public final class Navigator {
             return false;
         }
 
-        if (goalPosition != null && point.sameBlock(goalPosition)) {
+        if (point.sameBlock(entity.getPosition())) {
             if (onComplete != null) onComplete.run();
             return false;
         }
@@ -187,19 +178,6 @@ public final class Navigator {
         if (goalPosition == null) return; // No path
         if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) return; // No pathfinding tick for dead entities
         if (computingPath != null && computingPath.getState() == PPath.PathState.COMPUTED) {
-            if (path != null && path.getCurrentType() != PNode.NodeType.REPATH) {
-                var currentNode = path.getCurrent();
-                if (currentNode != null) {
-                    for (int i = 0; i < computingPath.getNodes().size(); ++i) {
-                        var node = computingPath.getNodes().get(i);
-                        if (node.point.sameBlock(currentNode)) {
-                            computingPath.getNodes().subList(0, i).clear();
-                            break;
-                        }
-                    }
-                }
-            }
-
             path = computingPath;
             computingPath = null;
         }
@@ -233,7 +211,10 @@ public final class Navigator {
         Point nextTarget = path.getNext();
 
         // If we're at the end of the path, navigate directly to the entity
-        if (nextTarget == null) nextTarget = goalPosition;
+        if (nextTarget == null) {
+            path.setState(PPath.PathState.INVALID);
+            return;
+        }
 
         // Repath
         if (currentTarget == null || path.getCurrentType() == PNode.NodeType.REPATH || path.getCurrentType() == null) {
@@ -254,17 +235,19 @@ public final class Navigator {
 
         boolean nextIsRepath = nextTarget.sameBlock(Pos.ZERO);
 
-        // drawPath(path);
+        drawPath(path);
         moveTowards(currentTarget, movementSpeed, path.capabilities(), nextIsRepath ? currentTarget : nextTarget);
 
-        if ((path.getCurrentType() == PNode.NodeType.JUMP || currentTarget.y() > entity.getPosition().y() + 0.1)
+        if ((path.getCurrentType() == PNode.NodeType.JUMP)
                 && entity.isOnGround()
                 && path.capabilities().canJump()
         ) {
             jump(4f);
         }
 
-        if (entity.getPosition().sameBlock(currentTarget)) path.next();
+        if (entity.getPosition().distance(currentTarget) < 0.1 && entity.isOnGround()) {
+            path.next();
+        }
     }
 
     /**
