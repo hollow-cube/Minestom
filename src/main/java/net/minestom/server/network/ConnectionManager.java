@@ -2,6 +2,7 @@ package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
@@ -269,7 +270,10 @@ public final class ConnectionManager {
             EventDispatcher.call(event);
 
             final Instance spawningInstance = event.getSpawningInstance();
-            Check.notNull(spawningInstance, "You need to specify a spawning instance in the AsyncPlayerConfigurationEvent");
+            if(spawningInstance == null){
+                player.kick("<red>Upsi something went wrong...</red>");
+                throw new NullPointerException("You need to specify a spawning instance in the AsyncPlayerConfigurationEvent");
+            }
 
             // Registry data (if it should be sent)
             if (event.willSendRegistryData()) {

@@ -18,6 +18,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.TitlePart;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.advancements.AdvancementTab;
@@ -228,6 +229,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // The future is non-null when a resource pack is in-flight, and completed when all statuses have been received.
     private CompletableFuture<Void> resourcePackFuture = null;
 
+    private static final MiniMessage minimessage = MiniMessage.miniMessage();
+
     public Player(@NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
         super(EntityType.PLAYER, uuid);
         this.username = username;
@@ -298,7 +301,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         sendPacket(new SpawnPositionPacket(respawnPoint, 0));
 
-        // Reenable metadata notifications as we leave the configuration state
+        // Re-enable metadata notifications as we leave the configuration state
         metadata.setNotifyAboutChanges(true);
         sendPacket(getMetadataPacket());
 
@@ -897,6 +900,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public void sendPluginMessage(@NotNull String channel, @NotNull String message) {
         sendPluginMessage(channel, message.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void sendMessage(@NotNull String message) {
+        CommandSender.super.sendMessage(getMinimessage().deserialize(message));
     }
 
     @Override
@@ -1643,7 +1651,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * @param message the kick reason
      */
     public void kick(@NotNull String message) {
-        this.kick(Component.text(message));
+        this.kick(getMinimessage().deserialize(message));
     }
 
     /**
@@ -2383,6 +2391,10 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public @NotNull CompletableFuture<Void> teleport(@NotNull Pos position, long @Nullable [] chunks) {
         chunkUpdateLimitChecker.clearHistory();
         return super.teleport(position, chunks);
+    }
+
+    public MiniMessage getMinimessage() {
+        return minimessage;
     }
 
     /**
