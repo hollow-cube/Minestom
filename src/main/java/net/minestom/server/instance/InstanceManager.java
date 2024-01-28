@@ -20,8 +20,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Used to register {@link Instance}.
  */
 public final class InstanceManager {
+    private final MinecraftServer minecraftServer;
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
+
+    public InstanceManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
 
     /**
      * Registers an {@link Instance} internally.
@@ -46,7 +51,7 @@ public final class InstanceManager {
      */
     @ApiStatus.Experimental
     public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        final InstanceContainer instanceContainer = new InstanceContainer(UUID.randomUUID(), dimensionType, loader);
+        final InstanceContainer instanceContainer = new InstanceContainer(minecraftServer, UUID.randomUUID(), dimensionType, loader);
         registerInstance(instanceContainer);
         return instanceContainer;
     }
@@ -118,7 +123,7 @@ public final class InstanceManager {
             // Unload all chunks
             if (instance instanceof InstanceContainer) {
                 instance.getChunks().forEach(instance::unloadChunk);
-                var dispatcher = MinecraftServer.process().dispatcher();
+                var dispatcher = minecraftServer.process().dispatcher();
                 instance.getChunks().forEach(dispatcher::deletePartition);
             }
             // Unregister
@@ -160,7 +165,7 @@ public final class InstanceManager {
     private void UNSAFE_registerInstance(@NotNull Instance instance) {
         instance.setRegistered(true);
         this.instances.add(instance);
-        var dispatcher = MinecraftServer.process().dispatcher();
+        var dispatcher = minecraftServer.process().dispatcher();
         instance.getChunks().forEach(dispatcher::createPartition);
         InstanceRegisterEvent event = new InstanceRegisterEvent(instance);
         EventDispatcher.call(event);

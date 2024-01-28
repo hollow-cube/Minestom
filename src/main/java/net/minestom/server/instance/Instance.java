@@ -18,6 +18,7 @@ import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.instance.InstanceTickEvent;
+import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
 public abstract class Instance implements Block.Getter, Block.Setter,
         Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
 
+    private final MinecraftServer minecraftServer;
     private boolean registered;
 
     private final DimensionType dimensionType;
@@ -85,7 +87,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     // Field for tick events
     private long lastTickAge = System.currentTimeMillis();
 
-    private final EntityTracker entityTracker = new EntityTrackerImpl();
+    private final EntityTracker entityTracker;
 
     private final ChunkCache blockRetriever = new ChunkCache(this, null, null);
 
@@ -112,8 +114,8 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(uniqueId, dimensionType, dimensionType.getName());
+    public Instance(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(minecraftServer, uniqueId, dimensionType, dimensionType.getName());
     }
 
     /**
@@ -122,9 +124,10 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+    public Instance(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
         Check.argCondition(!dimensionType.isRegistered(),
                 "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
+        this.minecraftServer = minecraftServer;
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName.asString();
@@ -135,13 +138,14 @@ public abstract class Instance implements Block.Getter, Block.Setter,
                 .withDynamic(Identity.UUID, this::getUniqueId)
                 .build();
 
-        final ServerProcess process = MinecraftServer.process();
+        final ServerProcess process = minecraftServer.process();
         if (process != null) {
             this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.INSTANCE);
         } else {
             // Local nodes require a server process
             this.eventNode = null;
         }
+        entityTracker = new EntityTrackerImpl(minecraftServer);
     }
 
     /**
@@ -173,7 +177,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public abstract boolean placeBlock(@NotNull BlockHandler.Placement placement, boolean doBlockUpdates);
 
     /**
-     * Does call {@link net.minestom.server.event.player.PlayerBlockBreakEvent}
+     * Does call {@link PlayerBlockBreakEvent}
      * and send particle packets
      *
      * @param player        the {@link Player} who break the block
@@ -186,7 +190,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     }
 
     /**
-     * Does call {@link net.minestom.server.event.player.PlayerBlockBreakEvent}
+     * Does call {@link PlayerBlockBreakEvent}
      * and send particle packets
      *
      * @param player        the {@link Player} who break the block
@@ -697,7 +701,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public @NotNull InstanceSnapshot updateSnapshot(@NotNull SnapshotUpdater updater) {
         final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
         final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
-        return new SnapshotImpl.Instance(updater.reference(MinecraftServer.process()),
+        return new SnapshotImpl.Instance(updater.reference(minecraftServer.process()),
                 getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
                 tagHandler.readableCopy());
     }

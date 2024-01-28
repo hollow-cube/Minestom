@@ -2,6 +2,7 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -32,6 +33,7 @@ import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +56,8 @@ import static net.minestom.server.utils.chunk.ChunkUtils.*;
 public class InstanceContainer extends Instance {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceContainer.class);
 
-    private static final AnvilLoader DEFAULT_LOADER = new AnvilLoader("world");
+    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     private static final BlockFace[] BLOCK_UPDATE_FACES = new BlockFace[]{
             BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.BOTTOM, BlockFace.TOP
@@ -86,25 +89,27 @@ public class InstanceContainer extends Instance {
     protected InstanceContainer srcInstance; // only present if this instance has been created using a copy
     private long lastBlockChangeTime; // Time at which the last block change happened (#setBlock)
 
-    public InstanceContainer(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(uniqueId, dimensionType, null, dimensionType.getName());
+    public InstanceContainer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(minecraftServer, uniqueId, dimensionType, null, dimensionType.getName());
     }
 
-    public InstanceContainer(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
-        this(uniqueId, dimensionType, null, dimensionName);
-    }
-
-    @ApiStatus.Experimental
-    public InstanceContainer(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        this(uniqueId, dimensionType, loader, dimensionType.getName());
+    public InstanceContainer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+        this(minecraftServer, uniqueId, dimensionType, null, dimensionName);
     }
 
     @ApiStatus.Experimental
-    public InstanceContainer(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
-        super(uniqueId, dimensionType, dimensionName);
+    public InstanceContainer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
+        this(minecraftServer, uniqueId, dimensionType, loader, dimensionType.getName());
+    }
+
+    @ApiStatus.Experimental
+    public InstanceContainer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
+        super(minecraftServer, uniqueId, dimensionType, dimensionName);
         setChunkSupplier(DynamicChunk::new);
-        setChunkLoader(Objects.requireNonNullElse(loader, DEFAULT_LOADER));
+        setChunkLoader(Objects.requireNonNullElseGet(loader, () -> new AnvilLoader(minecraftServer, "world")));
         this.chunkLoader.loadInstance(this);
+        this.minecraftServer = minecraftServer;
+        this.serverProcess = minecraftServer.process();
     }
 
     @Override
@@ -150,7 +155,7 @@ public class InstanceContainer extends Instance {
             this.currentlyChangingBlocks.put(blockPosition, block);
 
             // Change id based on neighbors
-            final BlockPlacementRule blockPlacementRule = MinecraftServer.getBlockManager().getBlockPlacementRule(block);
+            final BlockPlacementRule blockPlacementRule = serverProcess.getBlockManager().getBlockPlacementRule(block);
             if (placement != null && blockPlacementRule != null && doBlockUpdates) {
                 BlockPlacementRule.PlacementState rulePlacement;
                 if (placement instanceof BlockHandler.PlayerPlacement pp) {
@@ -261,7 +266,7 @@ public class InstanceContainer extends Instance {
         if (chunkLoader != null) {
             chunkLoader.unloadChunk(chunk);
         }
-        var dispatcher = MinecraftServer.process().dispatcher();
+        var dispatcher = serverProcess.dispatcher();
         dispatcher.deletePartition(chunk);
     }
 
@@ -313,7 +318,7 @@ public class InstanceContainer extends Instance {
                     completableFuture.complete(chunk);
                 })
                 .exceptionally(throwable -> {
-                    MinecraftServer.getExceptionManager().handleException(throwable);
+                    serverProcess.getExceptionManager().handleException(throwable);
                     return null;
                 });
         if (loader.supportsParallelLoading()) {
@@ -366,7 +371,7 @@ public class InstanceContainer extends Instance {
                                     }
                                     forkChunk.sendChunk();
                                 } else {
-                                    final long index = ChunkUtils.getChunkIndex(start);
+                                    final long index = getChunkIndex(start);
                                     this.generationForks.compute(index, (i, sectionModifiers) -> {
                                         if (sectionModifiers == null) sectionModifiers = new ArrayList<>();
                                         sectionModifiers.add(sectionModifier);
@@ -379,7 +384,7 @@ public class InstanceContainer extends Instance {
                     // Apply awaiting forks
                     processFork(chunk);
                 } catch (Throwable e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    serverProcess.getExceptionManager().handleException(e);
                 } finally {
                     // End generation
                     refreshLastBlockChangeTime();
@@ -395,7 +400,7 @@ public class InstanceContainer extends Instance {
     }
 
     private void processFork(Chunk chunk) {
-        this.generationForks.compute(ChunkUtils.getChunkIndex(chunk), (aLong, sectionModifiers) -> {
+        this.generationForks.compute(getChunkIndex(chunk), (aLong, sectionModifiers) -> {
             if (sectionModifiers != null) {
                 for (var sectionModifier : sectionModifiers) {
                     applyFork(chunk, sectionModifier);
@@ -423,9 +428,9 @@ public class InstanceContainer extends Instance {
             Int2ObjectMaps.fastForEach(cache, blockEntry -> {
                 final int index = blockEntry.getIntKey();
                 final Block block = blockEntry.getValue();
-                final int x = ChunkUtils.blockIndexToChunkPositionX(index);
-                final int y = ChunkUtils.blockIndexToChunkPositionY(index) + height;
-                final int z = ChunkUtils.blockIndexToChunkPositionZ(index);
+                final int x = blockIndexToChunkPositionX(index);
+                final int y = blockIndexToChunkPositionY(index) + height;
+                final int z = blockIndexToChunkPositionZ(index);
                 chunk.setBlock(x, y, z, block);
             });
         }
@@ -514,7 +519,7 @@ public class InstanceContainer extends Instance {
      * @see #getSrcInstance() to retrieve the "creation source" of the copied instance
      */
     public synchronized InstanceContainer copy() {
-        InstanceContainer copiedInstance = new InstanceContainer(UUID.randomUUID(), getDimensionType());
+        InstanceContainer copiedInstance = new InstanceContainer(minecraftServer, UUID.randomUUID(), getDimensionType());
         copiedInstance.srcInstance = this;
         copiedInstance.tagHandler = this.tagHandler.copy();
         copiedInstance.lastBlockChangeTime = this.lastBlockChangeTime;
@@ -638,7 +643,7 @@ public class InstanceContainer extends Instance {
             final Block neighborBlock = cache.getBlock(neighborX, neighborY, neighborZ, Condition.TYPE);
             if (neighborBlock == null)
                 continue;
-            final BlockPlacementRule neighborBlockPlacementRule = MinecraftServer.getBlockManager().getBlockPlacementRule(neighborBlock);
+            final BlockPlacementRule neighborBlockPlacementRule = serverProcess.getBlockManager().getBlockPlacementRule(neighborBlock);
             if (neighborBlockPlacementRule == null || updateDistance >= neighborBlockPlacementRule.maxUpdateDistance()) continue;
 
             final Vec neighborPosition = new Vec(neighborX, neighborY, neighborZ);
@@ -668,7 +673,7 @@ public class InstanceContainer extends Instance {
 
     private void cacheChunk(@NotNull Chunk chunk) {
         this.chunks.put(getChunkIndex(chunk), chunk);
-        var dispatcher = MinecraftServer.process().dispatcher();
+        var dispatcher = serverProcess.dispatcher();
         dispatcher.createPartition(chunk);
     }
 }
