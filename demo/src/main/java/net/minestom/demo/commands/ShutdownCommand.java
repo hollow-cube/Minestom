@@ -11,12 +11,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ShutdownCommand extends Command {
 
-    public ShutdownCommand() {
+    private final MinecraftServer minecraftServer;
+
+    public ShutdownCommand(MinecraftServer minecraftServer) {
         super("shutdown");
+        this.minecraftServer = minecraftServer;
         addSyntax(this::execute);
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        MinecraftServer.stopCleanly();
+        minecraftServer.stopCleanly();
     }
 }

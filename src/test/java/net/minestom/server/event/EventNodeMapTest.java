@@ -77,8 +77,8 @@ public class EventNodeMapTest {
 
     @Test
     public void entityLocal() {
-        var process = MinecraftServer.updateProcess();
-        var node = process.eventHandler();
+        var process = new MinecraftServer().updateProcess();
+        var node = process.getGlobalEventHandler();
         var entity = new Entity(EntityType.ZOMBIE);
 
         AtomicBoolean result = new AtomicBoolean(false);

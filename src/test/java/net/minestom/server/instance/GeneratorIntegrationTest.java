@@ -20,7 +20,7 @@ public class GeneratorIntegrationTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     public void loader(boolean data, Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var block = data ? Block.STONE.withNbt(NBT.Compound(Map.of("key", NBT.String("value")))) : Block.STONE;
         var instance = manager.createInstanceContainer();
         instance.setGenerator(unit -> unit.modifier().fill(block));
@@ -33,11 +33,11 @@ public class GeneratorIntegrationTest {
 
     @Test
     public void exceptionCatch(Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var instance = manager.createInstanceContainer();
 
         var ref = new AtomicReference<Throwable>();
-        env.process().exception().setExceptionHandler(ref::set);
+        env.process().getExceptionManager().setExceptionHandler(ref::set);
 
         var exception = new RuntimeException();
         instance.setGenerator(unit -> {
@@ -51,7 +51,7 @@ public class GeneratorIntegrationTest {
 
     @Test
     public void fillHeightNegative(Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var instance = manager.createInstanceContainer();
         instance.setGenerator(unit -> unit.modifier().fillHeight(-64, -60, Block.STONE));
         instance.loadChunk(0, 0).join();
@@ -65,7 +65,7 @@ public class GeneratorIntegrationTest {
 
     @Test
     public void fillHeightSingleSectionFull(Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var instance = manager.createInstanceContainer();
         instance.setGenerator(unit -> unit.modifier().fillHeight(0, 16, Block.GRASS_BLOCK));
         instance.loadChunk(0, 0).join();
@@ -76,7 +76,7 @@ public class GeneratorIntegrationTest {
 
     @Test
     public void fillHeightSingleSection(Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var instance = manager.createInstanceContainer();
         instance.setGenerator(unit -> unit.modifier().fillHeight(4, 5, Block.GRASS_BLOCK));
         instance.loadChunk(0, 0).join();
@@ -87,7 +87,7 @@ public class GeneratorIntegrationTest {
 
     @Test
     public void fillHeightOverride(Env env) {
-        var manager = env.process().instance();
+        var manager = env.process().getInstanceManager();
         var instance = manager.createInstanceContainer();
         instance.setGenerator(unit -> {
             unit.modifier().fillHeight(0, 39, Block.GRASS_BLOCK);

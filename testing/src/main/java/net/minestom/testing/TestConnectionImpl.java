@@ -37,19 +37,19 @@ final class TestConnectionImpl implements TestConnection {
     @Override
     public @NotNull CompletableFuture<Player> connect(@NotNull Instance instance, @NotNull Pos pos) {
         // Use player provider to disable queued chunk sending
-        process.connection().setPlayerProvider(TestPlayerImpl::new);
+        process.getConnectionManager().setPlayerProvider(TestPlayerImpl::new);
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
-        var player = process.connection().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
+        var player = process.getConnectionManager().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
         player.eventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
             event.getPlayer().setRespawnPoint(pos);
         });
 
         // Force the player through the entirety of the login process manually
-        process.connection().doConfiguration(player, true);
-        process.connection().transitionConfigToPlay(player);
-        process.connection().updateWaitingPlayers();
+        process.getConnectionManager().doConfiguration(player, true);
+        process.getConnectionManager().transitionConfigToPlay(player);
+        process.getConnectionManager().updateWaitingPlayers();
         return CompletableFuture.completedFuture(player);
     }
 

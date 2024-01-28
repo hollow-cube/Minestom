@@ -89,12 +89,12 @@ public interface PacketGroupingAudience extends ForwardingAudience {
 
     @Override
     default void showBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().addBossBar(this.getPlayers(), bar);
+        this.getPlayers().stream().findAny().ifPresent((p) -> p.minecraftServer.process().getBossBarManager().addBossBar(this.getPlayers(), bar));
     }
 
     @Override
     default void hideBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().removeBossBar(this.getPlayers(), bar);
+        this.getPlayers().stream().findAny().ifPresent((p) -> p.minecraftServer.process().getBossBarManager().removeBossBar(this.getPlayers(), bar));
     }
 
     /**

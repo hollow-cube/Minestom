@@ -34,13 +34,13 @@ final class EnvImpl implements Env {
     @Override
     public @NotNull <E extends Event, H> Collector<E> trackEvent(@NotNull Class<E> eventType, @NotNull EventFilter<? super E, H> filter, @NotNull H actor) {
         var tracker = new EventCollector<E>(actor);
-        this.process.eventHandler().map(actor, filter).addListener(eventType, tracker.events::add);
+        this.process.getGlobalEventHandler().map(actor, filter).addListener(eventType, tracker.events::add);
         return tracker;
     }
 
     @Override
     public @NotNull <E extends Event> FlexibleListener<E> listen(@NotNull Class<E> eventType) {
-        var handler = process.eventHandler();
+        var handler = process.getGlobalEventHandler();
         var flexible = new FlexibleListenerImpl<>(eventType);
         var listener = EventListener.of(eventType, e -> flexible.handler.accept(e));
         handler.addListener(listener);
@@ -62,7 +62,7 @@ final class EnvImpl implements Env {
 
         @Override
         public @NotNull List<E> collect() {
-            process.eventHandler().unmap(handler);
+            process.getGlobalEventHandler().unmap(handler);
             return List.copyOf(events);
         }
     }

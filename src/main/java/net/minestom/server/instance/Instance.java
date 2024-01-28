@@ -137,7 +137,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
 
         final ServerProcess process = MinecraftServer.process();
         if (process != null) {
-            this.eventNode = process.eventHandler().map(this, EventFilter.INSTANCE);
+            this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.INSTANCE);
         } else {
             // Local nodes require a server process
             this.eventNode = null;

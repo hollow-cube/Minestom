@@ -59,25 +59,24 @@ public final class MinecraftServer {
     public static final int TICK_MS = 1000 / TICK_PER_SECOND;
 
     // In-Game Manager
-    private static volatile ServerProcess serverProcess;
+    private volatile ServerProcess serverProcess;
 
-    private static int chunkViewDistance = Integer.getInteger("minestom.chunk-view-distance", 8);
-    private static int entityViewDistance = Integer.getInteger("minestom.entity-view-distance", 5);
-    private static int compressionThreshold = 256;
-    private static boolean terminalEnabled = System.getProperty("minestom.terminal.disabled") == null;
-    private static String brandName = "Minestom";
-    private static Difficulty difficulty = Difficulty.NORMAL;
+    private int chunkViewDistance = Integer.getInteger("minestom.chunk-view-distance", 8);
+    private int entityViewDistance = Integer.getInteger("minestom.entity-view-distance", 5);
+    private int compressionThreshold = 256;
+    private boolean terminalEnabled = System.getProperty("minestom.terminal.disabled") == null;
+    private String brandName = "Minestom";
+    private Difficulty difficulty = Difficulty.NORMAL;
 
-    public static MinecraftServer init() {
+    public void init() {
         updateProcess();
-        return new MinecraftServer();
     }
 
     @ApiStatus.Internal
-    public static ServerProcess updateProcess() {
+    public ServerProcess updateProcess() {
         ServerProcess process;
         try {
-            process = new ServerProcessImpl();
+            process = new ServerProcessImpl(this);
             serverProcess = process;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -91,7 +90,7 @@ public final class MinecraftServer {
      * @return the server brand name
      */
     @NotNull
-    public static String getBrandName() {
+    public String getBrandName() {
         return brandName;
     }
 
@@ -101,9 +100,9 @@ public final class MinecraftServer {
      * @param brandName the server brand name
      * @throws NullPointerException if {@code brandName} is null
      */
-    public static void setBrandName(@NotNull String brandName) {
-        MinecraftServer.brandName = brandName;
-        PacketUtils.broadcastPlayPacket(PluginMessagePacket.getBrandPacket());
+    public void setBrandName(@NotNull String brandName) {
+        this.brandName = brandName;
+        PacketUtils.broadcastPlayPacket(PluginMessagePacket.getBrandPacket(this));
     }
 
     /**
@@ -112,7 +111,7 @@ public final class MinecraftServer {
      * @return the server difficulty
      */
     @NotNull
-    public static Difficulty getDifficulty() {
+    public Difficulty getDifficulty() {
         return difficulty;
     }
 
@@ -121,79 +120,14 @@ public final class MinecraftServer {
      *
      * @param difficulty the new server difficulty
      */
-    public static void setDifficulty(@NotNull Difficulty difficulty) {
-        MinecraftServer.difficulty = difficulty;
+    public void setDifficulty(@NotNull Difficulty difficulty) {
+        this.difficulty = difficulty;
         PacketUtils.broadcastPlayPacket(new ServerDifficultyPacket(difficulty, true));
     }
 
     @ApiStatus.Experimental
-    public static @UnknownNullability ServerProcess process() {
+    public @UnknownNullability ServerProcess process() {
         return serverProcess;
-    }
-
-    public static @NotNull GlobalEventHandler getGlobalEventHandler() {
-        return serverProcess.eventHandler();
-    }
-
-    public static @NotNull PacketListenerManager getPacketListenerManager() {
-        return serverProcess.packetListener();
-    }
-
-    public static @NotNull InstanceManager getInstanceManager() {
-        return serverProcess.instance();
-    }
-
-    public static @NotNull BlockManager getBlockManager() {
-        return serverProcess.block();
-    }
-
-    public static @NotNull CommandManager getCommandManager() {
-        return serverProcess.command();
-    }
-
-    public static @NotNull RecipeManager getRecipeManager() {
-        return serverProcess.recipe();
-    }
-
-    public static @NotNull TeamManager getTeamManager() {
-        return serverProcess.team();
-    }
-
-    public static @NotNull SchedulerManager getSchedulerManager() {
-        return serverProcess.scheduler();
-    }
-
-    /**
-     * Gets the manager handling server monitoring.
-     *
-     * @return the benchmark manager
-     */
-    public static @NotNull BenchmarkManager getBenchmarkManager() {
-        return serverProcess.benchmark();
-    }
-
-    public static @NotNull ExceptionManager getExceptionManager() {
-        return serverProcess.exception();
-    }
-
-    public static @NotNull ConnectionManager getConnectionManager() {
-        return serverProcess.connection();
-    }
-
-    public static @NotNull BossBarManager getBossBarManager() {
-        return serverProcess.bossBar();
-    }
-
-    public static @NotNull PacketProcessor getPacketProcessor() {
-        return serverProcess.packetProcessor();
-    }
-
-    public static boolean isStarted() {
-        return serverProcess.isAlive();
-    }
-
-    public static boolean isStopping() {
-        return !isStarted();
     }
 
     /**
@@ -201,7 +135,7 @@ public final class MinecraftServer {
      *
      * @return the chunk view distance
      */
-    public static int getChunkViewDistance() {
+    public int getChunkViewDistance() {
         return chunkViewDistance;
     }
 
@@ -213,11 +147,11 @@ public final class MinecraftServer {
      * @deprecated should instead be defined with a java property
      */
     @Deprecated
-    public static void setChunkViewDistance(int chunkViewDistance) {
+    public void setChunkViewDistance(int chunkViewDistance) {
         Check.stateCondition(serverProcess.isAlive(), "You cannot change the chunk view distance after the server has been started.");
         Check.argCondition(!MathUtils.isBetween(chunkViewDistance, 2, 32),
                 "The chunk view distance must be between 2 and 32");
-        MinecraftServer.chunkViewDistance = chunkViewDistance;
+        this.chunkViewDistance = chunkViewDistance;
     }
 
     /**
@@ -225,7 +159,7 @@ public final class MinecraftServer {
      *
      * @return the entity view distance
      */
-    public static int getEntityViewDistance() {
+    public int getEntityViewDistance() {
         return entityViewDistance;
     }
 
@@ -237,11 +171,11 @@ public final class MinecraftServer {
      * @deprecated should instead be defined with a java property
      */
     @Deprecated
-    public static void setEntityViewDistance(int entityViewDistance) {
+    public void setEntityViewDistance(int entityViewDistance) {
         Check.stateCondition(serverProcess.isAlive(), "You cannot change the entity view distance after the server has been started.");
         Check.argCondition(!MathUtils.isBetween(entityViewDistance, 0, 32),
                 "The entity view distance must be between 0 and 32");
-        MinecraftServer.entityViewDistance = entityViewDistance;
+        this.entityViewDistance = entityViewDistance;
     }
 
     /**
@@ -249,7 +183,7 @@ public final class MinecraftServer {
      *
      * @return the compression threshold, 0 means that compression is disabled
      */
-    public static int getCompressionThreshold() {
+    public int getCompressionThreshold() {
         return compressionThreshold;
     }
 
@@ -261,9 +195,9 @@ public final class MinecraftServer {
      * @param compressionThreshold the new compression threshold, 0 to disable compression
      * @throws IllegalStateException if this is called after the server started
      */
-    public static void setCompressionThreshold(int compressionThreshold) {
+    public void setCompressionThreshold(int compressionThreshold) {
         Check.stateCondition(serverProcess != null && serverProcess.isAlive(), "The compression threshold cannot be changed after the server has been started.");
-        MinecraftServer.compressionThreshold = compressionThreshold;
+        this.compressionThreshold = compressionThreshold;
     }
 
     /**
@@ -271,7 +205,7 @@ public final class MinecraftServer {
      *
      * @return true if the terminal is enabled
      */
-    public static boolean isTerminalEnabled() {
+    public boolean isTerminalEnabled() {
         return terminalEnabled;
     }
 
@@ -280,29 +214,9 @@ public final class MinecraftServer {
      *
      * @param enabled true to enable, false to disable
      */
-    public static void setTerminalEnabled(boolean enabled) {
+    public void setTerminalEnabled(boolean enabled) {
         Check.stateCondition(serverProcess.isAlive(), "Terminal settings may not be changed after starting the server.");
-        MinecraftServer.terminalEnabled = enabled;
-    }
-
-    public static DimensionTypeManager getDimensionTypeManager() {
-        return serverProcess.dimension();
-    }
-
-    public static BiomeManager getBiomeManager() {
-        return serverProcess.biome();
-    }
-
-    public static AdvancementManager getAdvancementManager() {
-        return serverProcess.advancement();
-    }
-
-    public static TagManager getTagManager() {
-        return serverProcess.tag();
-    }
-
-    public static Server getServer() {
-        return serverProcess.server();
+        terminalEnabled = enabled;
     }
 
     /**
@@ -325,7 +239,7 @@ public final class MinecraftServer {
     /**
      * Stops this server properly (saves if needed, kicking players, etc.)
      */
-    public static void stopCleanly() {
+    public void stopCleanly() {
         serverProcess.stop();
     }
 }

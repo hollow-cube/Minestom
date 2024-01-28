@@ -20,6 +20,7 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.TitlePart;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.advancements.AdvancementTab;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.adventure.Localizable;
@@ -71,6 +72,7 @@ import net.minestom.server.recipe.Recipe;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.scoreboard.BelowNameTag;
 import net.minestom.server.scoreboard.Team;
+import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.snapshot.EntitySnapshot;
 import net.minestom.server.snapshot.PlayerSnapshot;
 import net.minestom.server.snapshot.SnapshotImpl;
@@ -228,8 +230,13 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // The future is non-null when a resource pack is in-flight, and completed when all statuses have been received.
     private CompletableFuture<Void> resourcePackFuture = null;
 
-    public Player(@NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
+    public final MinecraftServer minecraftServer;
+    protected final ServerProcess serverProcess;
+
+    public Player(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
         super(EntityType.PLAYER, uuid);
+        this.minecraftServer = minecraftServer;
+        this.serverProcess = minecraftServer.process();
         this.username = username;
         this.usernameComponent = Component.text(username);
         this.playerConnection = playerConnection;
@@ -288,13 +295,13 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         final JoinGamePacket joinGamePacket = new JoinGamePacket(
                 getEntityId(), this.hardcore, List.of(), 0,
-                MinecraftServer.getChunkViewDistance(), MinecraftServer.getChunkViewDistance(),
+                minecraftServer.getChunkViewDistance(), minecraftServer.getChunkViewDistance(),
                 false, true, false, dimensionType.toString(), spawnInstance.getDimensionName(),
                 0, gameMode, null, false, levelFlat, deathLocation, portalCooldown);
         sendPacket(joinGamePacket);
 
         // Difficulty
-        sendPacket(new ServerDifficultyPacket(MinecraftServer.getDifficulty(), true));
+        sendPacket(new ServerDifficultyPacket(minecraftServer.getDifficulty(), true));
 
         sendPacket(new SpawnPositionPacket(respawnPoint, 0));
 
@@ -321,7 +328,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // FIXME: when using Geyser, this line remove the skin of the client
         PacketUtils.broadcastPlayPacket(getAddPlayerToList());
 
-        var connectionManager = MinecraftServer.getConnectionManager();
+        var connectionManager = serverProcess.getConnectionManager();
         for (var player : connectionManager.getOnlinePlayers()) {
             if (player != this) {
                 sendPacket(player.getAddPlayerToList());
@@ -332,7 +339,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         //Teams
-        for (Team team : MinecraftServer.getTeamManager().getTeams()) {
+        for (Team team : serverProcess.getTeamManager().getTeams()) {
             sendPacket(team.createTeamsCreationPacket());
         }
 
@@ -341,7 +348,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Recipes start
         {
-            RecipeManager recipeManager = MinecraftServer.getRecipeManager();
+            RecipeManager recipeManager = serverProcess.getRecipeManager();
             sendPacket(recipeManager.getDeclareRecipesPacket());
 
             List<String> recipesIdentifier = new ArrayList<>();
@@ -385,7 +392,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Remove the player, then send them back to configuration
         remove(false);
 
-        var connectionManager = MinecraftServer.getConnectionManager();
+        var connectionManager = serverProcess.getConnectionManager();
         connectionManager.transitionPlayToConfig(this);
 
     }
@@ -532,7 +539,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         ChunkUtils.forChunksInRange(respawnPosition, settings.getEffectiveViewDistance(), chunkAdder);
         chunksLoadedByClient = new Vec(respawnPosition.chunkX(), respawnPosition.chunkZ());
         // Client also needs all entities resent to them, since those are unloaded as well
-        this.instance.getEntityTracker().nearbyEntitiesByChunkRange(respawnPosition, Math.min(MinecraftServer.getChunkViewDistance(), settings.getViewDistance()),
+        this.instance.getEntityTracker().nearbyEntitiesByChunkRange(respawnPosition, Math.min(minecraftServer.getChunkViewDistance(), settings.getViewDistance()),
                 EntityTracker.Target.ENTITIES, entity -> {
                     // Skip refreshing self with a new viewer
                     if (!entity.getUuid().equals(uuid) && entity.isViewer(this)) {
@@ -547,7 +554,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     private void refreshClientStateAfterRespawn() {
         sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
-        sendPacket(new ServerDifficultyPacket(MinecraftServer.getDifficulty(), false));
+        sendPacket(new ServerDifficultyPacket(minecraftServer.getDifficulty(), false));
         sendPacket(new UpdateHealthPacket(this.getHealth(), food, foodSaturation));
         sendPacket(new SetExperiencePacket(exp, level, 0));
         triggerStatus((byte) (24 + permissionLevel)); // Set permission level
@@ -560,7 +567,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * again, and any changes will be visible to the player.
      */
     public void refreshCommands() {
-        sendPacket(MinecraftServer.getCommandManager().createDeclareCommandsPacket(this));
+        sendPacket(serverProcess.getCommandManager().createDeclareCommandsPacket(this));
     }
 
     @Override
@@ -581,7 +588,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         final Inventory currentInventory = getOpenInventory();
         if (currentInventory != null) currentInventory.removeViewer(this);
-        MinecraftServer.getBossBarManager().removeAllBossBars(this);
+        serverProcess.getBossBarManager().removeAllBossBars(this);
         // Advancement tabs cache
         {
             Set<AdvancementTab> advancementTabs = AdvancementTab.getTabs(this);
@@ -595,7 +602,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         final int chunkX = position.chunkX();
         final int chunkZ = position.chunkZ();
         // Clear all viewable chunks
-        ChunkUtils.forChunksInRange(chunkX, chunkZ, MinecraftServer.getChunkViewDistance(), chunkRemover);
+        ChunkUtils.forChunksInRange(chunkX, chunkZ, minecraftServer.getChunkViewDistance(), chunkRemover);
         // Remove from the tab-list
         PacketUtils.broadcastPlayPacket(getRemovePlayerToList());
 
@@ -647,7 +654,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Ensure that surrounding chunks are loaded
         List<CompletableFuture<Chunk>> futures = new ArrayList<>();
-        ChunkUtils.forChunksInRange(spawnPosition, MinecraftServer.getChunkViewDistance(), (chunkX, chunkZ) -> {
+        ChunkUtils.forChunksInRange(spawnPosition, minecraftServer.getChunkViewDistance(), (chunkX, chunkZ) -> {
             final CompletableFuture<Chunk> future = instance.loadOptionalChunk(chunkX, chunkZ);
             if (!future.isDone()) futures.add(future);
         });
@@ -660,7 +667,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // One or more chunks need to be loaded
         final Thread runThread = Thread.currentThread();
         CountDownLatch latch = new CountDownLatch(1);
-        Scheduler scheduler = MinecraftServer.getSchedulerManager();
+        Scheduler scheduler = serverProcess.getSchedulerManager();
         CompletableFuture<Void> future = new CompletableFuture<>() {
             @Override
             public Void join() {
@@ -720,7 +727,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         if (!firstSpawn && !dimensionChange) {
             // Player instance changed, clear current viewable collections
             if (updateChunks)
-                ChunkUtils.forChunksInRange(spawnPosition, MinecraftServer.getChunkViewDistance(), chunkRemover);
+                ChunkUtils.forChunksInRange(spawnPosition, minecraftServer.getChunkViewDistance(), chunkRemover);
         }
 
         if (dimensionChange) sendDimension(instance.getDimensionType(), instance.getDimensionName());
@@ -735,7 +742,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new UpdateViewPositionPacket(chunkX, chunkZ));
 
             // Load the nearby chunks and queue them to be sent to them
-            ChunkUtils.forChunksInRange(spawnPosition, MinecraftServer.getChunkViewDistance(), chunkAdder);
+            ChunkUtils.forChunksInRange(spawnPosition, minecraftServer.getChunkViewDistance(), chunkAdder);
         }
 
         synchronizePosition(true); // So the player doesn't get stuck
@@ -976,12 +983,12 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     @Override
     public void showBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().addBossBar(this, bar);
+        serverProcess.getBossBarManager().addBossBar(this, bar);
     }
 
     @Override
     public void hideBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().removeBossBar(this, bar);
+        serverProcess.getBossBarManager().removeBossBar(this, bar);
     }
 
     @Override
@@ -2053,7 +2060,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             kick(Component.text("Too Many Packets", NamedTextColor.RED));
             return;
         }
-        final PacketListenerManager manager = MinecraftServer.getPacketListenerManager();
+        final PacketListenerManager manager = serverProcess.getPacketListenerManager();
         // This method is NOT thread-safe
         this.packets.drain(packet -> manager.processClientPacket(packet, playerConnection), PACKET_PER_TICK);
     }
@@ -2347,7 +2354,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             final Vec old = chunksLoadedByClient;
             sendPacket(new UpdateViewPositionPacket(newX, newZ));
             ChunkUtils.forDifferingChunksInRange(newX, newZ, (int) old.x(), (int) old.z(),
-                    MinecraftServer.getChunkViewDistance(), chunkAdder, chunkRemover);
+                    minecraftServer.getChunkViewDistance(), chunkAdder, chunkRemover);
             this.chunksLoadedByClient = new Vec(newX, newZ);
         }
     }
@@ -2415,7 +2422,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         public int getEffectiveViewDistance() {
-            return Math.min(getViewDistance(), MinecraftServer.getChunkViewDistance());
+            return Math.min(getViewDistance(), minecraftServer.getChunkViewDistance());
         }
 
         /**

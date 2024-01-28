@@ -1,10 +1,9 @@
 package net.minestom.server.extras.query.response;
 
-import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.extras.query.Query;
-import net.minestom.server.network.ConnectionState;
 import net.minestom.server.utils.binary.BinaryWriter;
 import net.minestom.server.utils.binary.Writeable;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +17,8 @@ public class FullQueryResponse implements Writeable {
     private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
     private static final byte[] PADDING_10 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
             PADDING_11 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     private Map<String, String> kv;
     private List<String> players;
@@ -25,15 +26,17 @@ public class FullQueryResponse implements Writeable {
     /**
      * Creates a new full query response with default values set.
      */
-    public FullQueryResponse() {
+    public FullQueryResponse(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.serverProcess = minecraftServer.process();
         this.kv = new HashMap<>();
 
         // populate defaults
         for (QueryKey key : QueryKey.VALUES) {
-            this.kv.put(key.getKey(), key.getValue());
+            this.kv.put(key.getKey(), key.getValue(minecraftServer));
         }
 
-        this.players = MinecraftServer.getConnectionManager().getOnlinePlayers()
+        this.players = serverProcess.getConnectionManager().getOnlinePlayers()
                 .stream()
                 .map(player -> PLAIN.serialize(player.getName()))
                 .toList();
@@ -119,8 +122,8 @@ public class FullQueryResponse implements Writeable {
      *
      * @return the string result
      */
-    public static String generatePluginsValue() {
-        StringBuilder builder = new StringBuilder(MinecraftServer.getBrandName())
+    public static String generatePluginsValue(MinecraftServer minecraftServer) {
+        StringBuilder builder = new StringBuilder(minecraftServer.getBrandName())
                 .append(' ')
                 .append(MinecraftServer.VERSION_NAME);
 

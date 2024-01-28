@@ -22,7 +22,7 @@ public class ChunkViewerIntegrationTest {
         if (sharedInstance) {
             // Chunks get their viewers from the instance
             // Ensuring that the system works with shared instances is therefore important
-            var manager = env.process().instance();
+            var manager = env.process().getInstanceManager();
             instance = manager.createSharedInstance((InstanceContainer) instance);
         }
 

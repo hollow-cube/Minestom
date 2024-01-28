@@ -200,7 +200,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         final ServerProcess process = MinecraftServer.process();
         if (process != null) {
-            this.eventNode = process.eventHandler().map(this, EventFilter.ENTITY);
+            this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.ENTITY);
         } else {
             // Local nodes require a server process
             this.eventNode = null;

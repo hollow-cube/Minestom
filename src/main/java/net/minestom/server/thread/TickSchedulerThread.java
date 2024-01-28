@@ -26,7 +26,7 @@ public final class TickSchedulerThread extends MinestomThread {
             try {
                 serverProcess.ticker().tick(tickStart);
             } catch (Exception e) {
-                serverProcess.exception().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
             fixTickRate(tickNs);
         }

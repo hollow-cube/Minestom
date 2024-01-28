@@ -38,8 +38,8 @@ public record PluginMessagePacket(String channel, byte[] data) implements Server
      *
      * @return the current brand name packet
      */
-    public static @NotNull PluginMessagePacket getBrandPacket() {
-        final String brandName = MinecraftServer.getBrandName();
+    public static @NotNull PluginMessagePacket getBrandPacket(MinecraftServer minecraftServer) {
+        final String brandName = minecraftServer.getBrandName();
         final byte[] data = NetworkBuffer.makeArray(networkBuffer -> networkBuffer.write(STRING, brandName));
         return new PluginMessagePacket("minecraft:brand", data);
     }

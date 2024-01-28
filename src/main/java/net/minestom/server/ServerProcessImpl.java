@@ -70,10 +70,12 @@ final class ServerProcessImpl implements ServerProcess {
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private final MinecraftServer minecraftServer;
 
-    public ServerProcessImpl() throws IOException {
+    public ServerProcessImpl(MinecraftServer minecraftServer) throws IOException {
+        this.minecraftServer = minecraftServer;
         this.exception = new ExceptionManager();
-        this.connection = new ConnectionManager();
+        this.connection = new ConnectionManager(minecraftServer);
         this.packetListener = new PacketListenerManager();
         this.packetProcessor = new PacketProcessor(packetListener);
         this.instance = new InstanceManager();
@@ -96,92 +98,92 @@ final class ServerProcessImpl implements ServerProcess {
     }
 
     @Override
-    public @NotNull ConnectionManager connection() {
+    public @NotNull ConnectionManager getConnectionManager() {
         return connection;
     }
 
     @Override
-    public @NotNull InstanceManager instance() {
+    public @NotNull InstanceManager getInstanceManager() {
         return instance;
     }
 
     @Override
-    public @NotNull BlockManager block() {
+    public @NotNull BlockManager getBlockManager() {
         return block;
     }
 
     @Override
-    public @NotNull CommandManager command() {
+    public @NotNull CommandManager getCommandManager() {
         return command;
     }
 
     @Override
-    public @NotNull RecipeManager recipe() {
+    public @NotNull RecipeManager getRecipeManager() {
         return recipe;
     }
 
     @Override
-    public @NotNull TeamManager team() {
+    public @NotNull TeamManager getTeamManager() {
         return team;
     }
 
     @Override
-    public @NotNull GlobalEventHandler eventHandler() {
+    public @NotNull GlobalEventHandler getGlobalEventHandler() {
         return eventHandler;
     }
 
     @Override
-    public @NotNull SchedulerManager scheduler() {
+    public @NotNull SchedulerManager getSchedulerManager() {
         return scheduler;
     }
 
     @Override
-    public @NotNull BenchmarkManager benchmark() {
+    public @NotNull BenchmarkManager getBenchmarkManager() {
         return benchmark;
     }
 
     @Override
-    public @NotNull DimensionTypeManager dimension() {
+    public @NotNull DimensionTypeManager getDimensionTypeManager() {
         return dimension;
     }
 
     @Override
-    public @NotNull BiomeManager biome() {
+    public @NotNull BiomeManager getBiomeManager() {
         return biome;
     }
 
     @Override
-    public @NotNull AdvancementManager advancement() {
+    public @NotNull AdvancementManager getAdvancementManager() {
         return advancement;
     }
 
     @Override
-    public @NotNull BossBarManager bossBar() {
+    public @NotNull BossBarManager getBossBarManager() {
         return bossBar;
     }
 
     @Override
-    public @NotNull TagManager tag() {
+    public @NotNull TagManager getTagManager() {
         return tag;
     }
 
     @Override
-    public @NotNull ExceptionManager exception() {
+    public @NotNull ExceptionManager getExceptionManager() {
         return exception;
     }
 
     @Override
-    public @NotNull PacketListenerManager packetListener() {
+    public @NotNull PacketListenerManager getPacketListenerManager() {
         return packetListener;
     }
 
     @Override
-    public @NotNull PacketProcessor packetProcessor() {
+    public @NotNull PacketProcessor getPacketProcessor() {
         return packetProcessor;
     }
 
     @Override
-    public @NotNull Server server() {
+    public @NotNull Server getServer() {
         return server;
     }
 
@@ -201,7 +203,7 @@ final class ServerProcessImpl implements ServerProcess {
             throw new IllegalStateException("Server already started");
         }
 
-        LOGGER.info("Starting " + MinecraftServer.getBrandName() + " server.");
+        LOGGER.info("Starting " + minecraftServer.getBrandName() + " server.");
 
         // Init server
         try {
@@ -214,7 +216,7 @@ final class ServerProcessImpl implements ServerProcess {
         // Start server
         server.start();
 
-        LOGGER.info(MinecraftServer.getBrandName() + " server started successfully.");
+        LOGGER.info(minecraftServer.getBrandName() + " server started successfully.");
 
         // Stop the server on SIGINT
         if (SHUTDOWN_ON_SIGNAL) Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
@@ -224,14 +226,14 @@ final class ServerProcessImpl implements ServerProcess {
     public void stop() {
         if (!stopped.compareAndSet(false, true))
             return;
-        LOGGER.info("Stopping " + MinecraftServer.getBrandName() + " server.");
+        LOGGER.info("Stopping " + minecraftServer.getBrandName() + " server.");
         scheduler.shutdown();
         connection.shutdown();
         server.stop();
         LOGGER.info("Shutting down all thread pools.");
         benchmark.disable();
         dispatcher.shutdown();
-        LOGGER.info(MinecraftServer.getBrandName() + " server stopped successfully.");
+        LOGGER.info(minecraftServer.getBrandName() + " server stopped successfully.");
     }
 
     @Override
@@ -257,10 +259,10 @@ final class ServerProcessImpl implements ServerProcess {
         public void tick(long nanoTime) {
             final long msTime = System.currentTimeMillis();
 
-            scheduler().processTick();
+            getSchedulerManager().processTick();
 
             // Connection tick (let waiting clients in, send keep alives, handle configuration players packets)
-            connection().tick(msTime);
+            getConnectionManager().tick(msTime);
 
             // Server tick (chunks/entities)
             serverTick(msTime);
@@ -269,7 +271,7 @@ final class ServerProcessImpl implements ServerProcess {
             PacketUtils.flush();
 
             // Server connection tick
-            server().tick();
+            getServer().tick();
 
             // Monitoring
             {
@@ -282,11 +284,11 @@ final class ServerProcessImpl implements ServerProcess {
 
         private void serverTick(long tickStart) {
             // Tick all instances
-            for (Instance instance : instance().getInstances()) {
+            for (Instance instance : getInstanceManager().getInstances()) {
                 try {
                     instance.tick(tickStart);
                 } catch (Exception e) {
-                    exception().handleException(e);
+                    getExceptionManager().handleException(e);
                 }
             }
             // Tick all chunks (and entities inside)

@@ -25,21 +25,23 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("minestom.experiment.pose-updates", "true");
 
-        MinecraftServer.setCompressionThreshold(0);
+        MinecraftServer minecraftServer = new MinecraftServer();
 
-        MinecraftServer minecraftServer = MinecraftServer.init();
+        minecraftServer.setCompressionThreshold(0);
 
-        BlockManager blockManager = MinecraftServer.getBlockManager();
+        minecraftServer.init();
+
+        BlockManager blockManager = minecraftServer.getBlockManager();
         blockManager.registerBlockPlacementRule(new DripstonePlacementRule());
         blockManager.registerHandler(TestBlockHandler.INSTANCE.getNamespaceId(), () -> TestBlockHandler.INSTANCE);
 
-        CommandManager commandManager = MinecraftServer.getCommandManager();
+        CommandManager commandManager = minecraftServer.getCommandManager();
         commandManager.register(new TestCommand());
         commandManager.register(new EntitySelectorCommand());
         commandManager.register(new HealthCommand());
         commandManager.register(new LegacyCommand());
         commandManager.register(new DimensionCommand());
-        commandManager.register(new ShutdownCommand());
+        commandManager.register(new ShutdownCommand(minecraftServer));
         commandManager.register(new TeleportCommand());
         commandManager.register(new PlayersCommand());
         commandManager.register(new FindCommand());
@@ -65,11 +67,11 @@ public class Main {
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
-        MinecraftServer.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
+        minecraftServer.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
 
-        MinecraftServer.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
+        minecraftServer.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
 
-        MinecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
+        minecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
             ResponseData responseData = event.getResponseData();
             responseData.addEntry(NamedAndIdentified.named("The first line is separated from the others"));
             responseData.addEntry(NamedAndIdentified.named("Could be a name, or a message"));
@@ -103,7 +105,7 @@ public class Main {
             //responseData.setPlayersHidden(true);
         });
 
-        PlayerInit.init();
+        new PlayerInit(minecraftServer).init();
 
 //        VelocityProxy.enable("abcdef");
         //BungeeCordProxy.enable();

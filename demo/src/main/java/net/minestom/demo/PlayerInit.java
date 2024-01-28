@@ -2,6 +2,7 @@ package net.minestom.demo;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.advancements.FrameType;
 import net.minestom.server.advancements.notifications.Notification;
 import net.minestom.server.advancements.notifications.NotificationCenter;
@@ -47,127 +48,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerInit {
 
-    private static final Inventory inventory;
+    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    private static final EventNode<Event> DEMO_NODE = EventNode.all("demo")
-            .addListener(EntityAttackEvent.class, event -> {
-                final Entity source = event.getEntity();
-                final Entity entity = event.getTarget();
-
-                entity.takeKnockback(0.4f, Math.sin(source.getPosition().yaw() * 0.017453292), -Math.cos(source.getPosition().yaw() * 0.017453292));
-
-                if (entity instanceof Player) {
-                    Player target = (Player) entity;
-                    target.damage(Damage.fromEntity(source, 5));
-                }
-
-                if (source instanceof Player) {
-                    ((Player) source).sendMessage("You attacked something!");
-                }
-            })
-            .addListener(PlayerDeathEvent.class, event -> event.setChatMessage(Component.text("custom death message")))
-            .addListener(PickupItemEvent.class, event -> {
-                final Entity entity = event.getLivingEntity();
-                if (entity instanceof Player) {
-                    // Cancel event if player does not have enough inventory space
-                    final ItemStack itemStack = event.getItemEntity().getItemStack();
-                    event.setCancelled(!((Player) entity).getInventory().addItemStack(itemStack));
-                }
-            })
-            .addListener(ItemDropEvent.class, event -> {
-                final Player player = event.getPlayer();
-                ItemStack droppedItem = event.getItemStack();
-
-                Pos playerPos = player.getPosition();
-                ItemEntity itemEntity = new ItemEntity(droppedItem);
-                itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
-                itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
-                Vec velocity = playerPos.direction().mul(6);
-                itemEntity.setVelocity(velocity);
-
-                FakePlayer.initPlayer(UUID.randomUUID(), "fake123", fp -> {
-                    System.out.println("fp = " + fp);
-                });
-            })
-            .addListener(PlayerDisconnectEvent.class, event -> System.out.println("DISCONNECTION " + event.getPlayer().getUsername()))
-            .addListener(AsyncPlayerConfigurationEvent.class, event -> {
-                final Player player = event.getPlayer();
-
-                var instances = MinecraftServer.getInstanceManager().getInstances();
-                Instance instance = instances.stream().skip(new Random().nextInt(instances.size())).findFirst().orElse(null);
-                event.setSpawningInstance(instance);
-                int x = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
-                int z = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
-                player.setRespawnPoint(new Pos(0, 40f, 0));
-            })
-            .addListener(PlayerSpawnEvent.class, event -> {
-                final Player player = event.getPlayer();
-                player.setGameMode(GameMode.CREATIVE);
-                player.setPermissionLevel(4);
-                ItemStack itemStack = ItemStack.builder(Material.STONE)
-                        .amount(64)
-                        .meta(itemMetaBuilder ->
-                                itemMetaBuilder.canPlaceOn(Set.of(Block.STONE))
-                                        .canDestroy(Set.of(Block.DIAMOND_ORE)))
-                        .build();
-                player.getInventory().addItemStack(itemStack);
-
-                ItemStack bundle = ItemStack.builder(Material.BUNDLE)
-                        .meta(BundleMeta.class, bundleMetaBuilder -> {
-                            bundleMetaBuilder.addItem(ItemStack.of(Material.DIAMOND, 5));
-                            bundleMetaBuilder.addItem(ItemStack.of(Material.RABBIT_FOOT, 5));
-                        })
-                        .build();
-                player.getInventory().addItemStack(bundle);
-
-                if (event.isFirstSpawn()) {
-                    Notification notification = new Notification(
-                            Component.text("Welcome!"),
-                            FrameType.TASK,
-                            Material.IRON_SWORD
-                    );
-                    NotificationCenter.send(notification, event.getPlayer());
-                }
-            })
-            .addListener(PlayerPacketOutEvent.class, event -> {
-                //System.out.println("out " + event.getPacket().getClass().getSimpleName());
-            })
-            .addListener(PlayerPacketEvent.class, event -> {
-                //System.out.println("in " + event.getPacket().getClass().getSimpleName());
-            })
-            .addListener(PlayerUseItemOnBlockEvent.class, event -> {
-                if (event.getHand() != Player.Hand.MAIN) return;
-
-                var itemStack = event.getItemStack();
-                var block = event.getInstance().getBlock(event.getPosition());
-
-                event.getPlayer().sendMessage("MESSAGE " + ThreadLocalRandom.current().nextDouble());
-
-                if ("false" .equals(block.getProperty("waterlogged")) && itemStack.material().equals(Material.WATER_BUCKET)) {
-                    block = block.withProperty("waterlogged", "true");
-                    System.out.println("SET WATERLOGGER");
-                } else if ("true" .equals(block.getProperty("waterlogged")) && itemStack.material().equals(Material.BUCKET)) {
-                    block = block.withProperty("waterlogged", "false");
-                    System.out.println("SET NOT WATERLOGGED");
-                } else return;
-
-                event.getInstance().setBlock(event.getPosition(), block);
-
-            })
-            .addListener(PlayerBlockPlaceEvent.class, event -> {
-//                event.setDoBlockUpdates(false);
-            })
-            .addListener(PlayerBlockInteractEvent.class, event -> {
-                var block = event.getBlock();
-                var rawOpenProp = block.getProperty("open");
-                if (rawOpenProp == null) return;
-
-                block = block.withProperty("open", String.valueOf(!Boolean.parseBoolean(rawOpenProp)));
-                event.getInstance().setBlock(event.getBlockPosition(), block);
-            });
-
-    static {
-        InstanceManager instanceManager = MinecraftServer.getInstanceManager();
+    public PlayerInit(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.serverProcess = minecraftServer.process();
+        InstanceManager instanceManager = serverProcess.getInstanceManager();
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
         instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
@@ -189,12 +76,133 @@ public class PlayerInit {
 
         inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
+
+        DEMO_NODE = EventNode.all("demo")
+                .addListener(EntityAttackEvent.class, event -> {
+                    final Entity source = event.getEntity();
+                    final Entity entity = event.getTarget();
+
+                    entity.takeKnockback(0.4f, Math.sin(source.getPosition().yaw() * 0.017453292), -Math.cos(source.getPosition().yaw() * 0.017453292));
+
+                    if (entity instanceof Player) {
+                        Player target = (Player) entity;
+                        target.damage(Damage.fromEntity(source, 5));
+                    }
+
+                    if (source instanceof Player) {
+                        ((Player) source).sendMessage("You attacked something!");
+                    }
+                })
+                .addListener(PlayerDeathEvent.class, event -> event.setChatMessage(Component.text("custom death message")))
+                .addListener(PickupItemEvent.class, event -> {
+                    final Entity entity = event.getLivingEntity();
+                    if (entity instanceof Player) {
+                        // Cancel event if player does not have enough inventory space
+                        final ItemStack itemStack = event.getItemEntity().getItemStack();
+                        event.setCancelled(!((Player) entity).getInventory().addItemStack(itemStack));
+                    }
+                })
+                .addListener(ItemDropEvent.class, event -> {
+                    final Player player = event.getPlayer();
+                    ItemStack droppedItem = event.getItemStack();
+
+                    Pos playerPos = player.getPosition();
+                    ItemEntity itemEntity = new ItemEntity(droppedItem);
+                    itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
+                    itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
+                    Vec velocity = playerPos.direction().mul(6);
+                    itemEntity.setVelocity(velocity);
+
+                    FakePlayer.initPlayer(minecraftServer, UUID.randomUUID(), "fake123", fp -> {
+                        System.out.println("fp = " + fp);
+                    });
+                })
+                .addListener(PlayerDisconnectEvent.class, event -> System.out.println("DISCONNECTION " + event.getPlayer().getUsername()))
+                .addListener(AsyncPlayerConfigurationEvent.class, event -> {
+                    final Player player = event.getPlayer();
+
+                    var instances = serverProcess.getInstanceManager().getInstances();
+                    Instance instance = instances.stream().skip(new Random().nextInt(instances.size())).findFirst().orElse(null);
+                    event.setSpawningInstance(instance);
+                    int x = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
+                    int z = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
+                    player.setRespawnPoint(new Pos(0, 40f, 0));
+                })
+                .addListener(PlayerSpawnEvent.class, event -> {
+                    final Player player = event.getPlayer();
+                    player.setGameMode(GameMode.CREATIVE);
+                    player.setPermissionLevel(4);
+                    ItemStack itemStack = ItemStack.builder(Material.STONE)
+                            .amount(64)
+                            .meta(itemMetaBuilder ->
+                                    itemMetaBuilder.canPlaceOn(Set.of(Block.STONE))
+                                            .canDestroy(Set.of(Block.DIAMOND_ORE)))
+                            .build();
+                    player.getInventory().addItemStack(itemStack);
+
+                    ItemStack bundle = ItemStack.builder(Material.BUNDLE)
+                            .meta(BundleMeta.class, bundleMetaBuilder -> {
+                                bundleMetaBuilder.addItem(ItemStack.of(Material.DIAMOND, 5));
+                                bundleMetaBuilder.addItem(ItemStack.of(Material.RABBIT_FOOT, 5));
+                            })
+                            .build();
+                    player.getInventory().addItemStack(bundle);
+
+                    if (event.isFirstSpawn()) {
+                        Notification notification = new Notification(
+                                Component.text("Welcome!"),
+                                FrameType.TASK,
+                                Material.IRON_SWORD
+                        );
+                        NotificationCenter.send(notification, event.getPlayer());
+                    }
+                })
+                .addListener(PlayerPacketOutEvent.class, event -> {
+                    //System.out.println("out " + event.getPacket().getClass().getSimpleName());
+                })
+                .addListener(PlayerPacketEvent.class, event -> {
+                    //System.out.println("in " + event.getPacket().getClass().getSimpleName());
+                })
+                .addListener(PlayerUseItemOnBlockEvent.class, event -> {
+                    if (event.getHand() != Player.Hand.MAIN) return;
+
+                    var itemStack = event.getItemStack();
+                    var block = event.getInstance().getBlock(event.getPosition());
+
+                    event.getPlayer().sendMessage("MESSAGE " + ThreadLocalRandom.current().nextDouble());
+
+                    if ("false" .equals(block.getProperty("waterlogged")) && itemStack.material().equals(Material.WATER_BUCKET)) {
+                        block = block.withProperty("waterlogged", "true");
+                        System.out.println("SET WATERLOGGER");
+                    } else if ("true" .equals(block.getProperty("waterlogged")) && itemStack.material().equals(Material.BUCKET)) {
+                        block = block.withProperty("waterlogged", "false");
+                        System.out.println("SET NOT WATERLOGGED");
+                    } else return;
+
+                    event.getInstance().setBlock(event.getPosition(), block);
+
+                })
+                .addListener(PlayerBlockPlaceEvent.class, event -> {
+//                event.setDoBlockUpdates(false);
+                })
+                .addListener(PlayerBlockInteractEvent.class, event -> {
+                    var block = event.getBlock();
+                    var rawOpenProp = block.getProperty("open");
+                    if (rawOpenProp == null) return;
+
+                    block = block.withProperty("open", String.valueOf(!Boolean.parseBoolean(rawOpenProp)));
+                    event.getInstance().setBlock(event.getBlockPosition(), block);
+                });
     }
 
-    private static final AtomicReference<TickMonitor> LAST_TICK = new AtomicReference<>();
+    private final Inventory inventory;
 
-    public static void init() {
-        var eventHandler = MinecraftServer.getGlobalEventHandler();
+    private final EventNode<Event> DEMO_NODE;
+
+    private final AtomicReference<TickMonitor> LAST_TICK = new AtomicReference<>();
+
+    public void init() {
+        var eventHandler = serverProcess.getGlobalEventHandler();
         eventHandler.addChild(DEMO_NODE);
 
         MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = true;
@@ -202,9 +210,9 @@ public class PlayerInit {
 
         eventHandler.addListener(ServerTickMonitorEvent.class, event -> LAST_TICK.set(event.getTickMonitor()));
 
-        BenchmarkManager benchmarkManager = MinecraftServer.getBenchmarkManager();
-        MinecraftServer.getSchedulerManager().buildTask(() -> {
-            if (MinecraftServer.getConnectionManager().getOnlinePlayerCount() != 0)
+        BenchmarkManager benchmarkManager = serverProcess.getBenchmarkManager();
+        serverProcess.getSchedulerManager().buildTask(() -> {
+            if (serverProcess.getConnectionManager().getOnlinePlayerCount() != 0)
                 return;
 
             long ramUsage = benchmarkManager.getUsedMemory();

@@ -3,6 +3,7 @@ package net.minestom.server.network;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.EventDispatcher;
@@ -45,6 +46,9 @@ import java.util.function.Function;
 public final class ConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
+    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
+
     private static final long KEEP_ALIVE_DELAY = 10_000;
     private static final long KEEP_ALIVE_KICK = 30_000;
     private static final Component TIMEOUT_TEXT = Component.text("Timeout", NamedTextColor.RED);
@@ -72,7 +76,15 @@ public final class ConnectionManager {
     // The uuid provider once a player login
     private volatile UuidProvider uuidProvider = (playerConnection, username) -> UUID.randomUUID();
     // The player provider to have your own Player implementation
-    private volatile PlayerProvider playerProvider = Player::new;
+    private final PlayerProvider defaultPlayerProvider;
+    private volatile PlayerProvider playerProvider;
+
+    public ConnectionManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.serverProcess = minecraftServer.process();
+        defaultPlayerProvider = (uuid, username, connection) -> new Player(minecraftServer, uuid, username, connection);
+        playerProvider = defaultPlayerProvider;
+    }
 
     /**
      * Gets the number of "online" players, eg for the query response.
@@ -198,7 +210,7 @@ public final class ConnectionManager {
      * @param playerProvider the new {@link PlayerProvider}, can be set to null to apply the default provider
      */
     public void setPlayerProvider(@Nullable PlayerProvider playerProvider) {
-        this.playerProvider = playerProvider != null ? playerProvider : Player::new;
+        this.playerProvider = playerProvider != null ? playerProvider : defaultPlayerProvider;
     }
 
     /**
@@ -220,7 +232,7 @@ public final class ConnectionManager {
 
             // Compression
             if (playerConnection instanceof PlayerSocketConnection socketConnection) {
-                final int threshold = MinecraftServer.getCompressionThreshold();
+                final int threshold = minecraftServer.getCompressionThreshold();
                 if (threshold > 0) socketConnection.startCompression();
             }
 
@@ -263,7 +275,7 @@ public final class ConnectionManager {
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
         CompletableFuture<Void> configFuture = AsyncUtils.runAsync(() -> {
-            player.sendPacket(PluginMessagePacket.getBrandPacket());
+            player.sendPacket(PluginMessagePacket.getBrandPacket(minecraftServer));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
             EventDispatcher.call(event);
@@ -275,8 +287,8 @@ public final class ConnectionManager {
             if (event.willSendRegistryData()) {
                 var registry = new HashMap<String, NBT>();
                 registry.put("minecraft:chat_type", Messenger.chatRegistry());
-                registry.put("minecraft:dimension_type", MinecraftServer.getDimensionTypeManager().toNBT());
-                registry.put("minecraft:worldgen/biome", MinecraftServer.getBiomeManager().toNBT());
+                registry.put("minecraft:dimension_type", serverProcess.getDimensionTypeManager().toNBT());
+                registry.put("minecraft:worldgen/biome", serverProcess.getBiomeManager().toNBT());
                 registry.put("minecraft:damage_type", DamageType.getNBT());
                 player.sendPacket(new RegistryDataPacket(NBT.Compound(registry)));
 

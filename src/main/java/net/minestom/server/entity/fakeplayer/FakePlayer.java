@@ -28,13 +28,13 @@ import java.util.function.Consumer;
  * (events, velocity, gravity, player list, etc...) with the exception that you need to control it server-side
  * using a {@link FakePlayerController} (see {@link #getController()}).
  * <p>
- * You can create one using {@link #initPlayer(UUID, String, Consumer)}. Be aware that this really behave exactly like a player
+ * You can create one using {@link #initPlayer(MinecraftServer, UUID, String, Consumer)}. Be aware that this really behave exactly like a player
  * and this is a feature not a bug, you will need to check at some place if the player is a fake one or not (instanceof) if you want to change it.
  */
 public class FakePlayer extends Player implements NavigableEntity {
 
-    private static final ConnectionManager CONNECTION_MANAGER = MinecraftServer.getConnectionManager();
-    private static final PacketListenerManager PACKET_LISTENER_MANAGER = MinecraftServer.getPacketListenerManager();
+    private final ConnectionManager connectionManager;
+    private final PacketListenerManager packetListenerManager;
 
     private final FakePlayerOption option;
     private final FakePlayerController fakePlayerController;
@@ -50,10 +50,12 @@ public class FakePlayer extends Player implements NavigableEntity {
      * @param username The username for the fake player.
      * @param option   Any option for the fake player.
      */
-    protected FakePlayer(@NotNull UUID uuid, @NotNull String username,
+    protected FakePlayer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username,
                          @NotNull FakePlayerOption option,
                          @Nullable Consumer<FakePlayer> spawnCallback) {
-        super(uuid, username, new FakePlayerConnection());
+        super(minecraftServer, uuid, username, new FakePlayerConnection());
+        this.connectionManager = serverProcess.getConnectionManager();
+        this.packetListenerManager = serverProcess.getPacketListenerManager();
 
         this.option = option;
 
@@ -66,16 +68,16 @@ public class FakePlayer extends Player implements NavigableEntity {
                         if (event.getPlayer().equals(this))
                             if (event.isFirstSpawn()) {
                                 spawnCallback.accept(this);
-                                MinecraftServer.getGlobalEventHandler().removeListener(spawnListener);
+                                serverProcess.getGlobalEventHandler().removeListener(spawnListener);
                             }
                     }).build();
-            MinecraftServer.getGlobalEventHandler().addListener(spawnListener);
+            serverProcess.getGlobalEventHandler().addListener(spawnListener);
         }
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
-        CONNECTION_MANAGER.transitionLoginToConfig(this).thenRun(() -> {
+        connectionManager.transitionLoginToConfig(this).thenRun(() -> {
             // Need to immediately reply with login acknowledged for the player to enter config.
-            PACKET_LISTENER_MANAGER.processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
+            packetListenerManager.processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
         });
     }
 
@@ -86,23 +88,23 @@ public class FakePlayer extends Player implements NavigableEntity {
      * @param username      the FakePlayer username
      * @param spawnCallback the optional callback called when the fake player first spawn
      */
-    public static void initPlayer(@NotNull UUID uuid, @NotNull String username,
+    public static void initPlayer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username,
                                   @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
-        new FakePlayer(uuid, username, option, spawnCallback);
+        new FakePlayer(minecraftServer, uuid, username, option, spawnCallback);
     }
 
     /**
      * Initializes a new {@link FakePlayer} without adding it in cache.
      * <p>
      * If you want the fake player to be obtainable with the {@link net.minestom.server.network.ConnectionManager}
-     * you need to specify it in a {@link FakePlayerOption} and use {@link #initPlayer(UUID, String, FakePlayerOption, Consumer)}.
+     * you need to specify it in a {@link FakePlayerOption} and use {@link #initPlayer(MinecraftServer, UUID, String, FakePlayerOption, Consumer)}.
      *
      * @param uuid          the FakePlayer uuid
      * @param username      the FakePlayer username
      * @param spawnCallback the optional callback called when the fake player first spawn
      */
-    public static void initPlayer(@NotNull UUID uuid, @NotNull String username, @Nullable Consumer<FakePlayer> spawnCallback) {
-        initPlayer(uuid, username, new FakePlayerOption(), spawnCallback);
+    public static void initPlayer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username, @Nullable Consumer<FakePlayer> spawnCallback) {
+        initPlayer(minecraftServer, uuid, username, new FakePlayerOption(), spawnCallback);
     }
 
     /**
@@ -164,7 +166,7 @@ public class FakePlayer extends Player implements NavigableEntity {
     private void handleTabList(PlayerConnection connection) {
         if (!option.isInTabList()) {
             // Remove from tab-list
-            MinecraftServer.getSchedulerManager().buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.SERVER_TICK).schedule();
+            serverProcess.getSchedulerManager().buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.SERVER_TICK).schedule();
         }
     }
 }

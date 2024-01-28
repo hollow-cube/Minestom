@@ -37,7 +37,7 @@ public @interface EnvTest {
         @Override
         public Env resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
                 throws ParameterResolutionException {
-            return new EnvImpl(MinecraftServer.updateProcess());
+            return new EnvImpl(new MinecraftServer().updateProcess());
         }
     }
 }
