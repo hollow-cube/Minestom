@@ -1,6 +1,5 @@
 package net.minestom.demo.commands;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -20,12 +19,12 @@ public class SaveCommand extends Command {
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        for(var instance : MinecraftServer.getInstanceManager().getInstances()) {
+        for(var instance : commandSender.getMinecraftServer().process().getInstanceManager().getInstances()) {
             CompletableFuture<Void> instanceSave = instance.saveInstance().thenCompose(v -> instance.saveChunksToStorage());
             try {
                 instanceSave.get();
             } catch (InterruptedException | ExecutionException e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                commandSender.getMinecraftServer().process().getExceptionManager().handleException(e);
             }
         }
         commandSender.sendMessage("Saving done!");

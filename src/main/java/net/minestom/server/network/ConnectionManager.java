@@ -8,6 +8,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
+import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.packet.client.login.ClientLoginStartPacket;
@@ -81,10 +82,10 @@ public final class ConnectionManager {
     private final PlayerProvider defaultPlayerProvider;
     private volatile PlayerProvider playerProvider;
 
-    public ConnectionManager(MinecraftServer minecraftServer) {
+    public ConnectionManager(MinecraftServer minecraftServer, TagManager tagManager) {
         this.minecraftServer = minecraftServer;
         this.serverProcess = minecraftServer.process();
-        this.defaultTags = new CachedPacket(minecraftServer, new TagsPacket(serverProcess.getTagManager().getTagMap()));
+        this.defaultTags = new CachedPacket(minecraftServer, new TagsPacket(tagManager.getTagMap()));
         defaultPlayerProvider = (uuid, username, connection) -> new Player(minecraftServer, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }

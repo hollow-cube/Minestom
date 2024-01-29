@@ -10,14 +10,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class DimensionCommand extends Command {
 
-    public DimensionCommand() {
+    public DimensionCommand(MinecraftServer minecraftServer) {
         super("dimensiontest");
         setCondition(Conditions::playerOnly);
 
         addSyntax((sender, context) -> {
             final Player player = (Player) sender;
             final Instance instance = player.getInstance();
-            final var instances = MinecraftServer.getInstanceManager().getInstances().stream().filter(instance1 -> !instance1.equals(instance)).toList();
+            final var instances = minecraftServer.process().getInstanceManager().getInstances().stream().filter(instance1 -> !instance1.equals(instance)).toList();
             if (instances.isEmpty()) {
                 player.sendMessage("No instance available");
                 return;

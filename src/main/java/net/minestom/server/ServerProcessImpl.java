@@ -76,9 +76,9 @@ final class ServerProcessImpl implements ServerProcess {
     private final MojangAuth mojangAuth;
 
     public ServerProcessImpl(MinecraftServer minecraftServer) throws IOException {
+        minecraftServer.serverProcess = this;
         this.minecraftServer = minecraftServer;
         this.exceptionManager = new ExceptionManager(minecraftServer);
-        this.connectionManager = new ConnectionManager(minecraftServer);
         this.packetListenerManager = new PacketListenerManager(minecraftServer);
         this.packetProcessor = new PacketProcessor(packetListenerManager);
         this.instanceManager = new InstanceManager(minecraftServer);
@@ -94,9 +94,10 @@ final class ServerProcessImpl implements ServerProcess {
         this.advancementManager = new AdvancementManager(minecraftServer);
         this.bossBarManager = new BossBarManager(minecraftServer);
         this.tagManager = new TagManager();
+        this.connectionManager = new ConnectionManager(minecraftServer, tagManager);
         this.server = new Server(minecraftServer, packetProcessor);
-        this.audiences = new Audiences(minecraftServer);
         this.mojangAuth = new MojangAuth(minecraftServer);
+        this.audiences = new Audiences(minecraftServer);
 
         this.dispatcher = ThreadDispatcher.singleThread(minecraftServer);
         this.ticker = new TickerImpl();

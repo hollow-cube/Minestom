@@ -7,10 +7,10 @@ import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.condition.Conditions;
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
+import net.minestom.server.entity.EntityProjectile;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.projectile.ArrowMeta;
-import net.minestom.server.entity.EntityProjectile;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,13 +39,13 @@ public class ShootCommand extends Command {
         EntityProjectile projectile;
         switch (mode) {
             case "default":
-                projectile = new EntityProjectile(player, EntityType.ARROW);
+                projectile = new EntityProjectile(player.getMinecraftServer(), player, EntityType.ARROW);
                 break;
             case "spectral":
-                projectile = new EntityProjectile(player, EntityType.SPECTRAL_ARROW);
+                projectile = new EntityProjectile(player.getMinecraftServer(), player, EntityType.SPECTRAL_ARROW);
                 break;
             case "colored":
-                projectile = new EntityProjectile(player, EntityType.ARROW);
+                projectile = new EntityProjectile(player.getMinecraftServer(), player, EntityType.ARROW);
                 var meta = (ArrowMeta) projectile.getEntityMeta();
                 meta.setColor(ThreadLocalRandom.current().nextInt());
                 break;

@@ -1,7 +1,6 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -26,7 +25,7 @@ public class TeleportCommand extends Command {
 
     private void onPlayerTeleport(CommandSender sender, CommandContext context) {
         final String playerName = context.get("player");
-        Player pl = MinecraftServer.getConnectionManager().getOnlinePlayerByUsername(playerName);
+        Player pl = sender.getMinecraftServer().process().getConnectionManager().getOnlinePlayerByUsername(playerName);
         if (sender instanceof Player player) {
             player.teleport(pl.getPosition());
         }

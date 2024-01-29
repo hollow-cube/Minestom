@@ -41,7 +41,7 @@ public final class MinecraftServer {
     public static final int TICK_MS = 1000 / TICK_PER_SECOND;
 
     // In-Game Manager
-    private volatile ServerProcess serverProcess;
+    volatile ServerProcess serverProcess;
 
     private int chunkViewDistance = Integer.getInteger("minestom.chunk-view-distance", 8);
     private int entityViewDistance = Integer.getInteger("minestom.entity-view-distance", 5);
@@ -59,7 +59,6 @@ public final class MinecraftServer {
         ServerProcess process;
         try {
             process = new ServerProcessImpl(this);
-            serverProcess = process;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

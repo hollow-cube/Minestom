@@ -59,7 +59,7 @@ public class HorseCommand extends Command {
         boolean baby = context.get("baby");
         HorseMeta.Marking marking = context.get("marking");
         HorseMeta.Color color = context.get("color");
-        var horse = new EntityCreature(EntityType.HORSE);
+        var horse = new EntityCreature(sender.getMinecraftServer(), EntityType.HORSE);
         var meta = (HorseMeta) horse.getEntityMeta();
         meta.setBaby(baby);
         meta.setVariant(new HorseMeta.Variant(marking, color));

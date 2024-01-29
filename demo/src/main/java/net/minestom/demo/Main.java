@@ -40,7 +40,7 @@ public class Main {
         commandManager.register(new EntitySelectorCommand());
         commandManager.register(new HealthCommand());
         commandManager.register(new LegacyCommand());
-        commandManager.register(new DimensionCommand());
+        commandManager.register(new DimensionCommand(minecraftServer));
         commandManager.register(new ShutdownCommand(minecraftServer));
         commandManager.register(new TeleportCommand());
         commandManager.register(new PlayersCommand());
