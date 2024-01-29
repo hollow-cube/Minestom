@@ -178,7 +178,7 @@ public class CombinedAttackGoal extends GoalSelector {
 
                     Function<Entity, EntityProjectile> projectileGenerator = this.projectileGenerator;
                     if (projectileGenerator == null) {
-                        projectileGenerator = shooter -> new EntityProjectile(shooter, EntityType.ARROW);
+                        projectileGenerator = shooter -> new EntityProjectile(shooter.minecraftServer, shooter, EntityType.ARROW);
                     }
                     EntityProjectile projectile = projectileGenerator.apply(this.entityCreature);
                     projectile.setInstance(this.entityCreature.getInstance(), this.entityCreature.getPosition());

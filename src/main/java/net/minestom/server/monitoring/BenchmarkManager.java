@@ -52,6 +52,11 @@ public final class BenchmarkManager {
     private boolean enabled = false;
     private volatile boolean stop = false;
     private long time;
+    private final MinecraftServer minecraftServer;
+
+    public BenchmarkManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
 
     public void enable(@NotNull Duration duration) {
         Check.stateCondition(enabled, "A benchmark is already running, please disable it first.");
@@ -72,7 +77,7 @@ public final class BenchmarkManager {
                 try {
                     Thread.sleep(time);
                 } catch (InterruptedException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    minecraftServer.process().getExceptionManager().handleException(e);
                 }
             }
             stop = false;

@@ -14,11 +14,17 @@ import java.util.function.Predicate;
  */
 class SingleAudienceProvider implements AudienceProvider<Audience> {
 
-    protected final IterableAudienceProvider collection = new IterableAudienceProvider();
-    protected final Audience players = PacketGroupingAudience.of(MinecraftServer.getConnectionManager().getOnlinePlayers());
-    protected final Audience server = Audience.audience(this.players, MinecraftServer.getCommandManager().getConsoleSender());
+    protected final IterableAudienceProvider collection;
+    protected final Audience players;
+    protected final Audience server;
+    @NotNull
+    private final MinecraftServer minecraftServer;
 
-    protected SingleAudienceProvider() {
+    protected SingleAudienceProvider(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.collection = new IterableAudienceProvider(minecraftServer);
+        this.players = PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers());
+        this.server = Audience.audience(this.players, minecraftServer.process().getCommandManager().getConsoleSender());
     }
 
     /**
@@ -42,12 +48,12 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
 
     @Override
     public @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     @Override
     public @NotNull Audience console() {
-        return MinecraftServer.getCommandManager().getConsoleSender();
+        return minecraftServer.process().getCommandManager().getConsoleSender();
     }
 
     @Override

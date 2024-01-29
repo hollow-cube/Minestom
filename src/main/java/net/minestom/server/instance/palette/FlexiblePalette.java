@@ -19,6 +19,7 @@ import static net.minestom.server.network.NetworkBuffer.*;
 final class FlexiblePalette implements SpecializedPalette, Cloneable {
     private static final ThreadLocal<int[]> WRITE_CACHE = ThreadLocal.withInitial(() -> new int[4096]);
 
+    private final MinecraftServer minecraftServer;
     // Specific to this palette type
     private final AdaptivePalette adaptivePalette;
     private byte bitsPerEntry;
@@ -30,7 +31,8 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
     // value = palette index
     private Int2IntOpenHashMap valueToPaletteMap;
 
-    FlexiblePalette(AdaptivePalette adaptivePalette, byte bitsPerEntry) {
+    FlexiblePalette(MinecraftServer minecraftServer, AdaptivePalette adaptivePalette, byte bitsPerEntry) {
+        this.minecraftServer = minecraftServer;
         this.adaptivePalette = adaptivePalette;
 
         this.bitsPerEntry = bitsPerEntry;
@@ -45,8 +47,8 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
         this.values = new long[(maxSize() + valuesPerLong - 1) / valuesPerLong];
     }
 
-    FlexiblePalette(AdaptivePalette adaptivePalette) {
-        this(adaptivePalette, adaptivePalette.defaultBitsPerEntry);
+    FlexiblePalette(MinecraftServer minecraftServer, AdaptivePalette adaptivePalette) {
+        this(minecraftServer, adaptivePalette, adaptivePalette.defaultBitsPerEntry);
     }
 
     @Override
@@ -203,7 +205,7 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
             palette.count = count;
             return palette;
         } catch (CloneNotSupportedException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            minecraftServer.process().getExceptionManager().handleException(e);
             throw new IllegalStateException("Weird thing happened");
         }
     }
@@ -268,7 +270,7 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
 
     void resize(byte newBitsPerEntry) {
         newBitsPerEntry = newBitsPerEntry > maxBitsPerEntry() ? 15 : newBitsPerEntry;
-        FlexiblePalette palette = new FlexiblePalette(adaptivePalette, newBitsPerEntry);
+        FlexiblePalette palette = new FlexiblePalette(minecraftServer, adaptivePalette, newBitsPerEntry);
         palette.paletteToValueList = paletteToValueList;
         palette.valueToPaletteMap = valueToPaletteMap;
         getAll(palette::set);

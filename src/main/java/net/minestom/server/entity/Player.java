@@ -23,7 +23,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.advancements.AdvancementTab;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.adventure.Localizable;
-import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.command.CommandSender;
@@ -320,7 +319,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         minecraftServer.process().getGlobalEventHandler().call(skinInitEvent);
         this.skin = skinInitEvent.getSkin();
         // FIXME: when using Geyser, this line remove the skin of the client
-        PacketUtils.broadcastPlayPacket(getAddPlayerToList());
+        PacketUtils.broadcastPlayPacket(minecraftServer, getAddPlayerToList());
 
         var connectionManager = minecraftServer.process().getConnectionManager();
         for (var player : connectionManager.getOnlinePlayers()) {
@@ -496,7 +495,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
             // #buildDeathMessage can return null, check here
             if (chatMessage != null) {
-                Audiences.players().sendMessage(chatMessage);
+                minecraftServer.process().getAudiences().players().sendMessage(chatMessage);
             }
 
             // Set death location
@@ -598,7 +597,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Clear all viewable chunks
         ChunkUtils.forChunksInRange(chunkX, chunkZ, minecraftServer.getChunkViewDistance(), chunkRemover);
         // Remove from the tab-list
-        PacketUtils.broadcastPlayPacket(getRemovePlayerToList());
+        PacketUtils.broadcastPlayPacket(minecraftServer, getRemovePlayerToList());
 
         // Prevent the player from being stuck in loading screen, or just unable to interact with the server
         // This should be considered as a bug, since the player will ultimately time out anyway.
@@ -1142,7 +1141,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public void setDisplayName(@Nullable Component displayName) {
         this.displayName = displayName;
-        PacketUtils.broadcastPlayPacket(new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
+        PacketUtils.broadcastPlayPacket(minecraftServer, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
     }
 
     /**
@@ -1184,11 +1183,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         {
             // Remove player
-            PacketUtils.broadcastPlayPacket(removePlayerPacket);
+            PacketUtils.broadcastPlayPacket(minecraftServer, removePlayerPacket);
             sendPacketToViewers(destroyEntitiesPacket);
 
             // Show player again
-            PacketUtils.broadcastPlayPacket(addPlayerPacket);
+            PacketUtils.broadcastPlayPacket(minecraftServer, addPlayerPacket);
             getViewers().forEach(player -> showPlayer(player.getPlayerConnection()));
         }
 
@@ -1566,7 +1565,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Condition to prevent sending the packets before spawning the player
         if (isActive()) {
             sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.CHANGE_GAMEMODE, gameMode.id()));
-            PacketUtils.broadcastPlayPacket(new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
+            PacketUtils.broadcastPlayPacket(minecraftServer, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
         }
 
         // The client updates their abilities based on the GameMode as follows
@@ -2067,7 +2066,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public void refreshLatency(int latency) {
         this.latency = latency;
         if (getPlayerConnection().getConnectionState() == ConnectionState.PLAY) {
-            PacketUtils.broadcastPlayPacket(new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
+            PacketUtils.broadcastPlayPacket(minecraftServer, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
         }
     }
 
@@ -2339,6 +2338,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     @Override
     public Player asPlayer() {
         return this;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     protected void sendChunkUpdates(Chunk newChunk) {

@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.instance.Instance;
@@ -17,7 +16,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 final class EntityView {
-    private static final int RANGE = MinecraftServer.getEntityViewDistance();
     private final Entity entity;
     private final Set<Player> manualViewers = new HashSet<>();
 
@@ -230,7 +228,7 @@ final class EntityView {
             final Point point = trackedLocation.point();
 
             Int2ObjectOpenHashMap<T> entityMap = new Int2ObjectOpenHashMap<>(lastSize);
-            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, RANGE, target,
+            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, entity.minecraftServer.getEntityViewDistance(), target,
                     (entity) -> entityMap.putIfAbsent(entity.getEntityId(), entity));
             this.lastSize = entityMap.size();
             return entityMap.values();

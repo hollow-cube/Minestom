@@ -58,7 +58,7 @@ public interface IChunkLoader {
      * @return a {@link CompletableFuture} executed when the {@link Chunk} is done saving,
      * should be called even if the saving failed (you can throw an exception).
      */
-    default @NotNull CompletableFuture<Void> saveChunks(@NotNull Collection<Chunk> chunks) {
+    default @NotNull CompletableFuture<Void> saveChunks(MinecraftServer minecraftServer, @NotNull Collection<Chunk> chunks) {
         if (supportsParallelSaving()) {
             ExecutorService parallelSavingThreadPool = ForkJoinPool.commonPool();
             chunks.forEach(c -> parallelSavingThreadPool.execute(() -> saveChunk(c)));
@@ -66,7 +66,7 @@ public interface IChunkLoader {
                 parallelSavingThreadPool.shutdown();
                 parallelSavingThreadPool.awaitTermination(1L, java.util.concurrent.TimeUnit.DAYS);
             } catch (InterruptedException e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                minecraftServer.process().getExceptionManager().handleException(e);
             }
             return AsyncUtils.VOID_FUTURE;
         } else {

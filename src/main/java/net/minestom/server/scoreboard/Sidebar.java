@@ -3,6 +3,7 @@ package net.minestom.server.scoreboard;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.play.*;
@@ -48,17 +49,18 @@ public class Sidebar implements Scoreboard {
 
     private final String objectiveName;
 
+    private final MinecraftServer minecraftServer;
     private Component title;
 
     /**
      * Creates a new sidebar
      *
      * @param title The title of the sidebar
-     * @deprecated Use {@link #Sidebar(Component)}
+     * @deprecated Use {@link #Sidebar(MinecraftServer, Component)}
      */
     @Deprecated
-    public Sidebar(@NotNull String title) {
-        this(Component.text(title));
+    public Sidebar(MinecraftServer minecraftServer, @NotNull String title) {
+        this(minecraftServer, Component.text(title));
     }
 
     /**
@@ -66,7 +68,8 @@ public class Sidebar implements Scoreboard {
      *
      * @param title The title of the sidebar
      */
-    public Sidebar(@NotNull Component title) {
+    public Sidebar(MinecraftServer minecraftServer, @NotNull Component title) {
+        this.minecraftServer = minecraftServer;
         this.title = title;
 
         this.objectiveName = SCOREBOARD_PREFIX + COUNTER.incrementAndGet();
@@ -239,6 +242,11 @@ public class Sidebar implements Scoreboard {
     @Override
     public @NotNull String getObjectiveName() {
         return this.objectiveName;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     /**

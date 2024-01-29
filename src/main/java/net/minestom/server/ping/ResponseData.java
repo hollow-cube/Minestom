@@ -7,8 +7,6 @@ import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
-import net.minestom.server.network.ConnectionManager;
-import net.minestom.server.network.ConnectionState;
 import net.minestom.server.utils.identity.NamedAndIdentified;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +21,8 @@ public class ResponseData {
     private static final Component DEFAULT_DESCRIPTION = Component.text("Minestom Server");
 
     private final List<NamedAndIdentified> entries;
+    @NotNull
+    private final MinecraftServer minecraftServer;
 
     private String version;
     private int protocol;
@@ -35,11 +35,12 @@ public class ResponseData {
     /**
      * Constructs a new {@link ResponseData}.
      */
-    public ResponseData() {
+    public ResponseData(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         this.entries = new ArrayList<>();
         this.version = MinecraftServer.VERSION_NAME;
         this.protocol = MinecraftServer.PROTOCOL_VERSION;
-        this.online = MinecraftServer.getConnectionManager().getOnlinePlayerCount();
+        this.online = minecraftServer.process().getConnectionManager().getOnlinePlayerCount();
         this.maxPlayer = this.online + 1;
         this.description = DEFAULT_DESCRIPTION;
         this.favicon = "";
@@ -324,6 +325,10 @@ public class ResponseData {
     @Deprecated
     public @NotNull JsonObject build() {
         return ServerListPingType.getModernPingResponse(this, true);
+    }
+
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     /**

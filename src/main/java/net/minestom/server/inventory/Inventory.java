@@ -392,4 +392,9 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
         player.getInventory().update();
         update(player);
     }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
 }

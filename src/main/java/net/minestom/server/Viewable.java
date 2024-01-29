@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Represents something which can be displayed or hidden to players.
  */
-public interface Viewable {
+public interface Viewable extends MinecraftServerObject {
 
     /**
      * Adds a viewer.
@@ -60,7 +60,7 @@ public interface Viewable {
      */
     default void sendPacketToViewers(@NotNull SendablePacket packet) {
         if (packet instanceof ServerPacket serverPacket) {
-            PacketUtils.sendGroupedPacket(getViewers(), serverPacket);
+            PacketUtils.sendGroupedPacket(getMinecraftServer(), getViewers(), serverPacket);
         } else {
             getViewers().forEach(player -> player.sendPacket(packet));
         }
@@ -91,7 +91,7 @@ public interface Viewable {
      * @return the audience
      */
     default @NotNull Audience getViewersAsAudience() {
-        return PacketGroupingAudience.of(this.getViewers());
+        return PacketGroupingAudience.of(getMinecraftServer(), this.getViewers());
     }
 
     /**

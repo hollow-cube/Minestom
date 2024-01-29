@@ -70,7 +70,7 @@ public final class PacketListenerManager {
         setPlayListener(ClientPongPacket.class, WindowListener::pong);
         setPlayListener(ClientEntityActionPacket.class, EntityActionListener::listener);
         setPlayListener(ClientHeldItemChangePacket.class, PlayerHeldListener::heldListener);
-        setPlayListener(ClientPlayerBlockPlacementPacket.class, (packet1, player1) -> new BlockPlacementListener(minecraftServer).listener(packet1, player1));
+        setPlayListener(ClientPlayerBlockPlacementPacket.class, BlockPlacementListener::listener);
         setPlayListener(ClientSteerVehiclePacket.class, PlayerVehicleListener::steerVehicleListener);
         setPlayListener(ClientVehicleMovePacket.class, PlayerVehicleListener::vehicleMoveListener);
         setPlayListener(ClientSteerBoatPacket.class, PlayerVehicleListener::boatSteerListener);

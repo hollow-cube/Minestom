@@ -1,6 +1,7 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
@@ -13,19 +14,21 @@ import java.util.Collections;
 import java.util.List;
 
 public class VillagerInventory extends Inventory {
-    private final CachedPacket tradeCache = new CachedPacket(this::createTradePacket);
+    private final CachedPacket tradeCache;
     private final List<TradeListPacket.Trade> trades = new ArrayList<>();
     private int villagerLevel;
     private int experience;
     private boolean regularVillager;
     private boolean canRestock;
 
-    public VillagerInventory(@NotNull Component title) {
-        super(InventoryType.MERCHANT, title);
+    public VillagerInventory(MinecraftServer minecraftServer, @NotNull Component title) {
+        super(minecraftServer, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(minecraftServer, this::createTradePacket);
     }
 
-    public VillagerInventory(@NotNull String title) {
-        super(InventoryType.MERCHANT, title);
+    public VillagerInventory(MinecraftServer minecraftServer, @NotNull String title) {
+        super(minecraftServer, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(minecraftServer, this::createTradePacket);
     }
 
     public List<TradeListPacket.Trade> getTrades() {

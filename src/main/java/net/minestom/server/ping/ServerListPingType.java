@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import net.minestom.server.utils.identity.NamedAndIdentified;
@@ -44,7 +43,7 @@ public enum ServerListPingType {
      * Only the description formatted as a legacy string is sent.
      * Ping events with this ping version are <b>not</b> cancellable.
      */
-    OPEN_TO_LAN(ServerListPingType::getOpenToLANPing);
+    OPEN_TO_LAN(data -> getOpenToLANPing(data));
 
     private final Function<ResponseData, String> pingResponseCreator;
 
@@ -75,7 +74,7 @@ public enum ServerListPingType {
      * @see OpenToLAN
      */
     public static @NotNull String getOpenToLANPing(@NotNull ResponseData data) {
-        return String.format(LAN_PING_FORMAT, SECTION.serialize(data.getDescription()), MinecraftServer.getServer().getPort());
+        return String.format(LAN_PING_FORMAT, SECTION.serialize(data.getDescription()), data.getMinecraftServer().process().getServer().getPort());
     }
 
     /**

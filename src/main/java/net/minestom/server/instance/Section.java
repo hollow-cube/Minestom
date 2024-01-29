@@ -1,5 +1,6 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.instance.light.Light;
 import net.minestom.server.instance.palette.Palette;
 import net.minestom.server.network.NetworkBuffer;
@@ -27,8 +28,8 @@ public final class Section implements NetworkBuffer.Writer {
         this.blockLight = blockLight;
     }
 
-    public Section() {
-        this(Palette.blocks(), Palette.biomes());
+    public Section(MinecraftServer minecraftServer) {
+        this(Palette.blocks(minecraftServer), Palette.biomes(minecraftServer));
     }
 
     public Palette blockPalette() {

@@ -75,12 +75,15 @@ public class Team implements PacketGroupingAudience {
     // Adventure
     private final Pointers pointers;
 
+    private final MinecraftServer minecraftServer;
+
     /**
      * Default constructor to creates a team.
      *
      * @param teamName The registry name for the team
      */
-    protected Team(@NotNull String teamName) {
+    protected Team(MinecraftServer minecraftServer, @NotNull String teamName) {
+        this.minecraftServer = minecraftServer;
         this.teamName = teamName;
 
         this.teamDisplayName = Component.empty();
@@ -128,7 +131,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket addPlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.AddEntitiesToTeamAction(toAdd));
         // Sends to all online players the add player packet
-        PacketUtils.broadcastPlayPacket(addPlayerPacket);
+        PacketUtils.broadcastPlayPacket(minecraftServer, addPlayerPacket);
 
         // invalidate player members
         this.isPlayerMembersUpToDate = false;
@@ -159,7 +162,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket removePlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.RemoveEntitiesToTeamAction(toRemove));
         // Sends to all online player the remove player packet
-        PacketUtils.broadcastPlayPacket(removePlayerPacket);
+        PacketUtils.broadcastPlayPacket(minecraftServer, removePlayerPacket);
 
         // Removes the member from the team
         this.members.removeAll(toRemove);
@@ -463,7 +466,7 @@ public class Team implements PacketGroupingAudience {
     public void sendUpdatePacket() {
         final var info = new TeamsPacket.UpdateTeamAction(teamDisplayName, friendlyFlags,
                 nameTagVisibility, collisionRule, teamColor, prefix, suffix);
-        PacketUtils.broadcastPlayPacket(new TeamsPacket(teamName, info));
+        PacketUtils.broadcastPlayPacket(minecraftServer, new TeamsPacket(teamName, info));
     }
 
     @Override
@@ -472,7 +475,7 @@ public class Team implements PacketGroupingAudience {
             this.playerMembers.clear();
 
             for (String member : this.members) {
-                Player player = MinecraftServer.getConnectionManager().getOnlinePlayerByUsername(member);
+                Player player = minecraftServer.process().getConnectionManager().getOnlinePlayerByUsername(member);
 
                 if (player != null) {
                     this.playerMembers.add(player);
@@ -488,5 +491,10 @@ public class Team implements PacketGroupingAudience {
     @Override
     public @NotNull Pointers pointers() {
         return this.pointers;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 }

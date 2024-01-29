@@ -1,5 +1,6 @@
 package net.minestom.server.thread;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.utils.async.AsyncUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -112,9 +113,9 @@ public sealed interface Acquirable<T> permits AcquirableImpl {
      * @param consumer the callback to execute once the element has been safely acquired
      * @see #sync(Consumer)
      */
-    default void async(@NotNull Consumer<T> consumer) {
+    default void async(MinecraftServer minecraftServer, @NotNull Consumer<T> consumer) {
         // TODO per-thread list
-        AsyncUtils.runAsync(() -> sync(consumer));
+        AsyncUtils.runAsync(minecraftServer, () -> sync(consumer));
     }
 
     /**

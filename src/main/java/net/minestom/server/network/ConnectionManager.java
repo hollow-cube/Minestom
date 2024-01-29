@@ -11,6 +11,7 @@ import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.packet.client.login.ClientLoginStartPacket;
+import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.common.KeepAlivePacket;
 import net.minestom.server.network.packet.server.common.PluginMessagePacket;
 import net.minestom.server.network.packet.server.common.TagsPacket;
@@ -44,6 +45,8 @@ import java.util.function.Function;
  */
 public final class ConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
+
+    public final CachedPacket defaultTags;
 
     private final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
@@ -81,6 +84,7 @@ public final class ConnectionManager {
     public ConnectionManager(MinecraftServer minecraftServer) {
         this.minecraftServer = minecraftServer;
         this.serverProcess = minecraftServer.process();
+        this.defaultTags = new CachedPacket(minecraftServer, new TagsPacket(serverProcess.getTagManager().getTagMap()));
         defaultPlayerProvider = (uuid, username, connection) -> new Player(minecraftServer, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }
@@ -226,7 +230,7 @@ public final class ConnectionManager {
 
     @ApiStatus.Internal
     public @NotNull CompletableFuture<Void> transitionLoginToConfig(@NotNull Player player) {
-        return AsyncUtils.runAsync(() -> {
+        return AsyncUtils.runAsync(minecraftServer, () -> {
             final PlayerConnection playerConnection = player.getPlayerConnection();
 
             // Compression
@@ -273,7 +277,7 @@ public final class ConnectionManager {
         }
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
-        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(() -> {
+        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(minecraftServer, () -> {
             player.sendPacket(PluginMessagePacket.getBrandPacket(minecraftServer));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
@@ -291,7 +295,7 @@ public final class ConnectionManager {
                 registry.put("minecraft:damage_type", DamageType.getNBT());
                 player.sendPacket(new RegistryDataPacket(NBT.Compound(registry)));
 
-                player.sendPacket(TagsPacket.DEFAULT_TAGS);
+                player.sendPacket(defaultTags);
             }
 
             // Wait for pending resource packs if any

@@ -1,5 +1,6 @@
 package net.minestom.server.thread;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
 import org.jctools.queues.MessagePassingQueue;
@@ -30,20 +31,20 @@ public final class ThreadDispatcher<P> {
     // Requests consumed at the end of each tick
     private final MessagePassingQueue<DispatchUpdate<P>> updates = new MpscUnboundedArrayQueue<>(1024);
 
-    private ThreadDispatcher(ThreadProvider<P> provider, int threadCount) {
+    private ThreadDispatcher(MinecraftServer minecraftServer, ThreadProvider<P> provider, int threadCount) {
         this.provider = provider;
         TickThread[] threads = new TickThread[threadCount];
-        Arrays.setAll(threads, TickThread::new);
+        Arrays.setAll(threads, (i) -> new TickThread(minecraftServer, i));
         this.threads = List.of(threads);
         this.threads.forEach(Thread::start);
     }
 
-    public static <P> @NotNull ThreadDispatcher<P> of(@NotNull ThreadProvider<P> provider, int threadCount) {
-        return new ThreadDispatcher<>(provider, threadCount);
+    public static <P> @NotNull ThreadDispatcher<P> of(MinecraftServer minecraftServer,@NotNull ThreadProvider<P> provider, int threadCount) {
+        return new ThreadDispatcher<>(minecraftServer, provider, threadCount);
     }
 
-    public static <P> @NotNull ThreadDispatcher<P> singleThread() {
-        return of(ThreadProvider.counter(), 1);
+    public static <P> @NotNull ThreadDispatcher<P> singleThread(MinecraftServer minecraftServer) {
+        return of(minecraftServer, ThreadProvider.counter(), 1);
     }
 
     @Unmodifiable

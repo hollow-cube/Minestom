@@ -1,10 +1,12 @@
 package net.minestom.server;
 
 import net.minestom.server.advancements.AdvancementManager;
+import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.exception.ExceptionManager;
+import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceManager;
@@ -137,6 +139,10 @@ public interface ServerProcess extends Snapshotable {
     void stop();
 
     boolean isAlive();
+
+    Audiences getAudiences();
+
+    MojangAuth getMojangAuth();
 
     @ApiStatus.NonExtendable
     interface Ticker {

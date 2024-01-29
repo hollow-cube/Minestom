@@ -1,13 +1,11 @@
 package net.minestom.server.command;
 
-import java.util.UUID;
-
 import net.kyori.adventure.audience.MessageType;
-import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +26,12 @@ public class ConsoleSender implements CommandSender {
     private final Pointers pointers = Pointers.builder()
             .withStatic(Identity.UUID, this.identity.uuid())
             .build();
+
+    private final MinecraftServer minecraftServer;
+
+    public ConsoleSender(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
 
     @Override
     public void sendMessage(@NotNull String message) {
@@ -53,6 +57,11 @@ public class ConsoleSender implements CommandSender {
     @Override
     public ConsoleSender asConsole() {
         return this;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     @Override

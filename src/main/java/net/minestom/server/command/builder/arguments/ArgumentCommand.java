@@ -1,6 +1,5 @@
 package net.minestom.server.command.builder.arguments;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
@@ -26,7 +25,7 @@ public class ArgumentCommand extends Argument<CommandResult> {
         final String commandString = !shortcut.isEmpty() ?
                 shortcut + StringUtils.SPACE + input
                 : input;
-        CommandDispatcher dispatcher = MinecraftServer.getCommandManager().getDispatcher();
+        CommandDispatcher dispatcher = sender.getMinecraftServer().process().getCommandManager().getDispatcher();
         CommandResult result = dispatcher.parse(sender, commandString);
 
         if (onlyCorrect && result.getType() != CommandResult.Type.SUCCESS)

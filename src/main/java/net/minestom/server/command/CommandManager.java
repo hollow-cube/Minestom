@@ -27,8 +27,8 @@ public final class CommandManager {
 
     public static final String COMMAND_PREFIX = "/";
 
-    private final ServerSender serverSender = new ServerSender();
-    private final ConsoleSender consoleSender = new ConsoleSender();
+    private final ServerSender serverSender;
+    private final ConsoleSender consoleSender;
     private final CommandParser parser = CommandParser.parser();
     private final CommandDispatcher dispatcher = new CommandDispatcher(this);
     private final Map<String, Command> commandMap = new HashMap<>();
@@ -39,6 +39,8 @@ public final class CommandManager {
 
     public CommandManager(MinecraftServer minecraftServer) {
         this.minecraftServer = minecraftServer;
+        this.serverSender = new ServerSender(minecraftServer);
+        this.consoleSender = new ConsoleSender(minecraftServer);
     }
 
     /**

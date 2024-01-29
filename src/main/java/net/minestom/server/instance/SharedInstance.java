@@ -1,5 +1,6 @@
 package net.minestom.server.instance;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.block.Block;
@@ -21,8 +22,8 @@ import java.util.concurrent.CompletableFuture;
 public class SharedInstance extends Instance {
     private final InstanceContainer instanceContainer;
 
-    public SharedInstance(@NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
-        super(uniqueId, instanceContainer.getDimensionType());
+    public SharedInstance(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
+        super(minecraftServer, uniqueId, instanceContainer.getDimensionType());
         this.instanceContainer = instanceContainer;
     }
 

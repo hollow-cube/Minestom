@@ -21,7 +21,7 @@ public sealed interface ServerSnapshot extends Snapshot
     @UnknownNullability EntitySnapshot entity(int id);
 
     @ApiStatus.Experimental
-    static ServerSnapshot update() {
-        return SnapshotUpdater.update(MinecraftServer.process());
+    static ServerSnapshot update(MinecraftServer minecraftServer) {
+        return SnapshotUpdater.update(minecraftServer.process());
     }
 }

@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.utils.url.URLUtils;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,6 @@ public final class MojangUtils {
                 }
                 return jsonObject;
             } catch (IOException e) {
-                MinecraftServer.getExceptionManager().handleException(e);
                 throw new RuntimeException(e);
             }
         });

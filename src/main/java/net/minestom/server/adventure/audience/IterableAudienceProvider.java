@@ -18,10 +18,13 @@ import java.util.stream.StreamSupport;
  * A provider of iterable audiences.
  */
 class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Audience>> {
-    private final List<ConsoleSender> console = List.of(MinecraftServer.getCommandManager().getConsoleSender());
+    private final List<ConsoleSender> console;
     private final AudienceRegistry registry = new AudienceRegistry(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new);
+    private final MinecraftServer minecraftServer;
 
-    protected IterableAudienceProvider() {
+    protected IterableAudienceProvider(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.console = List.of(minecraftServer.process().getCommandManager().getConsoleSender());
     }
 
     @Override
@@ -35,12 +38,12 @@ class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Au
 
     @Override
     public @NotNull Iterable<? extends Audience> players() {
-        return MinecraftServer.getConnectionManager().getOnlinePlayers();
+        return minecraftServer.process().getConnectionManager().getOnlinePlayers();
     }
 
     @Override
     public @NotNull Iterable<? extends Audience> players(@NotNull Predicate<Player> filter) {
-        return MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
+        return minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
     }
 
     @Override

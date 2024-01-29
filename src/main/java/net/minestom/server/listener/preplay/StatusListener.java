@@ -14,7 +14,7 @@ public final class StatusListener {
 
     public static void requestListener(@NotNull StatusRequestPacket packet, @NotNull PlayerConnection connection) {
         final ServerListPingType pingVersion = ServerListPingType.fromModernProtocolVersion(connection.getProtocolVersion());
-        final ServerListPingEvent statusRequestEvent = new ServerListPingEvent(connection, pingVersion);
+        final ServerListPingEvent statusRequestEvent = new ServerListPingEvent(connection.minecraftServer, connection, pingVersion);
         connection.minecraftServer.process().getGlobalEventHandler().callCancellable(statusRequestEvent, () ->
                 connection.sendPacket(new ResponsePacket(pingVersion.getPingResponse(statusRequestEvent.getResponseData()))));
     }

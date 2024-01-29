@@ -75,7 +75,8 @@ public final class SnapshotImpl {
         }
     }
 
-    public record Chunk(int minSection, int chunkX, int chunkZ,
+    public record Chunk(MinecraftServer minecraftServer,
+                        int minSection, int chunkX, int chunkZ,
                         Section[] sections,
                         Int2ObjectOpenHashMap<Block> blockEntries,
                         int[] entitiesIds,
@@ -103,7 +104,7 @@ public final class SnapshotImpl {
             final Section section = sections[getChunkCoordinate(y) - minSection];
             final int id = section.biomePalette()
                     .get(toSectionRelativeCoordinate(x) / 4, toSectionRelativeCoordinate(y) / 4, toSectionRelativeCoordinate(z) / 4);
-            return MinecraftServer.getBiomeManager().getById(id);
+            return minecraftServer.process().getBiomeManager().getById(id);
         }
 
         @Override

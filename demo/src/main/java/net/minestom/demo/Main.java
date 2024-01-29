@@ -63,7 +63,7 @@ public class Main {
         commandManager.register(new NotificationCommand());
         commandManager.register(new TestCommand2());
         commandManager.register(new ConfigCommand());
-        commandManager.register(new SidebarCommand());
+        commandManager.register(new SidebarCommand(minecraftServer));
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 

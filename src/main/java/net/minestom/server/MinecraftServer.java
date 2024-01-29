@@ -1,31 +1,13 @@
 package net.minestom.server;
 
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.advancements.AdvancementManager;
-import net.minestom.server.adventure.bossbar.BossBarManager;
-import net.minestom.server.command.CommandManager;
-import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.exception.ExceptionManager;
-import net.minestom.server.gamedata.tags.TagManager;
-import net.minestom.server.instance.InstanceManager;
-import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.listener.manager.PacketListenerManager;
-import net.minestom.server.monitoring.BenchmarkManager;
-import net.minestom.server.network.ConnectionManager;
-import net.minestom.server.network.PacketProcessor;
 import net.minestom.server.network.packet.server.common.PluginMessagePacket;
 import net.minestom.server.network.packet.server.play.ServerDifficultyPacket;
-import net.minestom.server.network.socket.Server;
-import net.minestom.server.recipe.RecipeManager;
-import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.thread.TickSchedulerThread;
-import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.Difficulty;
-import net.minestom.server.world.DimensionTypeManager;
-import net.minestom.server.world.biomes.BiomeManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
@@ -102,7 +84,7 @@ public final class MinecraftServer {
      */
     public void setBrandName(@NotNull String brandName) {
         this.brandName = brandName;
-        PacketUtils.broadcastPlayPacket(PluginMessagePacket.getBrandPacket(this));
+        PacketUtils.broadcastPlayPacket(this, PluginMessagePacket.getBrandPacket(this));
     }
 
     /**
@@ -122,7 +104,7 @@ public final class MinecraftServer {
      */
     public void setDifficulty(@NotNull Difficulty difficulty) {
         this.difficulty = difficulty;
-        PacketUtils.broadcastPlayPacket(new ServerDifficultyPacket(difficulty, true));
+        PacketUtils.broadcastPlayPacket(this, new ServerDifficultyPacket(difficulty, true));
     }
 
     @ApiStatus.Experimental

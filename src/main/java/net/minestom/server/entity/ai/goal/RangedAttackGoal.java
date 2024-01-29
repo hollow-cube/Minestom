@@ -84,7 +84,7 @@ public class RangedAttackGoal extends GoalSelector {
 
     private ProjectileGenerator getProjectileGeneratorOrDefault() {
         if (projectileGenerator == null) {
-            setProjectileGenerator(shooter -> new EntityProjectile(shooter, EntityType.ARROW));
+            setProjectileGenerator(shooter -> new EntityProjectile(shooter.minecraftServer, shooter, EntityType.ARROW));
         }
         return projectileGenerator;
     }

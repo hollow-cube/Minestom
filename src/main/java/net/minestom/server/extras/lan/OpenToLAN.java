@@ -106,7 +106,7 @@ public class OpenToLAN {
     private void ping() {
         if (!minecraftServer.process().getServer().isOpen()) return;
         if (packet == null || eventCooldown.isReady(System.currentTimeMillis())) {
-            final ServerListPingEvent event = new ServerListPingEvent(OPEN_TO_LAN);
+            final ServerListPingEvent event = new ServerListPingEvent(minecraftServer, OPEN_TO_LAN);
             minecraftServer.process().getGlobalEventHandler().call(event);
 
             final byte[] data = OPEN_TO_LAN.getPingResponse(event.getResponseData()).getBytes(StandardCharsets.UTF_8);

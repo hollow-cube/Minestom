@@ -2,6 +2,7 @@ package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.utils.PacketUtils;
@@ -22,11 +23,13 @@ public final class TeamManager {
      * Represents all registered teams
      */
     private final Set<Team> teams;
+    private final MinecraftServer minecraftServer;
 
     /**
      * Default constructor
      */
-    public TeamManager() {
+    public TeamManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         this.teams = new CopyOnWriteArraySet<>();
     }
 
@@ -37,7 +40,7 @@ public final class TeamManager {
      */
     protected void registerNewTeam(@NotNull Team team) {
         this.teams.add(team);
-        PacketUtils.broadcastPlayPacket(team.createTeamsCreationPacket());
+        PacketUtils.broadcastPlayPacket(minecraftServer, team.createTeamsCreationPacket());
     }
 
     /**
@@ -60,7 +63,7 @@ public final class TeamManager {
      */
     public boolean deleteTeam(@NotNull Team team) {
         // Sends to all online players a team destroy packet
-        PacketUtils.broadcastPlayPacket(team.createTeamDestructionPacket());
+        PacketUtils.broadcastPlayPacket(minecraftServer, team.createTeamDestructionPacket());
         return this.teams.remove(team);
     }
 
@@ -71,7 +74,7 @@ public final class TeamManager {
      * @return the team builder
      */
     public TeamBuilder createBuilder(@NotNull String name) {
-        return new TeamBuilder(name, this);
+        return new TeamBuilder(minecraftServer, name, this);
     }
 
     /**

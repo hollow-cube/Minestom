@@ -53,7 +53,7 @@ import static net.minestom.server.utils.chunk.ChunkUtils.*;
 public class InstanceContainer extends Instance {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceContainer.class);
 
-    private final MinecraftServer minecraftServer;
+    public final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
 
     private static final BlockFace[] BLOCK_UPDATE_FACES = new BlockFace[]{
@@ -102,7 +102,7 @@ public class InstanceContainer extends Instance {
     @ApiStatus.Experimental
     public InstanceContainer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
         super(minecraftServer, uniqueId, dimensionType, dimensionName);
-        setChunkSupplier(DynamicChunk::new);
+        setChunkSupplier((instance, chunkX, chunkZ) -> new DynamicChunk(instance, chunkX, chunkZ));
         setChunkLoader(Objects.requireNonNullElseGet(loader, () -> new AnvilLoader(minecraftServer, "world")));
         this.chunkLoader.loadInstance(this);
         this.minecraftServer = minecraftServer;
@@ -230,7 +230,7 @@ public class InstanceContainer extends Instance {
             UNSAFE_setBlock(chunk, x, y, z, resultBlock, null,
                     new BlockHandler.PlayerDestroy(block, this, blockPosition, player), doBlockUpdates, 0);
             // Send the block break effect packet
-            PacketUtils.sendGroupedPacket(chunk.getViewers(),
+            PacketUtils.sendGroupedPacket(minecraftServer, chunk.getViewers(),
                     new EffectPacket(2001 /*Block break + block break sound*/, blockPosition, block.stateId(), false),
                     // Prevent the block breaker to play the particles and sound two times
                     (viewer) -> !viewer.equals(player));
@@ -284,7 +284,7 @@ public class InstanceContainer extends Instance {
 
     @Override
     public @NotNull CompletableFuture<Void> saveChunksToStorage() {
-        return chunkLoader.saveChunks(getChunks());
+        return chunkLoader.saveChunks(minecraftServer, getChunks());
     }
 
     protected @NotNull CompletableFuture<@NotNull Chunk> retrieveChunk(int chunkX, int chunkZ) {

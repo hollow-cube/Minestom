@@ -2,7 +2,6 @@ package net.minestom.server.registry;
 
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.stream.JsonReader;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.collision.CollisionUtils;
 import net.minestom.server.collision.Shape;
@@ -69,7 +68,7 @@ public final class Registry {
                 reader.endObject();
             }
         } catch (IOException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            throw new RuntimeException(e);
         }
         return map;
     }

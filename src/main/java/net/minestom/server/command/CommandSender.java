@@ -3,6 +3,7 @@ package net.minestom.server.command;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.permission.PermissionHandler;
 import net.minestom.server.tag.Taggable;
@@ -82,4 +83,6 @@ public interface CommandSender extends PermissionHandler, Audience, Taggable, Id
     default ConsoleSender asConsole() {
         throw new ClassCastException("CommandSender is not the ConsoleSender");
     }
+
+    MinecraftServer getMinecraftServer();
 }

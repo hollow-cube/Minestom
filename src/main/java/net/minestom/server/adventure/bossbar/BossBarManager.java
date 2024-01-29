@@ -23,16 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see Audience#hideBossBar(BossBar)
  */
 public class BossBarManager {
-    private final BossBarListener listener = new BossBarListener(this);
+    private final BossBarListener listener;
     private final Map<UUID, Set<BossBarHolder>> playerBars = new ConcurrentHashMap<>();
     final Map<BossBar, BossBarHolder> bars = new ConcurrentHashMap<>();
+    private final MinecraftServer minecraftServer;
 
     /**
      * Creates a new boss bar manager.
-     *
-     * @see MinecraftServer#getBossBarManager()
      */
-    public BossBarManager() {
+    public BossBarManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.listener = new BossBarListener(minecraftServer,this);
     }
 
     /**
@@ -75,7 +76,7 @@ public class BossBarManager {
         BossBarHolder holder = this.getOrCreateHandler(bar);
         Collection<Player> addedPlayers = players.stream().filter(holder::addViewer).toList();
         if (!addedPlayers.isEmpty()) {
-            PacketUtils.sendGroupedPacket(addedPlayers, holder.createAddPacket());
+            PacketUtils.sendGroupedPacket(minecraftServer, addedPlayers, holder.createAddPacket());
         }
     }
 
@@ -90,7 +91,7 @@ public class BossBarManager {
         if (holder != null) {
             Collection<Player> removedPlayers = players.stream().filter(holder::removeViewer).toList();
             if (!removedPlayers.isEmpty()) {
-                PacketUtils.sendGroupedPacket(removedPlayers, holder.createRemovePacket());
+                PacketUtils.sendGroupedPacket(minecraftServer, removedPlayers, holder.createRemovePacket());
             }
         }
     }
@@ -103,7 +104,7 @@ public class BossBarManager {
     public void destroyBossBar(@NotNull BossBar bossBar) {
         BossBarHolder holder = this.bars.remove(bossBar);
         if (holder != null) {
-            PacketUtils.sendGroupedPacket(holder.players, holder.createRemovePacket());
+            PacketUtils.sendGroupedPacket(minecraftServer, holder.players, holder.createRemovePacket());
             for (Player player : holder.players) {
                 this.removePlayer(player, holder);
             }
@@ -158,7 +159,7 @@ public class BossBarManager {
      */
     private @NotNull BossBarHolder getOrCreateHandler(@NotNull BossBar bar) {
         return this.bars.computeIfAbsent(bar, bossBar -> {
-            BossBarHolder holder = new BossBarHolder(bossBar);
+            BossBarHolder holder = new BossBarHolder(minecraftServer, bossBar);
             bossBar.addListener(this.listener);
             return holder;
         });

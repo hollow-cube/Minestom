@@ -23,8 +23,8 @@ public class PlayerProjectile extends LivingEntity {
     private final Entity shooter;
     private long cooldown = 0;
 
-    public PlayerProjectile(Entity shooter, EntityType type) {
-        super(type);
+    public PlayerProjectile(MinecraftServer minecraftServer, Entity shooter, EntityType type) {
+        super(minecraftServer, type);
         this.shooter = shooter;
         this.hasCollision = false;
         setup();
@@ -50,7 +50,7 @@ public class PlayerProjectile extends LivingEntity {
         // Check if we're inside of a block
         if (insideBlock != null) {
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(spawnPosition), instance.getBlock(spawnPosition));
-            MinecraftServer.getGlobalEventHandler().call(e);
+            minecraftServer.process().getGlobalEventHandler().call(e);
         }
 
         return res;
@@ -148,7 +148,7 @@ public class PlayerProjectile extends LivingEntity {
         if (collided != null && collided.collisionShapes()[0] != shooter) {
             if (collided.collisionShapes()[0] instanceof Entity entity) {
                 var e = new ProjectileCollideWithEntityEvent(this, collided.newPosition(), entity);
-                MinecraftServer.getGlobalEventHandler().call(e);
+                minecraftServer.process().getGlobalEventHandler().call(e);
                 return;
             }
         }
@@ -172,7 +172,7 @@ public class PlayerProjectile extends LivingEntity {
             if (hitBlock == null) return;
 
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(hitPoint), hitBlock);
-            MinecraftServer.getGlobalEventHandler().call(e);
+            minecraftServer.process().getGlobalEventHandler().call(e);
         }
     }
 }

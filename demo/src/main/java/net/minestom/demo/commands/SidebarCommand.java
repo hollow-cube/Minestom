@@ -3,6 +3,7 @@ package net.minestom.demo.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -14,11 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SidebarCommand extends Command {
-    private final Sidebar sidebar = new Sidebar(Component.text("DEMO").decorate(TextDecoration.BOLD));
+    private final Sidebar sidebar;
     private int currentLine = 0;
 
-    public SidebarCommand() {
+    public SidebarCommand(MinecraftServer minecraftServer) {
         super("sidebar");
+
+        sidebar = new Sidebar(minecraftServer, Component.text("DEMO").decorate(TextDecoration.BOLD));
 
         addLine("BLANK ", Sidebar.NumberFormat.blank());
         addLine("STYLE ", Sidebar.NumberFormat.styled(Component.empty().decorate(TextDecoration.STRIKETHROUGH).color(NamedTextColor.GRAY)));

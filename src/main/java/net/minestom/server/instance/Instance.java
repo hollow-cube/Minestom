@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.MinecraftServerObject;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.Tickable;
 import net.minestom.server.adventure.audience.PacketGroupingAudience;
@@ -64,9 +65,9 @@ import java.util.stream.Collectors;
  * you need to be sure to signal the {@link ThreadDispatcher} of every partition/element changes.
  */
 public abstract class Instance implements Block.Getter, Block.Setter,
-        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
+        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience, MinecraftServerObject {
 
-    private final MinecraftServer minecraftServer;
+    public final MinecraftServer minecraftServer;
     private boolean registered;
 
     private final DimensionType dimensionType;
@@ -450,7 +451,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      */
     public void setTime(long time) {
         this.time = time;
-        PacketUtils.sendGroupedPacket(getPlayers(), createTimePacket());
+        PacketUtils.sendGroupedPacket(minecraftServer, getPlayers(), createTimePacket());
     }
 
     /**
@@ -665,7 +666,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             this.time += timeRate;
             // time needs to be sent to players
             if (timeUpdate != null && !Cooldown.hasCooldown(time, lastTimeUpdate, timeUpdate)) {
-                PacketUtils.sendGroupedPacket(getPlayers(), createTimePacket());
+                PacketUtils.sendGroupedPacket(minecraftServer, getPlayers(), createTimePacket());
                 this.lastTimeUpdate = time;
             }
 
@@ -770,5 +771,10 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     @Override
     public @NotNull Pointers pointers() {
         return this.pointers;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 }

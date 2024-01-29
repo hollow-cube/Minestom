@@ -51,7 +51,7 @@ public class ChatMessageListener {
             final Collection<Player> recipients = playerChatEvent.getRecipients();
             if (!recipients.isEmpty()) {
                 // delegate to the messenger to avoid sending messages we shouldn't be
-                Messenger.sendMessage(recipients, textObject, ChatPosition.CHAT, player.getUuid());
+                Messenger.sendMessage(player.getMinecraftServer(), recipients, textObject, ChatPosition.CHAT, player.getUuid());
             }
         });
     }

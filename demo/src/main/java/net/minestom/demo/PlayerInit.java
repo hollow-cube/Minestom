@@ -74,10 +74,10 @@ public class PlayerInit {
         //     System.out.println("load end");
         // });
 
-        inventory = new Inventory(InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
+        inventory = new Inventory(minecraftServer, InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
 
-        DEMO_NODE = EventNode.all("demo")
+        DEMO_NODE = EventNode.all(minecraftServer, "demo")
                 .addListener(EntityAttackEvent.class, event -> {
                     final Entity source = event.getEntity();
                     final Entity entity = event.getTarget();
@@ -107,7 +107,7 @@ public class PlayerInit {
                     ItemStack droppedItem = event.getItemStack();
 
                     Pos playerPos = player.getPosition();
-                    ItemEntity itemEntity = new ItemEntity(droppedItem);
+                    ItemEntity itemEntity = new ItemEntity(minecraftServer, droppedItem);
                     itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
                     itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
                     Vec velocity = playerPos.direction().mul(6);

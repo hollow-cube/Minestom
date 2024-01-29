@@ -9,6 +9,11 @@ import org.jetbrains.annotations.Nullable;
 public final class ExceptionManager {
 
     private ExceptionHandler exceptionHandler;
+    private final MinecraftServer minecraftServer;
+
+    public ExceptionManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
 
     /**
      * Handles an exception, if no {@link ExceptionHandler} is set, it just prints the stack trace.
@@ -19,7 +24,7 @@ public final class ExceptionManager {
         if (e instanceof OutOfMemoryError) {
             // OOM should be handled manually
             e.printStackTrace();
-            MinecraftServer.stopCleanly();
+            minecraftServer.stopCleanly();
             return;
         }
         this.getExceptionHandler().handleException(e);

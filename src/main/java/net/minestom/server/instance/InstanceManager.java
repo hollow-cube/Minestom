@@ -102,7 +102,7 @@ public final class InstanceManager {
         Check.notNull(instanceContainer, "Instance container cannot be null when creating a SharedInstance!");
         Check.stateCondition(!instanceContainer.isRegistered(), "The container needs to be register in the InstanceManager");
 
-        final SharedInstance sharedInstance = new SharedInstance(UUID.randomUUID(), instanceContainer);
+        final SharedInstance sharedInstance = new SharedInstance(instanceContainer.minecraftServer, UUID.randomUUID(), instanceContainer);
         return registerSharedInstance(sharedInstance);
     }
 

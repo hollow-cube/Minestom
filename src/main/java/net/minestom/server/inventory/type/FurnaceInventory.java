@@ -1,6 +1,7 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryProperty;
 import net.minestom.server.inventory.InventoryType;
@@ -13,12 +14,12 @@ public class FurnaceInventory extends Inventory {
     private short progressArrow;
     private short maximumProgress;
 
-    public FurnaceInventory(@NotNull Component title) {
-        super(InventoryType.FURNACE, title);
+    public FurnaceInventory(MinecraftServer minecraftServer, @NotNull Component title) {
+        super(minecraftServer, InventoryType.FURNACE, title);
     }
 
-    public FurnaceInventory(@NotNull String title) {
-        super(InventoryType.FURNACE, title);
+    public FurnaceInventory(MinecraftServer minecraftServer, @NotNull String title) {
+        super(minecraftServer, InventoryType.FURNACE, title);
     }
 
     /**

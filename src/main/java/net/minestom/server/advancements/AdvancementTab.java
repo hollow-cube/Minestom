@@ -1,5 +1,6 @@
 package net.minestom.server.advancements;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.Viewable;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.AdvancementsPacket;
@@ -25,6 +26,7 @@ public class AdvancementTab implements Viewable {
 
     private final Set<Player> viewers = new HashSet<>();
 
+    private final MinecraftServer minecraftServer;
     private final AdvancementRoot root;
 
     // Advancement -> its parent
@@ -34,7 +36,8 @@ public class AdvancementTab implements Viewable {
     // will never change (since the root identifier is always the same)
     protected final AdvancementsPacket removePacket;
 
-    protected AdvancementTab(@NotNull String rootIdentifier, @NotNull AdvancementRoot root) {
+    protected AdvancementTab(MinecraftServer minecraftServer, @NotNull String rootIdentifier, @NotNull AdvancementRoot root) {
+        this.minecraftServer = minecraftServer;
         this.root = root;
         cacheAdvancement(rootIdentifier, root, null);
         this.removePacket = new AdvancementsPacket(false, List.of(), List.of(rootIdentifier), List.of());
@@ -165,4 +168,8 @@ public class AdvancementTab implements Viewable {
         }
     }
 
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
 }

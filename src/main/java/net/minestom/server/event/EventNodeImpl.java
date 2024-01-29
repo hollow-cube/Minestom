@@ -30,6 +30,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     final Map<Object, EventNodeImpl<T>> registeredMappedNode = Caffeine.newBuilder()
             .weakKeys().weakValues().<Object, EventNodeImpl<T>>build().asMap();
 
+    private final MinecraftServer minecraftServer;
     final String name;
     final EventFilter<T, ?> filter;
     final BiPredicate<T, Object> predicate;
@@ -37,9 +38,11 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     volatile int priority;
     volatile EventNodeImpl<? super T> parent;
 
-    EventNodeImpl(@NotNull String name,
+    EventNodeImpl(@NotNull MinecraftServer minecraftServer,
+                  @NotNull String name,
                   @NotNull EventFilter<T, ?> filter,
                   @Nullable BiPredicate<T, Object> predicate) {
+        this.minecraftServer = minecraftServer;
         this.name = name;
         this.filter = filter;
         this.predicate = predicate;
@@ -156,7 +159,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     public @NotNull <E extends T, H> EventNode<E> map(@NotNull H value, @NotNull EventFilter<E, H> filter) {
         EventNodeImpl<E> node;
         synchronized (GLOBAL_CHILD_LOCK) {
-            node = new EventNodeLazyImpl<>(this, value, filter);
+            node = new EventNodeLazyImpl<>(minecraftServer,this, value, filter);
             Check.stateCondition(node.parent != null, "Node already has a parent");
             Check.stateCondition(Objects.equals(parent, node), "Cannot map to self");
             EventNodeImpl<T> previous = this.mappedNodeCache.putIfAbsent(value, (EventNodeImpl<T>) node);
@@ -326,7 +329,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
             try {
                 listener.accept(event);
             } catch (Throwable e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                minecraftServer.process().getExceptionManager().handleException(e);
             }
         }
 

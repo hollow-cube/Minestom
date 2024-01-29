@@ -138,7 +138,8 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void setEncryptionKey(@NotNull SecretKey secretKey) {
         Check.stateCondition(encryptionContext != null, "Encryption is already enabled!");
-        this.encryptionContext = new EncryptionContext(MojangCrypt.getCipher(1, secretKey), MojangCrypt.getCipher(2, secretKey));
+        MojangCrypt mojangCrypt = minecraftServer.process().getMojangAuth().getMojangCrypt();
+        this.encryptionContext = new EncryptionContext(mojangCrypt.getCipher(1, secretKey), mojangCrypt.getCipher(2, secretKey));
     }
 
     /**
@@ -369,7 +370,7 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(getConnectionState(), hold.get(), serverPacket, compressed);
+            var buffer = PacketUtils.createFramedPacket(minecraftServer, getConnectionState(), hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
         }
     }

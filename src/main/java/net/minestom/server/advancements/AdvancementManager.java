@@ -1,5 +1,6 @@
 package net.minestom.server.advancements;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,11 @@ public class AdvancementManager {
 
     // root identifier = its advancement tab
     private final Map<String, AdvancementTab> advancementTabMap = new ConcurrentHashMap<>();
+    private final MinecraftServer minecraftServer;
+
+    public AdvancementManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
 
     /**
      * Creates a new {@link AdvancementTab} with a single {@link AdvancementRoot}.
@@ -30,7 +36,7 @@ public class AdvancementManager {
     public AdvancementTab createTab(@NotNull String rootIdentifier, @NotNull AdvancementRoot root) {
         Check.stateCondition(advancementTabMap.containsKey(rootIdentifier),
                 "A tab with the identifier '" + rootIdentifier + "' already exists");
-        final AdvancementTab advancementTab = new AdvancementTab(rootIdentifier, root);
+        final AdvancementTab advancementTab = new AdvancementTab(minecraftServer, rootIdentifier, root);
         this.advancementTabMap.put(rootIdentifier, advancementTab);
         return advancementTab;
     }

@@ -8,28 +8,39 @@ import org.jetbrains.annotations.Nullable;
 import java.security.KeyPair;
 
 public final class MojangAuth {
-    public static final String AUTH_URL = System.getProperty("minestom.auth.url", "https://sessionserver.mojang.com/session/minecraft/hasJoined").concat("?username=%s&serverId=%s");
-    private static volatile boolean enabled = false;
-    private static volatile KeyPair keyPair;
+    public final String AUTH_URL = System.getProperty("minestom.auth.url", "https://sessionserver.mojang.com/session/minecraft/hasJoined").concat("?username=%s&serverId=%s");
+    private volatile boolean enabled = false;
+    private volatile KeyPair keyPair;
+    private final MinecraftServer minecraftServer;
+    private final MojangCrypt mojangCrypt;
+
+    public MojangAuth(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        this.mojangCrypt = new MojangCrypt(minecraftServer);
+    }
 
     /**
      * Enables mojang authentication on the server.
      * <p>
      * Be aware that enabling a proxy will make Mojang authentication ignored.
      */
-    public static void init() {
+    public void init() {
         Check.stateCondition(enabled, "Mojang auth is already enabled!");
-        Check.stateCondition(MinecraftServer.process().isAlive(), "The server has already been started!");
-        MojangAuth.enabled = true;
+        Check.stateCondition(minecraftServer.process().isAlive(), "The server has already been started!");
+        enabled = true;
         // Generate necessary fields...
-        MojangAuth.keyPair = MojangCrypt.generateKeyPair();
+        keyPair = mojangCrypt.generateKeyPair();
     }
 
-    public static boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public static @Nullable KeyPair getKeyPair() {
+    public @Nullable KeyPair getKeyPair() {
         return keyPair;
+    }
+
+    public MojangCrypt getMojangCrypt() {
+        return mojangCrypt;
     }
 }

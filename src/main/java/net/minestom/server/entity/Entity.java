@@ -91,7 +91,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     private static final Map<UUID, Entity> ENTITY_BY_UUID = new ConcurrentHashMap<>();
     private static final AtomicInteger LAST_ENTITY_ID = new AtomicInteger();
 
-    private final CachedPacket destroyPacketCache = new CachedPacket(() -> new DestroyEntitiesPacket(getEntityId()));
+    private final CachedPacket destroyPacketCache;
     public final MinecraftServer minecraftServer;
 
     protected Instance instance;
@@ -206,6 +206,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             // Local nodes require a server process
             this.eventNode = null;
         }
+        destroyPacketCache = new CachedPacket(minecraftServer, () -> new DestroyEntitiesPacket(getEntityId()));
     }
 
     public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
@@ -1332,21 +1333,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         final Chunk chunk = getChunk();
         if (distanceX > 8 || distanceY > 8 || distanceZ > 8) {
-            PacketUtils.prepareViewablePacket(chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
+            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
             this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         } else if (positionChange && viewChange) {
-            PacketUtils.prepareViewablePacket(chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(minecraftServer, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
             // Fix head rotation
-            PacketUtils.prepareViewablePacket(chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
         } else if (positionChange) {
             // This is a confusing fix for a confusing issue. If rotation is only sent when the entity actually changes, then spawning an entity
             // on the ground causes the entity not to update its rotation correctly. It works fine if the entity is spawned in the air. Very weird.
-            PacketUtils.prepareViewablePacket(chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(minecraftServer, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, onGround), this);
         } else if (viewChange) {
-            PacketUtils.prepareViewablePacket(chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
-            PacketUtils.prepareViewablePacket(chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(minecraftServer,chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
         }
         this.lastSyncedPosition = position;
@@ -1631,7 +1632,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     protected void synchronizePosition(boolean includeSelf) {
         final Pos posCache = this.position;
         final ServerPacket packet = new EntityTeleportPacket(getEntityId(), posCache, isOnGround());
-        PacketUtils.prepareViewablePacket(currentChunk, packet, this);
+        PacketUtils.prepareViewablePacket(minecraftServer, currentChunk, packet, this);
         this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         this.lastSyncedPosition = posCache;
     }
@@ -1828,6 +1829,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     public boolean hasCollision() {
         return hasCollision;
+    }
+
+    @Override
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
     }
 
     public enum Pose {

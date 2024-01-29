@@ -2,7 +2,6 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.Shape;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -38,7 +37,7 @@ public class LightingChunk extends DynamicChunk {
     private static final ExecutorService pool = Executors.newWorkStealingPool();
 
     private int[] heightmap;
-    final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
+    final CachedPacket lightCache = new CachedPacket(minecraftServer, this::createLightPacket);
     boolean sendNeighbours = true;
     boolean chunkLoaded = false;
 
@@ -257,7 +256,7 @@ public class LightingChunk extends DynamicChunk {
             return;
         }
 
-        sendingTask = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
+        sendingTask = chunk.minecraftServer.process().getSchedulerManager().scheduleTask(() -> {
             queueLock.lock();
             var copy = new ArrayList<>(sendQueue);
             sendQueue.clear();

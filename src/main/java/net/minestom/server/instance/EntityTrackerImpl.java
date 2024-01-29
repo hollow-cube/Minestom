@@ -2,7 +2,6 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -284,6 +283,11 @@ final class EntityTrackerImpl implements EntityTracker {
         private void collectPlayers(EntityTracker tracker, Int2ObjectOpenHashMap<Player> map) {
             tracker.nearbyEntitiesByChunkRange(point, minecraftServer.getChunkViewDistance(),
                     EntityTracker.Target.PLAYERS, (player) -> map.putIfAbsent(player.getEntityId(), player));
+        }
+
+        @Override
+        public MinecraftServer getMinecraftServer() {
+            return minecraftServer;
         }
 
         final class SetImpl extends AbstractSet<Player> {

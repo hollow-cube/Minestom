@@ -5,6 +5,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -13,14 +14,21 @@ import java.util.function.Predicate;
  * Utility class to access Adventure audiences.
  */
 public class Audiences {
-    private static final SingleAudienceProvider audience = new SingleAudienceProvider();
+
+    private final MinecraftServer minecraftServer;
+    private final SingleAudienceProvider audience;
+
+    public Audiences(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        audience = new SingleAudienceProvider(minecraftServer);
+    }
 
     /**
      * Gets the {@link AudienceProvider} that provides forwarding audiences.
      *
      * @return the instance
      */
-    public static @NotNull AudienceProvider<Audience> single() {
+    public @NotNull AudienceProvider<Audience> single() {
         return audience;
     }
 
@@ -29,7 +37,7 @@ public class Audiences {
      *
      * @return the instance
      */
-    public static @NotNull AudienceProvider<Iterable<? extends Audience>> iterable() {
+    public @NotNull AudienceProvider<Iterable<? extends Audience>> iterable() {
         return audience.collection;
     }
 
@@ -40,7 +48,7 @@ public class Audiences {
      *
      * @return all audience members
      */
-    public static @NotNull Audience all() {
+    public @NotNull Audience all() {
         return Audience.audience(audience.server, audience.customs());
     }
 
@@ -49,7 +57,7 @@ public class Audiences {
      *
      * @return all players
      */
-    public static @NotNull Audience players() {
+    public @NotNull Audience players() {
         return audience.players;
     }
 
@@ -59,8 +67,8 @@ public class Audiences {
      * @param filter the predicate
      * @return all players matching the predicate
      */
-    public static @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+    public @NotNull Audience players(ConnectionManager connectionManager, @NotNull Predicate<Player> filter) {
+        return PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     /**
@@ -68,8 +76,8 @@ public class Audiences {
      *
      * @return the console
      */
-    public static @NotNull Audience console() {
-        return MinecraftServer.getCommandManager().getConsoleSender();
+    public @NotNull Audience console() {
+        return minecraftServer.process().getCommandManager().getConsoleSender();
     }
 
     /**
@@ -77,7 +85,7 @@ public class Audiences {
      *
      * @return the audience of all players and the console
      */
-    public static @NotNull Audience server() {
+    public @NotNull Audience server() {
         return audience.server;
     }
 
@@ -86,7 +94,7 @@ public class Audiences {
      *
      * @return all custom audience members
      */
-    public static @NotNull Audience customs() {
+    public @NotNull Audience customs() {
         return Audience.audience(audience.iterable().customs());
     }
 
@@ -96,7 +104,7 @@ public class Audiences {
      * @param keyed the keyed object
      * @return all custom audience members stored using the key of the object
      */
-    public static @NotNull Audience custom(@NotNull Keyed keyed) {
+    public @NotNull Audience custom(@NotNull Keyed keyed) {
         return custom(keyed.key());
     }
 
@@ -106,7 +114,7 @@ public class Audiences {
      * @param key the key
      * @return all custom audience members stored using the key
      */
-    public static @NotNull Audience custom(@NotNull Key key) {
+    public @NotNull Audience custom(@NotNull Key key) {
         return Audience.audience(audience.iterable().custom(key));
     }
 
@@ -118,7 +126,7 @@ public class Audiences {
      * @param filter the predicate
      * @return all custom audience members stored using the key
      */
-    public static @NotNull Audience custom(@NotNull Keyed keyed, Predicate<Audience> filter) {
+    public @NotNull Audience custom(@NotNull Keyed keyed, Predicate<Audience> filter) {
         return custom(keyed.key(), filter);
     }
 
@@ -130,7 +138,7 @@ public class Audiences {
      * @param filter the predicate
      * @return all custom audience members stored using the key
      */
-    public static @NotNull Audience custom(@NotNull Key key, Predicate<Audience> filter) {
+    public @NotNull Audience custom(@NotNull Key key, Predicate<Audience> filter) {
         return Audience.audience(audience.iterable().custom(key, filter));
     }
 
@@ -140,7 +148,7 @@ public class Audiences {
      * @param filter the predicate
      * @return all matching custom audience members
      */
-    public static @NotNull Audience customs(@NotNull Predicate<Audience> filter) {
+    public @NotNull Audience customs(@NotNull Predicate<Audience> filter) {
         return Audience.audience(audience.iterable().customs(filter));
     }
 
@@ -150,7 +158,7 @@ public class Audiences {
      * @param filter the predicate
      * @return all matching audience members
      */
-    public static @NotNull Audience all(@NotNull Predicate<Audience> filter) {
+    public @NotNull Audience all(@NotNull Predicate<Audience> filter) {
         return Audience.audience(audience.iterable().all(filter));
     }
 
@@ -159,7 +167,7 @@ public class Audiences {
      *
      * @return the registry
      */
-    public static @NotNull AudienceRegistry registry() {
+    public @NotNull AudienceRegistry registry() {
         return audience.iterable().registry();
     }
 }

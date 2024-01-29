@@ -2,12 +2,14 @@ package net.minestom.server;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minestom.server.advancements.AdvancementManager;
+import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
 import net.minestom.server.exception.ExceptionManager;
+import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
@@ -45,23 +47,23 @@ final class ServerProcessImpl implements ServerProcess {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
     private static final Boolean SHUTDOWN_ON_SIGNAL = PropertyUtils.getBoolean("minestom.shutdown-on-signal", true);
 
-    private final ExceptionManager exception;
-    private final ConnectionManager connection;
-    private final PacketListenerManager packetListener;
+    private final ExceptionManager exceptionManager;
+    private final ConnectionManager connectionManager;
+    private final PacketListenerManager packetListenerManager;
     private final PacketProcessor packetProcessor;
-    private final InstanceManager instance;
-    private final BlockManager block;
-    private final CommandManager command;
-    private final RecipeManager recipe;
-    private final TeamManager team;
-    private final GlobalEventHandler eventHandler;
-    private final SchedulerManager scheduler;
-    private final BenchmarkManager benchmark;
-    private final DimensionTypeManager dimension;
-    private final BiomeManager biome;
-    private final AdvancementManager advancement;
-    private final BossBarManager bossBar;
-    private final TagManager tag;
+    private final InstanceManager instanceManager;
+    private final BlockManager blockManager;
+    private final CommandManager commandManager;
+    private final RecipeManager recipeManager;
+    private final TeamManager teamManager;
+    private final GlobalEventHandler globalEventHandler;
+    private final SchedulerManager schedulerManager;
+    private final BenchmarkManager benchmarkManager;
+    private final DimensionTypeManager dimensionTypeManager;
+    private final BiomeManager biomeManager;
+    private final AdvancementManager advancementManager;
+    private final BossBarManager bossBarManager;
+    private final TagManager tagManager;
     private final Server server;
 
     private final ThreadDispatcher<Chunk> dispatcher;
@@ -70,110 +72,114 @@ final class ServerProcessImpl implements ServerProcess {
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
     private final MinecraftServer minecraftServer;
+    private final Audiences audiences;
+    private final MojangAuth mojangAuth;
 
     public ServerProcessImpl(MinecraftServer minecraftServer) throws IOException {
         this.minecraftServer = minecraftServer;
-        this.exception = new ExceptionManager();
-        this.connection = new ConnectionManager(minecraftServer);
-        this.packetListener = new PacketListenerManager(minecraftServer);
-        this.packetProcessor = new PacketProcessor(packetListener);
-        this.instance = new InstanceManager(minecraftServer);
-        this.block = new BlockManager();
-        this.command = new CommandManager(minecraftServer);
-        this.recipe = new RecipeManager();
-        this.team = new TeamManager();
-        this.eventHandler = new GlobalEventHandler();
-        this.scheduler = new SchedulerManager();
-        this.benchmark = new BenchmarkManager();
-        this.dimension = new DimensionTypeManager();
-        this.biome = new BiomeManager();
-        this.advancement = new AdvancementManager();
-        this.bossBar = new BossBarManager();
-        this.tag = new TagManager();
+        this.exceptionManager = new ExceptionManager(minecraftServer);
+        this.connectionManager = new ConnectionManager(minecraftServer);
+        this.packetListenerManager = new PacketListenerManager(minecraftServer);
+        this.packetProcessor = new PacketProcessor(packetListenerManager);
+        this.instanceManager = new InstanceManager(minecraftServer);
+        this.blockManager = new BlockManager();
+        this.commandManager = new CommandManager(minecraftServer);
+        this.recipeManager = new RecipeManager();
+        this.teamManager = new TeamManager(minecraftServer);
+        this.globalEventHandler = new GlobalEventHandler(minecraftServer);
+        this.schedulerManager = new SchedulerManager();
+        this.benchmarkManager = new BenchmarkManager(minecraftServer);
+        this.dimensionTypeManager = new DimensionTypeManager();
+        this.biomeManager = new BiomeManager();
+        this.advancementManager = new AdvancementManager(minecraftServer);
+        this.bossBarManager = new BossBarManager(minecraftServer);
+        this.tagManager = new TagManager();
         this.server = new Server(minecraftServer, packetProcessor);
+        this.audiences = new Audiences(minecraftServer);
+        this.mojangAuth = new MojangAuth(minecraftServer);
 
-        this.dispatcher = ThreadDispatcher.singleThread();
+        this.dispatcher = ThreadDispatcher.singleThread(minecraftServer);
         this.ticker = new TickerImpl();
     }
 
     @Override
     public @NotNull ConnectionManager getConnectionManager() {
-        return connection;
+        return connectionManager;
     }
 
     @Override
     public @NotNull InstanceManager getInstanceManager() {
-        return instance;
+        return instanceManager;
     }
 
     @Override
     public @NotNull BlockManager getBlockManager() {
-        return block;
+        return blockManager;
     }
 
     @Override
     public @NotNull CommandManager getCommandManager() {
-        return command;
+        return commandManager;
     }
 
     @Override
     public @NotNull RecipeManager getRecipeManager() {
-        return recipe;
+        return recipeManager;
     }
 
     @Override
     public @NotNull TeamManager getTeamManager() {
-        return team;
+        return teamManager;
     }
 
     @Override
     public @NotNull GlobalEventHandler getGlobalEventHandler() {
-        return eventHandler;
+        return globalEventHandler;
     }
 
     @Override
     public @NotNull SchedulerManager getSchedulerManager() {
-        return scheduler;
+        return schedulerManager;
     }
 
     @Override
     public @NotNull BenchmarkManager getBenchmarkManager() {
-        return benchmark;
+        return benchmarkManager;
     }
 
     @Override
     public @NotNull DimensionTypeManager getDimensionTypeManager() {
-        return dimension;
+        return dimensionTypeManager;
     }
 
     @Override
     public @NotNull BiomeManager getBiomeManager() {
-        return biome;
+        return biomeManager;
     }
 
     @Override
     public @NotNull AdvancementManager getAdvancementManager() {
-        return advancement;
+        return advancementManager;
     }
 
     @Override
     public @NotNull BossBarManager getBossBarManager() {
-        return bossBar;
+        return bossBarManager;
     }
 
     @Override
     public @NotNull TagManager getTagManager() {
-        return tag;
+        return tagManager;
     }
 
     @Override
     public @NotNull ExceptionManager getExceptionManager() {
-        return exception;
+        return exceptionManager;
     }
 
     @Override
     public @NotNull PacketListenerManager getPacketListenerManager() {
-        return packetListener;
+        return packetListenerManager;
     }
 
     @Override
@@ -208,7 +214,7 @@ final class ServerProcessImpl implements ServerProcess {
         try {
             server.init(socketAddress);
         } catch (IOException e) {
-            exception.handleException(e);
+            exceptionManager.handleException(e);
             throw new RuntimeException(e);
         }
 
@@ -226,11 +232,11 @@ final class ServerProcessImpl implements ServerProcess {
         if (!stopped.compareAndSet(false, true))
             return;
         LOGGER.info("Stopping " + minecraftServer.getBrandName() + " server.");
-        scheduler.shutdown();
-        connection.shutdown();
+        schedulerManager.shutdown();
+        connectionManager.shutdown();
         server.stop();
         LOGGER.info("Shutting down all thread pools.");
-        benchmark.disable();
+        benchmarkManager.disable();
         dispatcher.shutdown();
         LOGGER.info(minecraftServer.getBrandName() + " server stopped successfully.");
     }
@@ -241,16 +247,26 @@ final class ServerProcessImpl implements ServerProcess {
     }
 
     @Override
+    public Audiences getAudiences() {
+        return audiences;
+    }
+
+    @Override
     public @NotNull ServerSnapshot updateSnapshot(@NotNull SnapshotUpdater updater) {
         List<AtomicReference<InstanceSnapshot>> instanceRefs = new ArrayList<>();
         Int2ObjectOpenHashMap<AtomicReference<EntitySnapshot>> entityRefs = new Int2ObjectOpenHashMap<>();
-        for (Instance instance : instance.getInstances()) {
+        for (Instance instance : instanceManager.getInstances()) {
             instanceRefs.add(updater.reference(instance));
             for (Entity entity : instance.getEntities()) {
                 entityRefs.put(entity.getEntityId(), updater.reference(entity));
             }
         }
         return new SnapshotImpl.Server(MappedCollection.plainReferences(instanceRefs), entityRefs);
+    }
+
+    @Override
+    public MojangAuth getMojangAuth() {
+        return mojangAuth;
     }
 
     private final class TickerImpl implements Ticker {

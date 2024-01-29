@@ -186,7 +186,7 @@ public class Query {
                     int remaining = data.remaining();
 
                     if (remaining == 0) { // basic
-                        BasicQueryEvent event = new BasicQueryEvent(sender, sessionID);
+                        BasicQueryEvent event = new BasicQueryEvent(minecraftServer, sender, sessionID);
                         minecraftServer.process().getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     } else if (remaining == 5) { // full

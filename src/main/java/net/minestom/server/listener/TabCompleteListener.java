@@ -1,6 +1,6 @@
 package net.minestom.server.listener;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.suggestion.Suggestion;
 import net.minestom.server.entity.Player;
@@ -12,7 +12,7 @@ public class TabCompleteListener {
 
     public static void listener(ClientTabCompletePacket packet, Player player) {
         final String text = packet.text();
-        final Suggestion suggestion = getSuggestion(player, text);
+        final Suggestion suggestion = getSuggestion(player.minecraftServer.process().getCommandManager(), player, text);
         if (suggestion != null) {
             player.sendPacket(new TabCompletePacket(
                     packet.transactionId(),
@@ -25,7 +25,7 @@ public class TabCompleteListener {
         }
     }
 
-    public static @Nullable Suggestion getSuggestion(CommandSender commandSender, String text) {
+    public static @Nullable Suggestion getSuggestion(CommandManager commandManager, CommandSender commandSender, String text) {
         if (text.startsWith("/")) {
             text = text.substring(1);
         }
@@ -35,6 +35,6 @@ public class TabCompleteListener {
             // it works as intended :)
             text = text + '\00';
         }
-        return MinecraftServer.getCommandManager().parseCommand(commandSender, text).suggestion(commandSender);
+        return commandManager.parseCommand(commandSender, text).suggestion(commandSender);
     }
 }

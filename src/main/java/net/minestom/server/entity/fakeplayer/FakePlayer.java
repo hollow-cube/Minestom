@@ -53,9 +53,9 @@ public class FakePlayer extends Player implements NavigableEntity {
     protected FakePlayer(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username,
                          @NotNull FakePlayerOption option,
                          @Nullable Consumer<FakePlayer> spawnCallback) {
-        super(minecraftServer, uuid, username, new FakePlayerConnection());
-        this.connectionManager = serverProcess.getConnectionManager();
-        this.packetListenerManager = serverProcess.getPacketListenerManager();
+        super(minecraftServer, uuid, username, new FakePlayerConnection(minecraftServer));
+        this.connectionManager = minecraftServer.process().getConnectionManager();
+        this.packetListenerManager = minecraftServer.process().getPacketListenerManager();
 
         this.option = option;
 
@@ -68,10 +68,10 @@ public class FakePlayer extends Player implements NavigableEntity {
                         if (event.getPlayer().equals(this))
                             if (event.isFirstSpawn()) {
                                 spawnCallback.accept(this);
-                                serverProcess.getGlobalEventHandler().removeListener(spawnListener);
+                                minecraftServer.process().getGlobalEventHandler().removeListener(spawnListener);
                             }
                     }).build();
-            serverProcess.getGlobalEventHandler().addListener(spawnListener);
+            minecraftServer.process().getGlobalEventHandler().addListener(spawnListener);
         }
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
@@ -166,7 +166,7 @@ public class FakePlayer extends Player implements NavigableEntity {
     private void handleTabList(PlayerConnection connection) {
         if (!option.isInTabList()) {
             // Remove from tab-list
-            serverProcess.getSchedulerManager().buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.SERVER_TICK).schedule();
+            minecraftServer.process().getSchedulerManager().buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.SERVER_TICK).schedule();
         }
     }
 }
