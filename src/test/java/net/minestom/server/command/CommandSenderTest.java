@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,8 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class CommandSenderTest {
 
@@ -80,6 +82,11 @@ public class CommandSenderTest {
         @Override
         public @NotNull Identity identity() {
             return Identity.nil();
+        }
+
+        @Override
+        public MinecraftServer getMinecraftServer() {
+            return null;
         }
     }
 }

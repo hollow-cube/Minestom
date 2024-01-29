@@ -99,7 +99,7 @@ public sealed interface Acquirable<T> permits AcquirableImpl {
      * Free if the element is already present in the current thread, blocking otherwise.
      *
      * @param consumer the callback to execute once the element has been safely acquired
-     * @see #async(Consumer)
+     * @see #async(MinecraftServer, Consumer)
      */
     default void sync(@NotNull Consumer<T> consumer) {
         Acquired<T> acquired = lock();

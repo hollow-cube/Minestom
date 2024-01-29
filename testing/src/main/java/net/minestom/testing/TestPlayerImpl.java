@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class TestPlayerImpl extends Player {
     public TestPlayerImpl(@NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
-        super(uuid, username, playerConnection);
+        super(playerConnection.minecraftServer, uuid, username, playerConnection);
     }
 
     @Override

@@ -1,9 +1,9 @@
 package net.minestom.server.entity;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.server.play.SpawnEntityPacket;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +14,7 @@ public class EntityViewIntegrationTest {
     @Test
     public void emptyEntity(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 40, 42)).join();
         assertEquals(0, entity.getViewers().size());
     }
@@ -128,8 +128,8 @@ public class EntityViewIntegrationTest {
         var connection = env.createConnection();
         var player = connection.connect(instance, new Pos(0, 40, 0)).join();
 
-        var vehicle = new Entity(EntityType.ZOMBIE);
-        var passenger = new Entity(EntityType.ZOMBIE);
+        var vehicle = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var passenger = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
 
         var tracker = connection.trackIncoming(SpawnEntityPacket.class);
 
@@ -158,11 +158,11 @@ public class EntityViewIntegrationTest {
         var p1 = env.createPlayer(instance, new Pos(0, 40, 0));
         var p2 = env.createPlayer(instance, new Pos(0, 40, 0));
 
-        var vehicle = new Entity(EntityType.ZOMBIE);
+        var vehicle = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         vehicle.setInstance(instance, new Pos(0, 40, 0)).join();
         vehicle.addPassenger(p1);
 
-        var vehicle2 = new Entity(EntityType.ZOMBIE);
+        var vehicle2 = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         vehicle2.setInstance(instance, new Pos(0, 40, 0)).join();
         vehicle2.addPassenger(p2);
 

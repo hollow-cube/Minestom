@@ -1,11 +1,9 @@
 package net.minestom.server.event.trait;
 
 import net.minestom.server.event.Event;
-import net.minestom.server.event.EventDispatcher;
 
 /**
  * Represents an {@link Event} which can be cancelled.
- * Called using {@link EventDispatcher#callCancellable(CancellableEvent, Runnable)}.
  */
 public interface CancellableEvent extends Event {
 

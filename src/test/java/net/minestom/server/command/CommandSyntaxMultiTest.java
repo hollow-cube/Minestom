@@ -1,17 +1,14 @@
 package net.minestom.server.command;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.Argument;
 import org.junit.jupiter.api.Test;
 
-import java.lang.String;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static net.minestom.server.command.builder.arguments.ArgumentType.Float;
-import static net.minestom.server.command.builder.arguments.ArgumentType.Integer;
 import static net.minestom.server.command.builder.arguments.ArgumentType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -48,9 +45,10 @@ public class CommandSyntaxMultiTest {
     }
 
     private static void assertSyntax(List<List<Argument<?>>> args, String input, ExpectedExecution expectedExecution, Map<String, Object> expectedValues) {
+        MinecraftServer minecraftServer = new MinecraftServer();
         final String commandName = "name";
 
-        var manager = new CommandManager();
+        var manager = new CommandManager(minecraftServer);
         var command = new Command(commandName);
         manager.register(command);
 

@@ -1,13 +1,13 @@
 package net.minestom.server.entity;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.item.PickupItemEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +58,7 @@ public class EntityBoundingBoxIntegrationTest {
         final var instance = env.createFlatInstance();
         final var listener = env.listen(PickupItemEvent.class);
         final var spawnPos = new Pos(0, 42, 0);
-        final var entity = new LivingEntity(EntityType.ZOMBIE);
+        final var entity = new LivingEntity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setCanPickupItem(true);
         entity.setInstance(instance, spawnPos).join();
 
@@ -74,7 +74,7 @@ public class EntityBoundingBoxIntegrationTest {
     }
 
     private void dropItem(final Instance instance, final Pos position) {
-        final var entity = new ItemEntity(ItemStack.of(Material.STONE));
+        final var entity = new ItemEntity(instance.getMinecraftServer(), ItemStack.of(Material.STONE));
         entity.hasPhysics = false;
         entity.setNoGravity(true);
         entity.setInstance(instance, position).join();

@@ -1,9 +1,9 @@
 package net.minestom.server.snapshot;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,9 +15,9 @@ public class EntitySnapshotIntegrationTest {
     @Test
     public void basic(Env env) {
         var instance = env.createFlatInstance();
-        var ent = new Entity(EntityType.ZOMBIE);
+        var ent = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         ent.setInstance(instance).join();
-        var snapshot = ServerSnapshot.update();
+        var snapshot = ServerSnapshot.update(env.minecraftServer());
 
         var inst = snapshot.instances().iterator().next();
         var entities = inst.entities();

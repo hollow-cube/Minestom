@@ -1,5 +1,6 @@
 package net.minestom.testing;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
@@ -16,9 +17,16 @@ import static org.junit.jupiter.api.Assertions.fail;
 final class EnvImpl implements Env {
     private final ServerProcess process;
     private final List<FlexibleListenerImpl<?>> listeners = new CopyOnWriteArrayList<>();
+    private final MinecraftServer minecraftServer;
 
-    public EnvImpl(ServerProcess process) {
-        this.process = process;
+    public EnvImpl() {
+        this.minecraftServer = new MinecraftServer();
+        this.process = minecraftServer.updateProcess();
+    }
+
+    @Override
+    public MinecraftServer minecraftServer() {
+        return minecraftServer;
     }
 
     @Override

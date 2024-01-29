@@ -1,8 +1,8 @@
 package net.minestom.server.entity;
 
+import net.minestom.server.coordinate.Pos;
 import net.minestom.testing.Env;
 import net.minestom.testing.EnvTest;
-import net.minestom.server.coordinate.Pos;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,9 +12,9 @@ public class EntityProjectileIntegrationTest {
     @Test
     public void gravityVelocity(Env env) {
         var instance = env.createFlatInstance();
-        var shooter = new EntityCreature(EntityType.SKELETON);
+        var shooter = new EntityCreature(env.minecraftServer(), EntityType.SKELETON);
         shooter.setInstance(instance, new Pos(0, 42, 0)).join();
-        var projectile = new EntityProjectile(shooter, EntityType.ARROW);
+        var projectile = new EntityProjectile(env.minecraftServer(), shooter, EntityType.ARROW);
         var from = new Pos(0, 42, 0).add(0,
                 shooter.getEyeHeight(), shooter.getPosition().direction().z());
         var target = from.add(0, 0, 10);
@@ -44,9 +44,9 @@ public class EntityProjectileIntegrationTest {
     @Test
     public void noGravityVelocity(Env env) {
         var instance = env.createFlatInstance();
-        var shooter = new EntityCreature(EntityType.SKELETON);
+        var shooter = new EntityCreature(env.minecraftServer(), EntityType.SKELETON);
         shooter.setInstance(instance, new Pos(0, 42, 0)).join();
-        var projectile = new EntityProjectile(shooter, EntityType.ARROW);
+        var projectile = new EntityProjectile(env.minecraftServer(), shooter, EntityType.ARROW);
         var from = new Pos(0, 42, 0).add(0,
                 shooter.getEyeHeight(), shooter.getPosition().direction().z());
         var target = from.add(0, 0, 10);

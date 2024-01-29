@@ -17,8 +17,9 @@ public class EventNodeMapTest {
 
     @Test
     public void uniqueMapping() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer,"main");
         var itemNode1 = node.map(item, EventFilter.ITEM);
         var itemNode2 = node.map(item, EventFilter.ITEM);
         assertNotNull(itemNode1);
@@ -32,8 +33,9 @@ public class EventNodeMapTest {
 
     @Test
     public void lazyRegistration() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all("main");
+        var node = (EventNodeImpl<Event>) EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertFalse(node.registeredMappedNode.containsKey(item));
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
@@ -43,8 +45,9 @@ public class EventNodeMapTest {
 
     @Test
     public void secondMap() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all("main");
+        var node = (EventNodeImpl<Event>) EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertSame(itemNode, itemNode.map(item, EventFilter.ITEM));
         assertThrows(Exception.class, () -> itemNode.map(ItemStack.AIR, EventFilter.ITEM));
@@ -52,8 +55,9 @@ public class EventNodeMapTest {
 
     @Test
     public void map() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer, "main");
 
         AtomicBoolean result = new AtomicBoolean(false);
         var itemNode = node.map(item, EventFilter.ITEM);
@@ -77,9 +81,10 @@ public class EventNodeMapTest {
 
     @Test
     public void entityLocal() {
-        var process = new MinecraftServer().updateProcess();
+        MinecraftServer minecraftServer = new MinecraftServer();
+        var process = minecraftServer.updateProcess();
         var node = process.getGlobalEventHandler();
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(minecraftServer, EntityType.ZOMBIE);
 
         AtomicBoolean result = new AtomicBoolean(false);
         var listener = EventListener.of(EventNodeTest.EntityTestEvent.class, event -> result.set(true));
@@ -103,9 +108,10 @@ public class EventNodeMapTest {
 
     @Test
     public void ownerGC() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         // Ensure that the mapped object gets GCed
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
         });

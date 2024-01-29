@@ -1,10 +1,10 @@
 package net.minestom.server.entity;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -92,7 +92,7 @@ public class EntityMetaIntegrationTest {
         var incomingPackets = connection.trackIncoming(EntityMetaDataPacket.class);
 
         //Creates entity and name.
-        Entity entity = new Entity(EntityType.BEE);
+        Entity entity = new Entity(env.minecraftServer(), EntityType.BEE);
         entity.setAutoViewable(false);
         entity.getEntityMeta().setNotifyAboutChanges(false);
         entity.setCustomName(Component.text("Custom Name"));

@@ -1,5 +1,6 @@
 package net.minestom.server.network.socket;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.listener.manager.PacketListenerManager;
 import net.minestom.server.network.PacketProcessor;
 import org.junit.jupiter.api.Test;
@@ -16,11 +17,12 @@ public class ServerAddressTest {
 
     @Test
     public void inetAddressTest() throws IOException {
+        MinecraftServer minecraftServer = new MinecraftServer();
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         InetSocketAddress address = new InetSocketAddress("localhost", 25565);
-        var server = new Server(new PacketProcessor(new PacketListenerManager()));
+        var server = new Server(minecraftServer, new PacketProcessor(new PacketListenerManager(minecraftServer)));
         server.init(address);
         assertSame(address, server.socketAddress());
         assertEquals(address.getHostString(), server.getAddress());
@@ -32,11 +34,12 @@ public class ServerAddressTest {
 
     @Test
     public void inetAddressDynamicTest() throws IOException {
+        MinecraftServer minecraftServer = new MinecraftServer();
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         InetSocketAddress address = new InetSocketAddress("localhost", 0);
-        var server = new Server(new PacketProcessor(new PacketListenerManager()));
+        var server = new Server(minecraftServer, new PacketProcessor(new PacketListenerManager(minecraftServer)));
         server.init(address);
         assertSame(address, server.socketAddress());
         assertEquals(address.getHostString(), server.getAddress());
@@ -48,11 +51,12 @@ public class ServerAddressTest {
 
     @Test
     public void unixAddressTest() throws IOException {
+        MinecraftServer minecraftServer = new MinecraftServer();
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         UnixDomainSocketAddress address = UnixDomainSocketAddress.of("minestom.sock");
-        var server = new Server(new PacketProcessor(new PacketListenerManager()));
+        var server = new Server(minecraftServer, new PacketProcessor(new PacketListenerManager(minecraftServer)));
         server.init(address);
         assertTrue(Files.exists(address.getPath()));
         assertSame(address, server.socketAddress());
@@ -66,7 +70,8 @@ public class ServerAddressTest {
 
     @Test
     public void noAddressTest() throws IOException {
-        var server = new Server(new PacketProcessor(new PacketListenerManager()));
+        MinecraftServer minecraftServer = new MinecraftServer();
+        var server = new Server(minecraftServer, new PacketProcessor(new PacketListenerManager(minecraftServer)));
         assertDoesNotThrow(server::stop);
     }
 }

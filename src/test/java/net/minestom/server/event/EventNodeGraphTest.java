@@ -1,5 +1,6 @@
 package net.minestom.server.event;
 
+import net.minestom.server.MinecraftServer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,14 +11,16 @@ public class EventNodeGraphTest {
 
     @Test
     public void single() {
-        EventNode<Event> node = EventNode.all("main");
+        MinecraftServer minecraftServer = new MinecraftServer();
+        EventNode<Event> node = EventNode.all(minecraftServer,"main");
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0, List.of()));
     }
 
     @Test
     public void singleChild() {
-        EventNode<Event> node = EventNode.all("main");
-        node.addChild(EventNode.all("child"));
+        MinecraftServer minecraftServer = new MinecraftServer();
+        EventNode<Event> node = EventNode.all(minecraftServer,"main");
+        node.addChild(EventNode.all(minecraftServer,"child"));
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                 List.of(new EventNodeImpl.Graph("child", "Event", 0, List.of())
                 )));
@@ -25,19 +28,20 @@ public class EventNodeGraphTest {
 
     @Test
     public void childrenPriority() {
+        MinecraftServer minecraftServer = new MinecraftServer();
         {
-            EventNode<Event> node = EventNode.all("main");
-            node.addChild(EventNode.all("child1").setPriority(5));
-            node.addChild(EventNode.all("child2").setPriority(10));
+            EventNode<Event> node = EventNode.all(minecraftServer,"main");
+            node.addChild(EventNode.all(minecraftServer,"child1").setPriority(5));
+            node.addChild(EventNode.all(minecraftServer,"child2").setPriority(10));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())
                     )));
         }
         {
-            EventNode<Event> node = EventNode.all("main");
-            node.addChild(EventNode.all("child2").setPriority(10));
-            node.addChild(EventNode.all("child1").setPriority(5));
+            EventNode<Event> node = EventNode.all(minecraftServer, "main");
+            node.addChild(EventNode.all(minecraftServer,"child2").setPriority(10));
+            node.addChild(EventNode.all(minecraftServer,"child1").setPriority(5));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())

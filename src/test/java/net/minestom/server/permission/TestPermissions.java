@@ -19,11 +19,13 @@ public class TestPermissions {
     private Player player;
 
     private Permission permission1, permission2, permission3, wildcard;
+    private MinecraftServer minecraftServer;
 
     @BeforeEach
     public void init() {
-        MinecraftServer.init(); // for entity manager
-        player = new Player(UUID.randomUUID(), "TestPlayer", null) {
+        minecraftServer = new MinecraftServer();
+        minecraftServer.init(); // for entity manager
+        player = new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", null) {
             @Override
             protected void playerConnectionInit() {
             }

@@ -1,15 +1,16 @@
 package net.minestom.server.collision;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.instance.block.Block;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @EnvTest
 public class PlacementCollisionIntegrationTest {
@@ -23,14 +24,14 @@ public class PlacementCollisionIntegrationTest {
     @Test
     public void entityBlock(Env env) {
         var instance = env.createFlatInstance();
-        new Entity(EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40, 0)).join();
+        new Entity(env.minecraftServer(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40, 0)).join();
         assertNotNull(BlockCollision.canPlaceBlockAt(instance, new Vec(0, 40, 0), Block.STONE));
     }
 
     @Test
     public void slab(Env env) {
         var instance = env.createFlatInstance();
-        new Entity(EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40.75, 0)).join();
+        new Entity(env.minecraftServer(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40.75, 0)).join();
         assertNull(BlockCollision.canPlaceBlockAt(instance, new Vec(0, 40, 0), Block.STONE_SLAB));
     }
 

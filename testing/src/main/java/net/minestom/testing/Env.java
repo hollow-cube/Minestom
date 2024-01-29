@@ -1,5 +1,6 @@
 package net.minestom.testing;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.util.function.BooleanSupplier;
 
 public interface Env {
+    MinecraftServer minecraftServer();
     @NotNull ServerProcess process();
 
     @NotNull TestConnection createConnection();

@@ -1,6 +1,7 @@
 package net.minestom.testing;
 
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.coordinate.Pos;
@@ -25,13 +26,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 final class TestConnectionImpl implements TestConnection {
     private final Env env;
     private final ServerProcess process;
-    private final PlayerConnectionImpl playerConnection = new PlayerConnectionImpl();
+    private final PlayerConnectionImpl playerConnection;
 
     private final List<IncomingCollector<ServerPacket>> incomingTrackers = new CopyOnWriteArrayList<>();
 
     TestConnectionImpl(Env env) {
         this.env = env;
         this.process = env.process();
+        this.playerConnection = new PlayerConnectionImpl(env.minecraftServer());
     }
 
     @Override
@@ -62,8 +64,8 @@ final class TestConnectionImpl implements TestConnection {
 
     final class PlayerConnectionImpl extends PlayerConnection {
 
-        PlayerConnectionImpl() {
-            super();
+        PlayerConnectionImpl(MinecraftServer minecraftServer) {
+            super(minecraftServer);
         }
 
         @Override

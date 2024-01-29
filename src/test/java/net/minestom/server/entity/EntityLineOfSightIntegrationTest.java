@@ -1,9 +1,9 @@
 package net.minestom.server.entity;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.block.Block;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,11 +14,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSight(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(10, 42, 0)).join();
 
         assertEquals(entity2, entity.getLineOfSightEntity(20, (e) -> true));
@@ -38,11 +38,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightBehind(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(-10, 42, 0)).join();
 
         assertNull(entity.getLineOfSightEntity(20, (e) -> true));
@@ -62,11 +62,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightNearMiss(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(10, 42, 0.31)).join();
 
         assertNull(entity.getLineOfSightEntity(20, (e) -> true));
@@ -86,11 +86,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightNearHit(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(10, 42, 0.3)).join();
 
         assertEquals(entity2, entity.getLineOfSightEntity(20, (e) -> true));
@@ -112,14 +112,14 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightCorrectOrder(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(10, 42, 0)).join();
 
-        var entity3 = new Entity(EntityTypes.ZOMBIE);
+        var entity3 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity3.setInstance(instance, new Pos(5, 42, 0)).join();
 
         assertEquals(entity3, entity.getLineOfSightEntity(20, (e) -> true));
@@ -133,11 +133,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightBigMiss(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(10, 42, 10)).join();
 
         assertNull(entity.getLineOfSightEntity(20, (e) -> true));
@@ -148,11 +148,11 @@ public class EntityLineOfSightIntegrationTest {
     public void entityPhysicsCheckLineOfSightLargeBoundingBox(Env env) {
         var instance = env.createFlatInstance();
 
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         entity.setView(-90, 0);
 
-        var entity2 = new Entity(EntityTypes.ZOMBIE);
+        var entity2 = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
         entity2.setInstance(instance, new Pos(6, 42, 0)).join();
         entity2.setBoundingBox(4.0, 2.0, 4.0);
 

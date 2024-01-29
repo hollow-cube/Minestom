@@ -19,7 +19,10 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.NetworkBuffer;
-import net.minestom.server.network.packet.server.*;
+import net.minestom.server.network.packet.server.CachedPacket;
+import net.minestom.server.network.packet.server.ComponentHoldingServerPacket;
+import net.minestom.server.network.packet.server.FramedPacket;
+import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.utils.binary.BinaryBuffer;
@@ -64,7 +67,7 @@ public final class PacketUtils {
      * <ol>
      *     <li>If {@code audience} is a {@link Player}, send the packet to them.</li>
      *     <li>Otherwise, if {@code audience} is a {@link PacketGroupingAudience}, call
-     *     {@link #sendGroupedPacket(Collection, ServerPacket)} on the players that the
+     *     {@link #sendGroupedPacket(MinecraftServer, Collection, ServerPacket)} on the players that the
      *     grouping audience contains.</li>
      *     <li>Otherwise, if {@code audience} is a {@link ForwardingAudience.Single},
      *     call this method on the single audience inside the forwarding audience.</li>
@@ -114,7 +117,6 @@ public final class PacketUtils {
      * Note: {@link ComponentHoldingServerPacket}s are not translated inside a {@link CachedPacket}.
      *
      * @see CachedPacket#body(ConnectionState)
-     * @see PlayerSocketConnection#writePacketSync(SendablePacket, boolean)
      */
     static boolean shouldUseCachePacket(final @NotNull ServerPacket packet) {
         if (!MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION) return GROUPED_PACKET;
@@ -144,10 +146,10 @@ public final class PacketUtils {
     }
 
     /**
-     * Same as {@link #sendGroupedPacket(Collection, ServerPacket, Predicate)}
+     * Same as {@link #sendGroupedPacket(MinecraftServer, Collection, ServerPacket, Predicate)}
      * but with the player validator sets to null.
      *
-     * @see #sendGroupedPacket(Collection, ServerPacket, Predicate)
+     * @see #sendGroupedPacket(MinecraftServer, Collection, ServerPacket, Predicate)
      */
     public static void sendGroupedPacket(MinecraftServer minecraftServer, @NotNull Collection<Player> players, @NotNull ServerPacket packet) {
         sendGroupedPacket(minecraftServer, players, packet, player -> true);

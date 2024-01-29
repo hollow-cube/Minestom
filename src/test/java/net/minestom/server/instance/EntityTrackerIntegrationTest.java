@@ -27,11 +27,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = MinecraftServer.getEntityViewDistance();
+        final int viewDistanceInChunks = env.minecraftServer().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer();
+        final Player viewer = createTestPlayer(env.minecraftServer());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -59,11 +59,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = MinecraftServer.getEntityViewDistance();
+        final int viewDistanceInChunks = env.minecraftServer().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer();
+        final Player viewer = createTestPlayer(env.minecraftServer());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -129,8 +129,8 @@ public class EntityTrackerIntegrationTest {
         assertEquals(1, viewable.getViewers().size());
     }
 
-    private Player createTestPlayer() {
-        return new Player(UUID.randomUUID(), "TestPlayer", new PlayerConnection() {
+    private Player createTestPlayer(MinecraftServer minecraftServer) {
+        return new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", new PlayerConnection(minecraftServer) {
             @Override
             public void sendPacket(@NotNull SendablePacket packet) {
                 // nothing

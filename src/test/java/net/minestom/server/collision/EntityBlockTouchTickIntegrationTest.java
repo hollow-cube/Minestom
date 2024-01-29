@@ -1,7 +1,5 @@
 package net.minestom.server.collision;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -10,6 +8,8 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.utils.NamespaceID;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,7 @@ public class EntityBlockTouchTickIntegrationTest {
         instance.setBlock(1, 42, 0, Block.STONE.withHandler(handler));
         instance.setBlock(0, 42, 10, Block.STONE.withHandler(handler));
 
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0.7)).join();
 
         entity.tick(0);
@@ -85,7 +85,7 @@ public class EntityBlockTouchTickIntegrationTest {
         instance.setBlock(1001, 42, 1000, Block.STONE.withHandler(handler));
         instance.setBlock(1000, 42, 1010, Block.STONE.withHandler(handler));
 
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(1000, 42, 1000.7)).join();
 
         entity.tick(0);
@@ -130,7 +130,7 @@ public class EntityBlockTouchTickIntegrationTest {
         instance.setBlock(1001, 42, 1000, Block.STONE.withHandler(handler));
         instance.setBlock(1000, 42, 1010, Block.STONE.withHandler(handler));
 
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(1000.699, 42, 1000)).join();
 
         entity.tick(0);
@@ -178,7 +178,7 @@ public class EntityBlockTouchTickIntegrationTest {
         instance.setBlock(-1001, 42, -1000, Block.STONE.withHandler(handler));
         instance.setBlock(-1000, 42, -1010, Block.STONE.withHandler(handler));
 
-        var entity = new Entity(EntityType.ZOMBIE);
+        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(-1000.301, 42, -1000)).join();
 
         entity.tick(0);
