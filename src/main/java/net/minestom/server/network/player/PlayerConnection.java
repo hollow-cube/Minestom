@@ -19,12 +19,14 @@ import java.util.List;
  * It can be extended to create a new kind of player (NPC for instance).
  */
 public abstract class PlayerConnection {
+    public final MinecraftServer minecraftServer;
     private Player player;
     private volatile ConnectionState connectionState;
     private PlayerPublicKey playerPublicKey;
     volatile boolean online;
 
-    public PlayerConnection() {
+    public PlayerConnection(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         this.online = true;
         this.connectionState = ConnectionState.HANDSHAKE;
     }
@@ -83,7 +85,7 @@ public abstract class PlayerConnection {
      * @return the server address used
      */
     public @Nullable String getServerAddress() {
-        return MinecraftServer.getServer().getAddress();
+        return minecraftServer.process().getServer().getAddress();
     }
 
 
@@ -95,7 +97,7 @@ public abstract class PlayerConnection {
      * @return the server port used
      */
     public int getServerPort() {
-        return MinecraftServer.getServer().getPort();
+        return minecraftServer.process().getServer().getPort();
     }
 
     /**
@@ -103,7 +105,7 @@ public abstract class PlayerConnection {
      */
     public void disconnect() {
         this.online = false;
-        MinecraftServer.getConnectionManager().removePlayer(this);
+        minecraftServer.process().getConnectionManager().removePlayer(this);
         final Player player = getPlayer();
         if (player != null && !player.isRemoved()) {
             player.scheduleNextTick(Entity::remove);

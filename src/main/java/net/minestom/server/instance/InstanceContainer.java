@@ -7,7 +7,6 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.instance.InstanceChunkLoadEvent;
 import net.minestom.server.event.instance.InstanceChunkUnloadEvent;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
@@ -27,13 +26,11 @@ import net.minestom.server.utils.async.AsyncUtils;
 import net.minestom.server.utils.block.BlockUtils;
 import net.minestom.server.utils.chunk.ChunkCache;
 import net.minestom.server.utils.chunk.ChunkSupplier;
-import net.minestom.server.utils.chunk.ChunkUtils;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnknownNullability;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,7 +222,7 @@ public class InstanceContainer extends Instance {
             return false;
         }
         PlayerBlockBreakEvent blockBreakEvent = new PlayerBlockBreakEvent(player, block, Block.AIR, blockPosition, blockFace);
-        EventDispatcher.call(blockBreakEvent);
+        minecraftServer.process().getGlobalEventHandler().call(blockBreakEvent);
         final boolean allowed = !blockBreakEvent.isCancelled();
         if (allowed) {
             // Break or change the broken block based on event result
@@ -257,7 +254,7 @@ public class InstanceContainer extends Instance {
         final int chunkX = chunk.getChunkX();
         final int chunkZ = chunk.getChunkZ();
         chunk.sendPacketToViewers(new UnloadChunkPacket(chunkX, chunkZ));
-        EventDispatcher.call(new InstanceChunkUnloadEvent(this, chunk));
+        minecraftServer.process().getGlobalEventHandler().call(new InstanceChunkUnloadEvent(this, chunk));
         // Remove all entities in chunk
         getEntityTracker().chunkEntities(chunkX, chunkZ, EntityTracker.Target.ENTITIES).forEach(Entity::remove);
         // Clear cache
@@ -312,7 +309,7 @@ public class InstanceContainer extends Instance {
                     cacheChunk(chunk);
                     chunk.onLoad();
 
-                    EventDispatcher.call(new InstanceChunkLoadEvent(this, chunk));
+                    minecraftServer.process().getGlobalEventHandler().call(new InstanceChunkLoadEvent(this, chunk));
                     final CompletableFuture<Chunk> future = this.loadingChunks.remove(index);
                     assert future == completableFuture : "Invalid future: " + future;
                     completableFuture.complete(chunk);

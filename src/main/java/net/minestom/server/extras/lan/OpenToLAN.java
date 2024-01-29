@@ -1,7 +1,6 @@
 package net.minestom.server.extras.lan;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.timer.Task;
 import net.minestom.server.utils.time.Cooldown;
@@ -29,16 +28,19 @@ import static net.minestom.server.ping.ServerListPingType.OPEN_TO_LAN;
  * @see <a href="https://wiki.vg/Server_List_Ping#Ping_via_LAN_.28Open_to_LAN_in_Singleplayer.29">wiki.vg</a>
  */
 public class OpenToLAN {
-    private static final InetSocketAddress PING_ADDRESS = new InetSocketAddress("224.0.2.60", 4445);
+    private final InetSocketAddress PING_ADDRESS = new InetSocketAddress("224.0.2.60", 4445);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenToLAN.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(OpenToLAN.class);
 
-    private static volatile Cooldown eventCooldown;
-    private static volatile DatagramSocket socket = null;
-    private static volatile DatagramPacket packet = null;
-    private static volatile Task task = null;
+    private volatile Cooldown eventCooldown;
+    private volatile DatagramSocket socket = null;
+    private volatile DatagramPacket packet = null;
+    private volatile Task task = null;
 
-    private OpenToLAN() {
+    private final MinecraftServer minecraftServer;
+
+    public OpenToLAN(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
     }
 
     /**
@@ -46,7 +48,7 @@ public class OpenToLAN {
      *
      * @return {@code true} if it was opened successfully, {@code false} otherwise
      */
-    public static boolean open() {
+    public boolean open() {
         return open(new OpenToLANConfig());
     }
 
@@ -56,7 +58,7 @@ public class OpenToLAN {
      * @param config the configuration
      * @return {@code true} if it was opened successfully, {@code false} otherwise
      */
-    public static boolean open(@NotNull OpenToLANConfig config) {
+    public boolean open(@NotNull OpenToLANConfig config) {
         Objects.requireNonNull(config, "config");
         if (socket != null) return false;
 
@@ -68,7 +70,7 @@ public class OpenToLAN {
         }
 
         eventCooldown = new Cooldown(config.delayBetweenEvent);
-        task = MinecraftServer.getSchedulerManager().buildTask(OpenToLAN::ping)
+        task = minecraftServer.process().getSchedulerManager().buildTask(this::ping)
                 .repeat(config.delayBetweenPings)
                 .schedule();
         return true;
@@ -79,7 +81,7 @@ public class OpenToLAN {
      *
      * @return {@code true} if it was closed, {@code false} if it was already closed
      */
-    public static boolean close() {
+    public boolean close() {
         if (socket == null) return false;
         task.cancel();
         socket.close();
@@ -94,18 +96,18 @@ public class OpenToLAN {
      *
      * @return {@code true} if it is, {@code false} otherwise
      */
-    public static boolean isOpen() {
+    public boolean isOpen() {
         return socket != null;
     }
 
     /**
      * Performs the ping.
      */
-    private static void ping() {
-        if (!MinecraftServer.getServer().isOpen()) return;
+    private void ping() {
+        if (!minecraftServer.process().getServer().isOpen()) return;
         if (packet == null || eventCooldown.isReady(System.currentTimeMillis())) {
             final ServerListPingEvent event = new ServerListPingEvent(OPEN_TO_LAN);
-            EventDispatcher.call(event);
+            minecraftServer.process().getGlobalEventHandler().call(event);
 
             final byte[] data = OPEN_TO_LAN.getPingResponse(event.getResponseData()).getBytes(StandardCharsets.UTF_8);
             packet = new DatagramPacket(data, data.length, PING_ADDRESS);

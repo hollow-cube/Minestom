@@ -1,8 +1,8 @@
 package net.minestom.server.inventory;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.item.EntityEquipEvent;
 import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.inventory.click.InventoryClickResult;
@@ -25,8 +25,8 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
     protected final Player player;
     private ItemStack cursorItem = ItemStack.AIR;
 
-    public PlayerInventory(@NotNull Player player) {
-        super(INVENTORY_SIZE);
+    public PlayerInventory(@NotNull MinecraftServer minecraftServer, @NotNull Player player) {
+        super(minecraftServer, INVENTORY_SIZE);
         this.player = player;
     }
 
@@ -145,7 +145,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         };
         if (equipmentSlot != null) {
             EntityEquipEvent entityEquipEvent = new EntityEquipEvent(player, itemStack, equipmentSlot);
-            EventDispatcher.call(entityEquipEvent);
+            minecraftServer.process().getGlobalEventHandler().call(entityEquipEvent);
             itemStack = entityEquipEvent.getEquippedItem();
         }
         this.itemStacks[slot] = itemStack;
@@ -195,7 +195,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setCursorItem(clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.LEFT_CLICK, clicked, cursor);
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, null, convertedSlot, ClickType.LEFT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -211,7 +211,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setCursorItem(clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.RIGHT_CLICK, clicked, cursor);
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, null, convertedSlot, ClickType.RIGHT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -279,7 +279,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setItemStack(convertedKey, clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.CHANGE_HELD, clicked, cursorItem);
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, null, convertedSlot, ClickType.CHANGE_HELD, clicked, cursorItem);
         return true;
     }
 

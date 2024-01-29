@@ -1,11 +1,11 @@
 package net.minestom.server.entity;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
@@ -30,8 +30,8 @@ public class EntityProjectile extends Entity {
 
     private final Entity shooter;
 
-    public EntityProjectile(@Nullable Entity shooter, @NotNull EntityType entityType) {
-        super(entityType);
+    public EntityProjectile(@NotNull MinecraftServer minecraftServer, @Nullable Entity shooter, @NotNull EntityType entityType) {
+        super(minecraftServer, entityType);
         this.shooter = shooter;
         setup();
     }
@@ -50,7 +50,7 @@ public class EntityProjectile extends Entity {
 
     public void shoot(Point to, double power, double spread) {
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, to, power, spread);
-        EventDispatcher.call(shootEvent);
+        minecraftServer.process().getGlobalEventHandler().call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;
@@ -105,7 +105,7 @@ public class EntityProjectile extends Entity {
             }
             super.onGround = false;
             setNoGravity(false);
-            EventDispatcher.call(new ProjectileUncollideEvent(this));
+            minecraftServer.process().getGlobalEventHandler().call(new ProjectileUncollideEvent(this));
         }
     }
 
@@ -147,7 +147,7 @@ public class EntityProjectile extends Entity {
             }
             if (block.isSolid()) {
                 final ProjectileCollideWithBlockEvent event = new ProjectileCollideWithBlockEvent(this, pos, block);
-                EventDispatcher.call(event);
+                minecraftServer.process().getGlobalEventHandler().call(event);
                 if (!event.isCancelled()) {
                     teleport(pos);
                     return true;
@@ -175,7 +175,7 @@ public class EntityProjectile extends Entity {
             if (victimOptional.isPresent()) {
                 final LivingEntity target = victimOptional.get();
                 final ProjectileCollideWithEntityEvent event = new ProjectileCollideWithEntityEvent(this, pos, target);
-                EventDispatcher.call(event);
+                minecraftServer.process().getGlobalEventHandler().call(event);
                 if (!event.isCancelled()) {
                     return super.onGround;
                 }

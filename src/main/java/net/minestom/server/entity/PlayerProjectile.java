@@ -8,7 +8,6 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
@@ -87,7 +86,7 @@ public class PlayerProjectile extends LivingEntity {
         dz += random.nextGaussian() * spread;
 
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, from, power, spread);
-        EventDispatcher.call(shootEvent);
+        minecraftServer.process().getGlobalEventHandler().call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;

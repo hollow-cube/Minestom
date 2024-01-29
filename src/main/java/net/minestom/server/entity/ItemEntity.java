@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityItemMergeEvent;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.item.ItemStack;
@@ -38,8 +38,8 @@ public class ItemEntity extends Entity {
     private long spawnTime;
     private long pickupDelay;
 
-    public ItemEntity(@NotNull ItemStack itemStack) {
-        super(EntityType.ITEM);
+    public ItemEntity(@NotNull MinecraftServer minecraftServer, @NotNull ItemStack itemStack) {
+        super(minecraftServer, EntityType.ITEM);
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
     }
@@ -85,7 +85,7 @@ public class ItemEntity extends Entity {
                         if (!stackingRule.canApply(itemStack, totalAmount)) return;
                         final ItemStack result = stackingRule.apply(itemStack, totalAmount);
                         EntityItemMergeEvent entityItemMergeEvent = new EntityItemMergeEvent(this, itemEntity, result);
-                        EventDispatcher.callCancellable(entityItemMergeEvent, () -> {
+                        minecraftServer.process().getGlobalEventHandler().callCancellable(entityItemMergeEvent, () -> {
                             setItemStack(entityItemMergeEvent.getResult());
                             itemEntity.remove();
                         });

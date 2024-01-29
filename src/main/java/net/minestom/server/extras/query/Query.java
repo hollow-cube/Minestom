@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.extras.query.event.BasicQueryEvent;
 import net.minestom.server.extras.query.event.FullQueryEvent;
 import net.minestom.server.timer.Task;
@@ -188,11 +187,11 @@ public class Query {
 
                     if (remaining == 0) { // basic
                         BasicQueryEvent event = new BasicQueryEvent(sender, sessionID);
-                        EventDispatcher.callCancellable(event, () ->
+                        minecraftServer.process().getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     } else if (remaining == 5) { // full
                         FullQueryEvent event = new FullQueryEvent(minecraftServer, sender, sessionID);
-                        EventDispatcher.callCancellable(event, () ->
+                        minecraftServer.process().getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     }
                 }

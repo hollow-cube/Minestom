@@ -1,7 +1,6 @@
 package net.minestom.server.listener;
 
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerHandAnimationEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.network.packet.client.play.ClientAnimationPacket;
@@ -13,7 +12,7 @@ public class AnimationListener {
         final ItemStack itemStack = player.getItemInHand(hand);
         //itemStack.onLeftClick(player, hand);
         PlayerHandAnimationEvent handAnimationEvent = new PlayerHandAnimationEvent(player, hand);
-        EventDispatcher.callCancellable(handAnimationEvent, () -> {
+        player.minecraftServer.process().getGlobalEventHandler().callCancellable(handAnimationEvent, () -> {
             switch (hand) {
                 case MAIN -> player.swingMainHand();
                 case OFF -> player.swingOffHand();

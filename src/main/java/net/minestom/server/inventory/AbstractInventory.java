@@ -1,6 +1,6 @@
 package net.minestom.server.inventory;
 
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.inventory.InventoryItemChangeEvent;
 import net.minestom.server.event.inventory.PlayerInventoryItemChangeEvent;
 import net.minestom.server.inventory.click.InventoryClickProcessor;
@@ -28,20 +28,23 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
 
     private static final VarHandle ITEM_UPDATER = MethodHandles.arrayElementVarHandle(ItemStack[].class);
 
+    public final MinecraftServer minecraftServer;
     private final int size;
     protected final ItemStack[] itemStacks;
 
     // list of conditions/callbacks assigned to this inventory
     protected final List<InventoryCondition> inventoryConditions = new CopyOnWriteArrayList<>();
     // the click processor which process all the clicks in the inventory
-    protected final InventoryClickProcessor clickProcessor = new InventoryClickProcessor();
+    protected final InventoryClickProcessor clickProcessor;
 
     private final TagHandler tagHandler = TagHandler.newHandler();
 
-    protected AbstractInventory(int size) {
+    protected AbstractInventory(@NotNull MinecraftServer minecraftServer, int size) {
+        this.minecraftServer = minecraftServer;
         this.size = size;
         this.itemStacks = new ItemStack[getSize()];
         Arrays.fill(itemStacks, ItemStack.AIR);
+        clickProcessor = new InventoryClickProcessor(minecraftServer);
     }
 
     /**
@@ -79,9 +82,9 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
             UNSAFE_itemInsert(slot, itemStack, sendPacket);
         }
         if (this instanceof PlayerInventory inv) {
-            EventDispatcher.call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
+            minecraftServer.process().getGlobalEventHandler().call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
         } else if (this instanceof Inventory inv) {
-            EventDispatcher.call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
+            minecraftServer.process().getGlobalEventHandler().call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
         }
     }
 

@@ -15,7 +15,6 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.EntityMeta;
 import net.minestom.server.entity.metadata.LivingEntityMeta;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.EventNode;
@@ -93,6 +92,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     private static final AtomicInteger LAST_ENTITY_ID = new AtomicInteger();
 
     private final CachedPacket destroyPacketCache = new CachedPacket(() -> new DestroyEntitiesPacket(getEntityId()));
+    public final MinecraftServer minecraftServer;
 
     protected Instance instance;
     protected Chunk currentChunk;
@@ -180,7 +180,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     private final Acquirable<Entity> acquirable = Acquirable.of(this);
 
-    public Entity(@NotNull EntityType entityType, @NotNull UUID uuid) {
+    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this.minecraftServer = minecraftServer;
         this.id = generateId();
         this.entityType = entityType;
         this.uuid = uuid;
@@ -198,7 +199,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.gravityAcceleration = entityType.registry().acceleration();
         this.gravityDragPerTick = entityType.registry().drag();
 
-        final ServerProcess process = MinecraftServer.process();
+        final ServerProcess process = minecraftServer.process();
         if (process != null) {
             this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.ENTITY);
         } else {
@@ -207,8 +208,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         }
     }
 
-    public Entity(@NotNull EntityType entityType) {
-        this(entityType, UUID.randomUUID());
+    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
+        this(minecraftServer, entityType, UUID.randomUUID());
     }
 
     /**
@@ -562,7 +563,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             update(time);
 
             ticks++;
-            EventDispatcher.call(new EntityTickEvent(this));
+            minecraftServer.process().getGlobalEventHandler().call(new EntityTickEvent(this));
 
             // remove expired effects
             effectTick(time);
@@ -731,7 +732,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             if (time >= timedPotion.getStartingTime() + potionTime) {
                 // Send the packet that the potion should no longer be applied
                 timedPotion.getPotion().sendRemovePacket(this);
-                EventDispatcher.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -846,7 +847,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     @ApiStatus.Internal
     protected void refreshCurrentChunk(Chunk currentChunk) {
         this.currentChunk = currentChunk;
-        MinecraftServer.process().dispatcher().updateElement(this, currentChunk);
+        minecraftServer.process().dispatcher().updateElement(this, currentChunk);
     }
 
     /**
@@ -875,7 +876,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             return teleport(spawnPosition); // Already in the instance, teleport to spawn point
         }
         AddEntityToInstanceEvent event = new AddEntityToInstanceEvent(instance, this);
-        EventDispatcher.call(event);
+        minecraftServer.process().getGlobalEventHandler().call(event);
         if (event.isCancelled()) return null; // TODO what to return?
 
         if (previousInstance != null) removeFromInstance(previousInstance);
@@ -894,9 +895,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                 }
                 instance.getEntityTracker().register(this, spawnPosition, trackingTarget, trackingUpdate);
                 spawn();
-                EventDispatcher.call(new EntitySpawnEvent(this, instance));
+                minecraftServer.process().getGlobalEventHandler().call(new EntitySpawnEvent(this, instance));
             } catch (Exception e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                minecraftServer.process().getExceptionManager().handleException(e);
             }
         });
     }
@@ -919,7 +920,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     private void removeFromInstance(Instance instance) {
-        EventDispatcher.call(new RemoveEntityFromInstanceEvent(instance, this));
+        minecraftServer.process().getGlobalEventHandler().call(new RemoveEntityFromInstanceEvent(instance, this));
         instance.getEntityTracker().unregister(this, trackingTarget, trackingUpdate);
         this.viewEngine.forManuals(this::removeViewer);
     }
@@ -942,7 +943,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      */
     public void setVelocity(@NotNull Vec velocity) {
         EntityVelocityEvent entityVelocityEvent = new EntityVelocityEvent(this, velocity);
-        EventDispatcher.callCancellable(entityVelocityEvent, () -> {
+        minecraftServer.process().getGlobalEventHandler().callCancellable(entityVelocityEvent, () -> {
             this.velocity = entityVelocityEvent.getVelocity();
             sendPacketToViewersAndSelf(getVelocityPacket());
         });
@@ -1460,7 +1461,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         removeEffect(potion.effect());
         this.effects.add(new TimedPotion(potion, System.currentTimeMillis()));
         potion.sendAddPacket(this);
-        EventDispatcher.call(new EntityPotionAddEvent(this, potion));
+        minecraftServer.process().getGlobalEventHandler().call(new EntityPotionAddEvent(this, potion));
     }
 
     /**
@@ -1472,7 +1473,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.effects.removeIf(timedPotion -> {
             if (timedPotion.getPotion().effect() == effect) {
                 timedPotion.getPotion().sendRemovePacket(this);
-                EventDispatcher.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -1515,7 +1516,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void clearEffects() {
         for (TimedPotion timedPotion : effects) {
             timedPotion.getPotion().sendRemovePacket(this);
-            EventDispatcher.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+            minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
         }
         this.effects.clear();
     }
@@ -1531,11 +1532,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     protected void remove(boolean permanent) {
         if (isRemoved()) return;
-        EventDispatcher.call(new EntityDespawnEvent(this));
+        minecraftServer.process().getGlobalEventHandler().call(new EntityDespawnEvent(this));
         try {
             despawn();
         } catch (Throwable t) {
-            MinecraftServer.getExceptionManager().handleException(t);
+            minecraftServer.process().getExceptionManager().handleException(t);
         }
 
         // Remove passengers if any (also done with LivingEntity#kill)
@@ -1544,7 +1545,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         final Entity vehicle = this.vehicle;
         if (vehicle != null) vehicle.removePassenger(this);
 
-        MinecraftServer.process().dispatcher().removeElement(this);
+        minecraftServer.process().dispatcher().removeElement(this);
         this.removed = true;
         if (permanent) {
             Entity.ENTITY_BY_ID.remove(id);

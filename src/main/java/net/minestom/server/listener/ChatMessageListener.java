@@ -2,15 +2,10 @@ package net.minestom.server.listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerChatEvent;
 import net.minestom.server.message.ChatPosition;
 import net.minestom.server.message.Messenger;
-import net.minestom.server.network.ConnectionManager;
-import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.play.ClientChatMessagePacket;
 import net.minestom.server.network.packet.client.play.ClientCommandChatPacket;
 import org.jetbrains.annotations.NotNull;
@@ -20,13 +15,10 @@ import java.util.function.Function;
 
 public class ChatMessageListener {
 
-    private static final CommandManager COMMAND_MANAGER = MinecraftServer.getCommandManager();
-    private static final ConnectionManager CONNECTION_MANAGER = MinecraftServer.getConnectionManager();
-
     public static void commandChatListener(ClientCommandChatPacket packet, Player player) {
         final String command = packet.message();
         if (Messenger.canReceiveCommand(player)) {
-            COMMAND_MANAGER.execute(player, command);
+            player.minecraftServer.process().getCommandManager().execute(player, command);
         } else {
             Messenger.sendRejectionMessage(player);
         }
@@ -39,11 +31,11 @@ public class ChatMessageListener {
             return;
         }
 
-        final Collection<Player> players = CONNECTION_MANAGER.getOnlinePlayers();
+        final Collection<Player> players = player.minecraftServer.process().getConnectionManager().getOnlinePlayers();
         PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> buildDefaultChatMessage(player, message), message);
 
         // Call the event
-        EventDispatcher.callCancellable(playerChatEvent, () -> {
+        player.minecraftServer.process().getGlobalEventHandler().callCancellable(playerChatEvent, () -> {
             final Function<PlayerChatEvent, Component> formatFunction = playerChatEvent.getChatFormatFunction();
 
             Component textObject;

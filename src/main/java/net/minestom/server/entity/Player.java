@@ -20,7 +20,6 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.TitlePart;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.advancements.AdvancementTab;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.adventure.Localizable;
@@ -28,6 +27,7 @@ import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.command.CommandSender;
+import net.minestom.server.command.builder.condition.CommandCondition;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -36,7 +36,6 @@ import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.entity.metadata.PlayerMeta;
 import net.minestom.server.entity.vehicle.PlayerVehicleInformation;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.inventory.InventoryOpenEvent;
 import net.minestom.server.event.item.ItemDropEvent;
 import net.minestom.server.event.item.ItemUpdateStateEvent;
@@ -72,7 +71,6 @@ import net.minestom.server.recipe.Recipe;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.scoreboard.BelowNameTag;
 import net.minestom.server.scoreboard.Team;
-import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.snapshot.EntitySnapshot;
 import net.minestom.server.snapshot.PlayerSnapshot;
 import net.minestom.server.snapshot.SnapshotImpl;
@@ -162,11 +160,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Load new chunks
         this.instance.loadOptionalChunk(chunkX, chunkZ).thenAccept(this::sendChunk);
     };
-    final IntegerBiConsumer chunkRemover = (chunkX, chunkZ) -> {
-        // Unload old chunks
-        sendPacket(new UnloadChunkPacket(chunkX, chunkZ));
-        EventDispatcher.call(new PlayerChunkUnloadEvent(this, chunkX, chunkZ));
-    };
+    final IntegerBiConsumer chunkRemover;
 
     private final AtomicInteger teleportId = new AtomicInteger();
     private int receivedTeleportId;
@@ -230,13 +224,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // The future is non-null when a resource pack is in-flight, and completed when all statuses have been received.
     private CompletableFuture<Void> resourcePackFuture = null;
 
-    public final MinecraftServer minecraftServer;
-    protected final ServerProcess serverProcess;
-
     public Player(@NotNull MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
-        super(EntityType.PLAYER, uuid);
-        this.minecraftServer = minecraftServer;
-        this.serverProcess = minecraftServer.process();
+        super(minecraftServer, EntityType.PLAYER, uuid);
         this.username = username;
         this.usernameComponent = Component.text(username);
         this.playerConnection = playerConnection;
@@ -244,7 +233,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         setRespawnPoint(Pos.ZERO);
 
         this.settings = new PlayerSettings();
-        this.inventory = new PlayerInventory(this);
+        this.inventory = new PlayerInventory(minecraftServer, this);
 
         setCanPickupItem(true); // By default
 
@@ -268,6 +257,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // When in configuration state no metadata updates can be sent.
         metadata.setNotifyAboutChanges(false);
+        chunkRemover = (chunkX, chunkZ) -> {
+            // Unload old chunks
+            sendPacket(new UnloadChunkPacket(chunkX, chunkZ));
+            minecraftServer.process().getGlobalEventHandler().call(new PlayerChunkUnloadEvent(this, chunkX, chunkZ));
+        };
     }
 
     @ApiStatus.Internal
@@ -323,12 +317,12 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             }
         }
         PlayerSkinInitEvent skinInitEvent = new PlayerSkinInitEvent(this, profileSkin);
-        EventDispatcher.call(skinInitEvent);
+        minecraftServer.process().getGlobalEventHandler().call(skinInitEvent);
         this.skin = skinInitEvent.getSkin();
         // FIXME: when using Geyser, this line remove the skin of the client
         PacketUtils.broadcastPlayPacket(getAddPlayerToList());
 
-        var connectionManager = serverProcess.getConnectionManager();
+        var connectionManager = minecraftServer.process().getConnectionManager();
         for (var player : connectionManager.getOnlinePlayers()) {
             if (player != this) {
                 sendPacket(player.getAddPlayerToList());
@@ -339,7 +333,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         //Teams
-        for (Team team : serverProcess.getTeamManager().getTeams()) {
+        for (Team team : minecraftServer.process().getTeamManager().getTeams()) {
             sendPacket(team.createTeamsCreationPacket());
         }
 
@@ -348,7 +342,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Recipes start
         {
-            RecipeManager recipeManager = serverProcess.getRecipeManager();
+            RecipeManager recipeManager = minecraftServer.process().getRecipeManager();
             sendPacket(recipeManager.getDeclareRecipesPacket());
 
             List<String> recipesIdentifier = new ArrayList<>();
@@ -392,7 +386,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Remove the player, then send them back to configuration
         remove(false);
 
-        var connectionManager = serverProcess.getConnectionManager();
+        var connectionManager = minecraftServer.process().getConnectionManager();
         connectionManager.transitionPlayToConfig(this);
 
     }
@@ -425,7 +419,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                     EntityTracker.Target.EXPERIENCE_ORBS, experienceOrb -> {
                         if (expandedBoundingBox.intersectEntity(loweredPosition, experienceOrb)) {
                             PickupExperienceEvent pickupExperienceEvent = new PickupExperienceEvent(this, experienceOrb);
-                            EventDispatcher.callCancellable(pickupExperienceEvent, () -> {
+                            minecraftServer.process().getGlobalEventHandler().callCancellable(pickupExperienceEvent, () -> {
                                 short experienceCount = pickupExperienceEvent.getExperienceCount(); // TODO give to player
                                 experienceOrb.remove();
                             });
@@ -442,7 +436,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 Check.notNull(itemUpdateStateEvent, "#callItemUpdateStateEvent returned null.");
 
                 // Refresh hand
-                final boolean isOffHand = itemUpdateStateEvent.getHand() == Player.Hand.OFF;
+                final boolean isOffHand = itemUpdateStateEvent.getHand() == Hand.OFF;
                 refreshActiveHand(false, isOffHand, false);
 
                 final ItemStack foodItem = itemUpdateStateEvent.getItemStack();
@@ -450,7 +444,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
                 if (isFood) {
                     PlayerEatEvent playerEatEvent = new PlayerEatEvent(this, foodItem, eatingHand);
-                    EventDispatcher.call(playerEatEvent);
+                    minecraftServer.process().getGlobalEventHandler().call(playerEatEvent);
                 }
 
                 refreshEating(null);
@@ -460,7 +454,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         if (EXPERIMENT_PERFORM_POSE_UPDATES) updatePose();
 
         // Tick event
-        EventDispatcher.call(new PlayerTickEvent(this));
+        minecraftServer.process().getGlobalEventHandler().call(new PlayerTickEvent(this));
     }
 
     @Override
@@ -490,7 +484,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
             // Call player death event
             PlayerDeathEvent playerDeathEvent = new PlayerDeathEvent(this, deathText, chatMessage);
-            EventDispatcher.call(playerDeathEvent);
+            minecraftServer.process().getGlobalEventHandler().call(playerDeathEvent);
 
             deathText = playerDeathEvent.getDeathText();
             chatMessage = playerDeathEvent.getChatMessage();
@@ -528,7 +522,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 0, gameMode, gameMode, false, levelFlat, deathLocation, portalCooldown, RespawnPacket.COPY_ALL));
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this);
-        EventDispatcher.call(respawnEvent);
+        minecraftServer.process().getGlobalEventHandler().call(respawnEvent);
         triggerStatus((byte) (24 + permissionLevel)); // Set permission level
         refreshIsDead(false);
         updatePose();
@@ -563,11 +557,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     /**
      * Refreshes the command list for this player. This checks the
-     * {@link net.minestom.server.command.builder.condition.CommandCondition}s
+     * {@link CommandCondition}s
      * again, and any changes will be visible to the player.
      */
     public void refreshCommands() {
-        sendPacket(serverProcess.getCommandManager().createDeclareCommandsPacket(this));
+        sendPacket(minecraftServer.process().getCommandManager().createDeclareCommandsPacket(this));
     }
 
     @Override
@@ -581,14 +575,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         if (permanent) {
             this.packets.clear();
-            EventDispatcher.call(new PlayerDisconnectEvent(this));
+            minecraftServer.process().getGlobalEventHandler().call(new PlayerDisconnectEvent(this));
         }
 
         super.remove(permanent);
 
         final Inventory currentInventory = getOpenInventory();
         if (currentInventory != null) currentInventory.removeViewer(this);
-        serverProcess.getBossBarManager().removeAllBossBars(this);
+        minecraftServer.process().getBossBarManager().removeAllBossBars(this);
         // Advancement tabs cache
         {
             Set<AdvancementTab> advancementTabs = AdvancementTab.getTabs(this);
@@ -667,7 +661,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // One or more chunks need to be loaded
         final Thread runThread = Thread.currentThread();
         CountDownLatch latch = new CountDownLatch(1);
-        Scheduler scheduler = serverProcess.getSchedulerManager();
+        Scheduler scheduler = minecraftServer.process().getSchedulerManager();
         CompletableFuture<Void> future = new CompletableFuture<>() {
             @Override
             public Void join() {
@@ -761,7 +755,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
         }
 
-        EventDispatcher.call(new PlayerSpawnEvent(this, instance, firstSpawn));
+        minecraftServer.process().getGlobalEventHandler().call(new PlayerSpawnEvent(this, instance, firstSpawn));
     }
 
     @ApiStatus.Internal
@@ -809,7 +803,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 if (chunk == null || !chunk.isLoaded()) continue;
 
                 sendPacket(chunk.getFullDataPacket());
-                EventDispatcher.call(new PlayerChunkLoadEvent(this, chunkX, chunkZ));
+                minecraftServer.process().getGlobalEventHandler().call(new PlayerChunkLoadEvent(this, chunkX, chunkZ));
 
                 pendingChunkCount -= 1f;
                 batchSize += 1;
@@ -859,7 +853,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     /**
-     * Returns true if the player can fit at the current position with the given {@link net.minestom.server.entity.Entity.Pose}, false otherwise.
+     * Returns true if the player can fit at the current position with the given {@link Pose}, false otherwise.
      *
      * @param pose The pose to check
      */
@@ -983,12 +977,12 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     @Override
     public void showBossBar(@NotNull BossBar bar) {
-        serverProcess.getBossBarManager().addBossBar(this, bar);
+        minecraftServer.process().getBossBarManager().addBossBar(this, bar);
     }
 
     @Override
     public void hideBossBar(@NotNull BossBar bar) {
-        serverProcess.getBossBarManager().removeBossBar(this, bar);
+        minecraftServer.process().getBossBarManager().removeBossBar(this, bar);
     }
 
     @Override
@@ -1271,7 +1265,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public boolean dropItem(@NotNull ItemStack item) {
         if (item.isAir()) return false;
         ItemDropEvent itemDropEvent = new ItemDropEvent(this, item);
-        EventDispatcher.call(itemDropEvent);
+        minecraftServer.process().getGlobalEventHandler().call(itemDropEvent);
         return !itemDropEvent.isCancelled();
     }
 
@@ -1560,7 +1554,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public boolean setGameMode(@NotNull GameMode gameMode) {
         PlayerGameModeChangeEvent playerGameModeChangeEvent = new PlayerGameModeChangeEvent(this, gameMode);
-        EventDispatcher.call(playerGameModeChangeEvent);
+        minecraftServer.process().getGlobalEventHandler().call(playerGameModeChangeEvent);
         if (playerGameModeChangeEvent.isCancelled()) {
             // Abort
             return false;
@@ -1708,7 +1702,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public boolean openInventory(@NotNull Inventory inventory) {
         InventoryOpenEvent inventoryOpenEvent = new InventoryOpenEvent(inventory, this);
 
-        EventDispatcher.callCancellable(inventoryOpenEvent, () -> {
+        minecraftServer.process().getGlobalEventHandler().callCancellable(inventoryOpenEvent, () -> {
             Inventory openInventory = getOpenInventory();
             if (openInventory != null) {
                 openInventory.removeViewer(this);
@@ -2060,7 +2054,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             kick(Component.text("Too Many Packets", NamedTextColor.RED));
             return;
         }
-        final PacketListenerManager manager = serverProcess.getPacketListenerManager();
+        final PacketListenerManager manager = minecraftServer.process().getPacketListenerManager();
         // This method is NOT thread-safe
         this.packets.drain(packet -> manager.processClientPacket(packet, playerConnection), PACKET_PER_TICK);
     }
@@ -2081,7 +2075,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.onGround = onGround;
         if (this.onGround && this.isFlyingWithElytra()) {
             this.setFlyingWithElytra(false);
-            EventDispatcher.call(new PlayerStopFlyingWithElytraEvent(this));
+            minecraftServer.process().getGlobalEventHandler().call(new PlayerStopFlyingWithElytraEvent(this));
         }
     }
 
@@ -2155,7 +2149,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             return null;
 
         ItemUpdateStateEvent itemUpdateStateEvent = new ItemUpdateStateEvent(this, hand, updatedItem);
-        EventDispatcher.call(itemUpdateStateEvent);
+        minecraftServer.process().getGlobalEventHandler().call(itemUpdateStateEvent);
 
         return itemUpdateStateEvent;
     }

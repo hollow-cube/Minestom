@@ -5,7 +5,6 @@ import net.minestom.server.advancements.AdvancementManager;
 import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
 import net.minestom.server.exception.ExceptionManager;
@@ -76,11 +75,11 @@ final class ServerProcessImpl implements ServerProcess {
         this.minecraftServer = minecraftServer;
         this.exception = new ExceptionManager();
         this.connection = new ConnectionManager(minecraftServer);
-        this.packetListener = new PacketListenerManager();
+        this.packetListener = new PacketListenerManager(minecraftServer);
         this.packetProcessor = new PacketProcessor(packetListener);
-        this.instance = new InstanceManager();
+        this.instance = new InstanceManager(minecraftServer);
         this.block = new BlockManager();
-        this.command = new CommandManager();
+        this.command = new CommandManager(minecraftServer);
         this.recipe = new RecipeManager();
         this.team = new TeamManager();
         this.eventHandler = new GlobalEventHandler();
@@ -91,7 +90,7 @@ final class ServerProcessImpl implements ServerProcess {
         this.advancement = new AdvancementManager();
         this.bossBar = new BossBarManager();
         this.tag = new TagManager();
-        this.server = new Server(packetProcessor);
+        this.server = new Server(minecraftServer, packetProcessor);
 
         this.dispatcher = ThreadDispatcher.singleThread();
         this.ticker = new TickerImpl();
@@ -278,7 +277,7 @@ final class ServerProcessImpl implements ServerProcess {
                 final double acquisitionTimeMs = Acquirable.resetAcquiringTime() / 1e6D;
                 final double tickTimeMs = (System.nanoTime() - nanoTime) / 1e6D;
                 final TickMonitor tickMonitor = new TickMonitor(tickTimeMs, acquisitionTimeMs);
-                EventDispatcher.call(new ServerTickMonitorEvent(tickMonitor));
+                getGlobalEventHandler().call(new ServerTickMonitorEvent(tickMonitor));
             }
         }
 

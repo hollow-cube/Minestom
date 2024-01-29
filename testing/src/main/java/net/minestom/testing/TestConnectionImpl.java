@@ -61,6 +61,11 @@ final class TestConnectionImpl implements TestConnection {
     }
 
     final class PlayerConnectionImpl extends PlayerConnection {
+
+        PlayerConnectionImpl() {
+            super();
+        }
+
         @Override
         public void sendPacket(@NotNull SendablePacket packet) {
             final var serverPacket = this.extractPacket(packet);

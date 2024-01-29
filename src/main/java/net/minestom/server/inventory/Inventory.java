@@ -1,6 +1,7 @@
 package net.minestom.server.inventory;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.Viewable;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.click.ClickType;
@@ -44,8 +45,8 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     // (player -> cursor item) map, used by the click listeners
     private final ConcurrentHashMap<Player, ItemStack> cursorPlayersItem = new ConcurrentHashMap<>();
 
-    public Inventory(@NotNull InventoryType inventoryType, @NotNull Component title) {
-        super(inventoryType.getSize());
+    public Inventory(@NotNull MinecraftServer minecraftServer, @NotNull InventoryType inventoryType, @NotNull Component title) {
+        super(minecraftServer, inventoryType.getSize());
         this.id = generateId();
         this.inventoryType = inventoryType;
         this.title = title;
@@ -53,8 +54,8 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
         this.offset = getSize();
     }
 
-    public Inventory(@NotNull InventoryType inventoryType, @NotNull String title) {
-        this(inventoryType, Component.text(title));
+    public Inventory(@NotNull MinecraftServer minecraftServer, @NotNull InventoryType inventoryType, @NotNull String title) {
+        this(minecraftServer, inventoryType, Component.text(title));
     }
 
     private static byte generateId() {
@@ -230,7 +231,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -253,7 +254,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -303,7 +304,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         playerInventory.setItemStack(convertedKey, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
+        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
         return true;
     }
 

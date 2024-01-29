@@ -31,11 +31,11 @@ public class Main {
 
         minecraftServer.init();
 
-        BlockManager blockManager = minecraftServer.getBlockManager();
+        BlockManager blockManager = minecraftServer.process().getBlockManager();
         blockManager.registerBlockPlacementRule(new DripstonePlacementRule());
         blockManager.registerHandler(TestBlockHandler.INSTANCE.getNamespaceId(), () -> TestBlockHandler.INSTANCE);
 
-        CommandManager commandManager = minecraftServer.getCommandManager();
+        CommandManager commandManager = minecraftServer.process().getCommandManager();
         commandManager.register(new TestCommand());
         commandManager.register(new EntitySelectorCommand());
         commandManager.register(new HealthCommand());
@@ -67,11 +67,11 @@ public class Main {
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
-        minecraftServer.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
+        minecraftServer.process().getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
 
-        minecraftServer.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
+        minecraftServer.process().getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
 
-        minecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
+        minecraftServer.process().getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
             ResponseData responseData = event.getResponseData();
             responseData.addEntry(NamedAndIdentified.named("The first line is separated from the others"));
             responseData.addEntry(NamedAndIdentified.named("Could be a name, or a message"));
@@ -113,7 +113,7 @@ public class Main {
         //MojangAuth.init();
 
         // useful for testing - we don't need to worry about event calls so just set this to a long time
-        OpenToLAN.open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
+        new OpenToLAN(minecraftServer).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
 
         minecraftServer.start("0.0.0.0", 25565);
 //        minecraftServer.start(java.net.UnixDomainSocketAddress.of("minestom-demo.sock"));

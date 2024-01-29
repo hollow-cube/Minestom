@@ -6,7 +6,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
 import net.minestom.server.instance.Instance;
@@ -238,7 +237,7 @@ public final class ConnectionManager {
 
             // Call pre login event
             AsyncPlayerPreLoginEvent asyncPlayerPreLoginEvent = new AsyncPlayerPreLoginEvent(player);
-            EventDispatcher.call(asyncPlayerPreLoginEvent);
+            minecraftServer.process().getGlobalEventHandler().call(asyncPlayerPreLoginEvent);
             if (!player.isOnline())
                 return; // Player has been kicked
 
@@ -278,7 +277,7 @@ public final class ConnectionManager {
             player.sendPacket(PluginMessagePacket.getBrandPacket(minecraftServer));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
-            EventDispatcher.call(event);
+            minecraftServer.process().getGlobalEventHandler().call(event);
 
             final Instance spawningInstance = event.getSpawningInstance();
             Check.notNull(spawningInstance, "You need to specify a spawning instance in the AsyncPlayerConfigurationEvent");

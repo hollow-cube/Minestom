@@ -13,7 +13,6 @@ import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.ExperienceOrb;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PFInstanceSpace;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.EventNode;
@@ -674,7 +673,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         // Tick event
         {
             // Process tick events
-            EventDispatcher.call(new InstanceTickEvent(this, time, lastTickAge));
+            minecraftServer.process().getGlobalEventHandler().call(new InstanceTickEvent(this, time, lastTickAge));
             // Set last tick age
             this.lastTickAge = time;
         }

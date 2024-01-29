@@ -6,7 +6,6 @@ import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
 import net.minestom.server.command.builder.ParsedCommand;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerCommandEvent;
 import net.minestom.server.network.packet.server.play.DeclareCommandsPacket;
 import net.minestom.server.utils.callback.CommandCallback;
@@ -36,8 +35,10 @@ public final class CommandManager {
     private final Set<Command> commands = new HashSet<>();
 
     private CommandCallback unknownCommandCallback;
+    private final MinecraftServer minecraftServer;
 
-    public CommandManager() {
+    public CommandManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
     }
 
     /**
@@ -107,7 +108,7 @@ public final class CommandManager {
             // Command event
             if (sender instanceof Player player) {
                 PlayerCommandEvent playerCommandEvent = new PlayerCommandEvent(player, command);
-                EventDispatcher.call(playerCommandEvent);
+                minecraftServer.process().getGlobalEventHandler().call(playerCommandEvent);
                 if (playerCommandEvent.isCancelled())
                     return CommandResult.of(CommandResult.Type.CANCELLED, command);
                 command = playerCommandEvent.getCommand();
@@ -140,7 +141,7 @@ public final class CommandManager {
                     try {
                         callable.call();
                     } catch (Exception e) {
-                        MinecraftServer.getExceptionManager().handleException(e);
+                        minecraftServer.process().getExceptionManager().handleException(e);
                     }
                 });
                 return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
@@ -148,7 +149,7 @@ public final class CommandManager {
                 return callable.call();
             }
         } catch (Exception e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            minecraftServer.process().getExceptionManager().handleException(e);
             return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
         }
     }

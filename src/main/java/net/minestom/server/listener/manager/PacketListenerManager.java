@@ -1,7 +1,6 @@
 package net.minestom.server.listener.manager;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.listener.*;
 import net.minestom.server.listener.common.KeepAliveListener;
@@ -37,8 +36,10 @@ public final class PacketListenerManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(PacketListenerManager.class);
 
     private final Map<Class<? extends ClientPacket>, PacketPrePlayListenerConsumer>[] listeners = new Map[ConnectionState.values().length];
+    private final MinecraftServer minecraftServer;
 
-    public PacketListenerManager() {
+    public PacketListenerManager(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         for (int i = 0; i < listeners.length; i++) {
             listeners[i] = new ConcurrentHashMap<>();
         }
@@ -69,7 +70,7 @@ public final class PacketListenerManager {
         setPlayListener(ClientPongPacket.class, WindowListener::pong);
         setPlayListener(ClientEntityActionPacket.class, EntityActionListener::listener);
         setPlayListener(ClientHeldItemChangePacket.class, PlayerHeldListener::heldListener);
-        setPlayListener(ClientPlayerBlockPlacementPacket.class, BlockPlacementListener::listener);
+        setPlayListener(ClientPlayerBlockPlacementPacket.class, (packet1, player1) -> new BlockPlacementListener(minecraftServer).listener(packet1, player1));
         setPlayListener(ClientSteerVehiclePacket.class, PlayerVehicleListener::steerVehicleListener);
         setPlayListener(ClientVehicleMovePacket.class, PlayerVehicleListener::vehicleMoveListener);
         setPlayListener(ClientSteerBoatPacket.class, PlayerVehicleListener::boatSteerListener);
@@ -118,7 +119,7 @@ public final class PacketListenerManager {
         // Event
         if (state == ConnectionState.PLAY) {
             PlayerPacketEvent playerPacketEvent = new PlayerPacketEvent(connection.getPlayer(), packet);
-            EventDispatcher.call(playerPacketEvent);
+            minecraftServer.process().getGlobalEventHandler().call(playerPacketEvent);
             if (playerPacketEvent.isCancelled()) {
                 return;
             }
@@ -129,7 +130,7 @@ public final class PacketListenerManager {
             packetListenerConsumer.accept(packet, connection);
         } catch (Exception e) {
             // Packet is likely invalid
-            MinecraftServer.getExceptionManager().handleException(e);
+            minecraftServer.process().getExceptionManager().handleException(e);
         }
     }
 

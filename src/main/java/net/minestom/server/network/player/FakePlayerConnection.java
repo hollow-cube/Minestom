@@ -13,6 +13,10 @@ import java.net.SocketAddress;
 
 public class FakePlayerConnection extends PlayerConnection {
 
+    public FakePlayerConnection() {
+        super();
+    }
+
     @Override
     public void sendPacket(@NotNull SendablePacket packet) {
         FakePlayerController controller = getFakePlayer().getController();

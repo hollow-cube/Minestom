@@ -3,7 +3,6 @@ package net.minestom.server.network.player;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.ListenerHandle;
 import net.minestom.server.event.player.PlayerPacketOutEvent;
 import net.minestom.server.extras.mojangAuth.MojangCrypt;
@@ -74,14 +73,15 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final AtomicReference<BinaryBuffer> tickBuffer = new AtomicReference<>(POOL.get());
     private BinaryBuffer cacheBuffer;
 
-    private final ListenerHandle<PlayerPacketOutEvent> outgoing = EventDispatcher.getHandle(PlayerPacketOutEvent.class);
+    private final ListenerHandle<PlayerPacketOutEvent> outgoing;
 
-    public PlayerSocketConnection(@NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
-        super();
+    public PlayerSocketConnection(@NotNull MinecraftServer minecraftServer, @NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
+        super(minecraftServer);
         this.worker = worker;
         this.workerQueue = worker.queue();
         this.channel = channel;
         this.remoteAddress = remoteAddress;
+        this.outgoing = minecraftServer.process().getGlobalEventHandler().getHandle(PlayerPacketOutEvent.class);
     }
 
     public void processPackets(BinaryBuffer readBuffer, PacketProcessor packetProcessor) {
@@ -93,7 +93,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                 try {
                     encryptionContext.decrypt().update(input, input.duplicate());
                 } catch (ShortBufferException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    minecraftServer.process().getExceptionManager().handleException(e);
                     return;
                 }
             }
@@ -109,7 +109,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                             packet = packetProcessor.process(this, id, payload);
                         } catch (Exception e) {
                             // Error while reading the packet
-                            MinecraftServer.getExceptionManager().handleException(e);
+                            minecraftServer.process().getExceptionManager().handleException(e);
                         } finally {
                             if (payload.position() != payload.limit()) {
                                 LOGGER.warn("WARNING: Packet ({}) 0x{} not fully read ({}) {}", getConnectionState(), Integer.toHexString(id), payload, packet);
@@ -117,7 +117,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                         }
                     });
         } catch (DataFormatException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            minecraftServer.process().getExceptionManager().handleException(e);
             disconnect();
         }
     }
@@ -148,7 +148,7 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void startCompression() {
         Check.stateCondition(compressed, "Compression is already enabled!");
-        final int threshold = MinecraftServer.getCompressionThreshold();
+        final int threshold = minecraftServer.getCompressionThreshold();
         Check.stateCondition(threshold == 0, "Compression cannot be enabled because the threshold is equal to 0");
         sendPacket(new SetCompressionPacket(threshold));
         this.compressed = true;
@@ -384,7 +384,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                     length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
                     writeBufferSync0(output, 0, length);
                 } catch (ShortBufferException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    minecraftServer.process().getExceptionManager().handleException(e);
                 }
                 return;
             }

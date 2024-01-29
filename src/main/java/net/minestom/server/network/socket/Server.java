@@ -26,6 +26,7 @@ public final class Server {
     private volatile boolean stop;
 
     private final Selector selector = Selector.open();
+    private final MinecraftServer minecraftServer;
     private final PacketProcessor packetProcessor;
     private final List<Worker> workers;
     private int index;
@@ -35,10 +36,11 @@ public final class Server {
     private String address;
     private int port;
 
-    public Server(PacketProcessor packetProcessor) throws IOException {
+    public Server(MinecraftServer minecraftServer, PacketProcessor packetProcessor) throws IOException {
+        this.minecraftServer = minecraftServer;
         this.packetProcessor = packetProcessor;
         Worker[] workers = new Worker[WORKER_COUNT];
-        Arrays.setAll(workers, value -> new Worker(this));
+        Arrays.setAll(workers, value -> new Worker(minecraftServer,this));
         this.workers = List.of(workers);
     }
 
@@ -88,7 +90,7 @@ public final class Server {
                         }
                     });
                 } catch (IOException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    minecraftServer.process().getExceptionManager().handleException(e);
                 }
             }
         }, "Ms-entrypoint").start();
@@ -113,7 +115,7 @@ public final class Server {
                 Files.deleteIfExists(unixDomainSocketAddress.getPath());
             }
         } catch (IOException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            minecraftServer.process().getExceptionManager().handleException(e);
         }
         this.selector.wakeup();
         this.workers.forEach(worker -> worker.selector.wakeup());

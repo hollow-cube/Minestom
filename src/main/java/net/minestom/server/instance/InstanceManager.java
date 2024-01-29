@@ -1,7 +1,6 @@
 package net.minestom.server.instance;
 
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.instance.InstanceRegisterEvent;
 import net.minestom.server.event.instance.InstanceUnregisterEvent;
 import net.minestom.server.utils.validate.Check;
@@ -118,7 +117,7 @@ public final class InstanceManager {
         Check.stateCondition(!instance.getPlayers().isEmpty(), "You cannot unregister an instance with players inside.");
         synchronized (instance) {
             InstanceUnregisterEvent event = new InstanceUnregisterEvent(instance);
-            EventDispatcher.call(event);
+            minecraftServer.process().getGlobalEventHandler().call(event);
 
             // Unload all chunks
             if (instance instanceof InstanceContainer) {
@@ -168,6 +167,6 @@ public final class InstanceManager {
         var dispatcher = minecraftServer.process().dispatcher();
         instance.getChunks().forEach(dispatcher::createPartition);
         InstanceRegisterEvent event = new InstanceRegisterEvent(instance);
-        EventDispatcher.call(event);
+        minecraftServer.process().getGlobalEventHandler().call(event);
     }
 }
