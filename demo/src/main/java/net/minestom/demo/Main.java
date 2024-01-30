@@ -11,15 +11,23 @@ import net.minestom.demo.commands.*;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
 import net.minestom.server.extras.lan.OpenToLANConfig;
 import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.item.ItemStack;
+import net.minestom.server.item.Material;
+import net.minestom.server.network.packet.server.play.DeclareRecipesPacket;
 import net.minestom.server.ping.ResponseData;
+import net.minestom.server.recipe.RecipeCategory;
+import net.minestom.server.recipe.ShapedRecipe;
 import net.minestom.server.utils.identity.NamedAndIdentified;
 import net.minestom.server.utils.time.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.List;
 
 public class Main {
 
@@ -64,6 +72,7 @@ public class Main {
         commandManager.register(new TestCommand2());
         commandManager.register(new ConfigCommand());
         commandManager.register(new SidebarCommand(serverProcess));
+        commandManager.register(new SetEntityType());
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
@@ -104,6 +113,22 @@ public class Main {
             responseData.setDescription(Component.text("This is a Minestom Server", TextColor.color(0x66b3ff)));
             //responseData.setPlayersHidden(true);
         });
+
+        var ironBlockRecipe = new ShapedRecipe(
+                "minestom:test", 2, 2, "",
+                RecipeCategory.Crafting.MISC,
+                List.of(
+                        new DeclareRecipesPacket.Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                        new DeclareRecipesPacket.Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                        new DeclareRecipesPacket.Ingredient(List.of(ItemStack.of(Material.IRON_INGOT))),
+                        new DeclareRecipesPacket.Ingredient(List.of(ItemStack.of(Material.IRON_INGOT)))
+                ), ItemStack.of(Material.IRON_BLOCK), true) {
+            @Override
+            public boolean shouldShow(@NotNull Player player) {
+                return true;
+            }
+        };
+        serverProcess.getRecipeManager().addRecipe(ironBlockRecipe);
 
         new PlayerInit(serverProcess).init();
 
