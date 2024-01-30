@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import net.minestom.server.ServerProcess;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
@@ -18,9 +19,9 @@ public class Audiences {
     private final ServerProcess serverProcess;
     private final SingleAudienceProvider audience;
 
-    public Audiences(ServerProcess serverProcess) {
+    public Audiences(ServerProcess serverProcess, ConnectionManager connectionManager, CommandManager commandManager) {
         this.serverProcess = serverProcess;
-        audience = new SingleAudienceProvider(serverProcess);
+        audience = new SingleAudienceProvider(serverProcess, connectionManager, commandManager);
     }
 
     /**

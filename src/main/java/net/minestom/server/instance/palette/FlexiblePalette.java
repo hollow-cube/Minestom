@@ -205,7 +205,7 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
             palette.count = count;
             return palette;
         } catch (CloneNotSupportedException e) {
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
             throw new IllegalStateException("Weird thing happened");
         }
     }

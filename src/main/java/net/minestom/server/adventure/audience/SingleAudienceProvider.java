@@ -3,7 +3,9 @@ package net.minestom.server.adventure.audience;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.minestom.server.ServerProcess;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -20,11 +22,11 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
     @NotNull
     private final ServerProcess serverProcess;
 
-    protected SingleAudienceProvider(ServerProcess serverProcess) {
+    protected SingleAudienceProvider(ServerProcess serverProcess, ConnectionManager connectionManager, CommandManager commandManager) {
         this.serverProcess = serverProcess;
-        this.collection = new IterableAudienceProvider(serverProcess);
-        this.players = PacketGroupingAudience.of(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers());
-        this.server = Audience.audience(this.players, serverProcess.getCommandManager().getConsoleSender());
+        this.collection = new IterableAudienceProvider(serverProcess, commandManager);
+        this.players = PacketGroupingAudience.of(serverProcess, connectionManager.getOnlinePlayers());
+        this.server = Audience.audience(this.players, commandManager.getConsoleSender());
     }
 
     /**

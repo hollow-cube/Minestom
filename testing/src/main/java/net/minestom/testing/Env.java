@@ -49,7 +49,7 @@ public interface Env {
     }
 
     default @NotNull Instance createFlatInstance(IChunkLoader chunkLoader) {
-        var instance = process().getInstanceManager().createInstanceContainer(chunkLoader);
+        var instance = process().getInstanceManager().createInstanceContainer(process(), chunkLoader);
         instance.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
         return instance;
     }

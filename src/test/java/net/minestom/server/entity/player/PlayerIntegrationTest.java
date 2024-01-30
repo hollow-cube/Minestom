@@ -148,7 +148,7 @@ public class PlayerIntegrationTest {
         env.process().getDimensionTypeManager().addDimension(testDimension);
 
         var instance = env.createFlatInstance();
-        var instance2 = env.process().getInstanceManager().createInstanceContainer(testDimension);
+        var instance2 = env.process().getInstanceManager().createInstanceContainer(env.process(), testDimension);
 
         var connection = env.createConnection();
         var player = connection.connect(instance, new Pos(0, 42, 0)).join();
@@ -183,7 +183,7 @@ public class PlayerIntegrationTest {
         final var testDimension = DimensionType.builder(NamespaceID.from(dimensionNamespace)).build();
         env.process().getDimensionTypeManager().addDimension(testDimension);
 
-        var instance = env.process().getInstanceManager().createInstanceContainer(testDimension);
+        var instance = env.process().getInstanceManager().createInstanceContainer(env.process(), testDimension);
         var connection = env.createConnection();
         var player = connection.connect(instance, new Pos(5, 42, 2)).join();
 

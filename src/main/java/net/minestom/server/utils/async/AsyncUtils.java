@@ -20,7 +20,7 @@ public final class AsyncUtils {
             try {
                 runnable.run();
             } catch (Exception e) {
-                serverProcess.getExceptionManager().handleException(e);
+                serverProcess.getExceptionHandler().handleException(e);
             }
         });
     }

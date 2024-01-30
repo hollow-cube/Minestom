@@ -52,7 +52,7 @@ public class PlayerInit {
         this.serverProcess = serverProcess;
         InstanceManager instanceManager = serverProcess.getInstanceManager();
 
-        InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
+        InstanceContainer instanceContainer = instanceManager.createInstanceContainer(serverProcess, DimensionType.OVERWORLD);
         instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
         instanceContainer.setChunkSupplier(LightingChunk::new);
 
@@ -222,6 +222,6 @@ public class PlayerInit {
                     .append(Component.text("ACQ TIME: " + MathUtils.round(tickMonitor.getAcquisitionTime(), 2) + "ms"));
             final Component footer = benchmarkManager.getCpuMonitoringMessage();
             serverProcess.getAudiences().players().sendPlayerListHeaderAndFooter(header, footer);
-        }).repeat(10, TimeUnit.getServerTick(serverProcess.getMinecraftServer())); //.schedule();
+        }).repeat(10, TimeUnit.getServerTick(serverProcess.getServerSetting())); //.schedule();
     }
 }

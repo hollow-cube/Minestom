@@ -1,6 +1,5 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerObject;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.tag.Tag;
@@ -25,7 +24,7 @@ import java.util.function.Predicate;
  *
  * @param <T> The event type accepted by this node
  */
-public sealed interface EventNode<T extends Event> extends ServerObject permits EventNodeImpl {
+public sealed interface EventNode<T extends Event> permits EventNodeImpl {
 
     /**
      * Creates an event node which accepts any event type with no filtering.
@@ -187,7 +186,7 @@ public sealed interface EventNode<T extends Event> extends ServerObject permits 
                                                             @NotNull EventFilter<E, V> filter,
                                                             @Nullable BiPredicate<E, V> predicate) {
         //noinspection unchecked
-        return new EventNodeImpl<>(serverProcess, name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
+        return new EventNodeImpl<>(serverProcess.getExceptionHandler(), name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
     }
 
     /**

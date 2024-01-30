@@ -74,7 +74,7 @@ public class AnvilLoader implements IChunkLoader {
             Files.copy(levelPath, path.resolve("level.dat_old"), StandardCopyOption.REPLACE_EXISTING);
             instance.tagHandler().updateContent(tag);
         } catch (IOException | NBTException e) {
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
         }
     }
 
@@ -87,7 +87,7 @@ public class AnvilLoader implements IChunkLoader {
         try {
             return loadMCA(instance, chunkX, chunkZ);
         } catch (Exception e) {
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -153,7 +153,7 @@ public class AnvilLoader implements IChunkLoader {
                 }
                 return new RegionFile(new RandomAccessFile(regionPath.toFile(), "rw"), regionX, regionZ, instance.getDimensionType().getMinY(), instance.getDimensionType().getMaxY() - 1);
             } catch (IOException | AnvilException e) {
-                serverProcess.getExceptionManager().handleException(e);
+                serverProcess.getExceptionHandler().handleException(e);
                 return null;
             }
         });
@@ -266,7 +266,7 @@ public class AnvilLoader implements IChunkLoader {
 
                                 chunk.setBlock(x, y + yOffset, z, block);
                             } catch (Exception e) {
-                                serverProcess.getExceptionManager().handleException(e);
+                                serverProcess.getExceptionHandler().handleException(e);
                             }
                         }
                     }
@@ -343,7 +343,7 @@ public class AnvilLoader implements IChunkLoader {
                     alreadyLoaded.put(n, mcaFile);
                 } catch (AnvilException | IOException e) {
                     LOGGER.error("Failed to save chunk " + chunkX + ", " + chunkZ, e);
-                    serverProcess.getExceptionManager().handleException(e);
+                    serverProcess.getExceptionHandler().handleException(e);
                     return AsyncUtils.VOID_FUTURE;
                 }
             }
@@ -355,7 +355,7 @@ public class AnvilLoader implements IChunkLoader {
             mcaFile.writeColumnData(writer.toNBT(), chunk.getChunkX(), chunk.getChunkZ());
         } catch (IOException e) {
             LOGGER.error("Failed to save chunk " + chunkX + ", " + chunkZ, e);
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
             return AsyncUtils.VOID_FUTURE;
         }
         return AsyncUtils.VOID_FUTURE;
@@ -462,7 +462,7 @@ public class AnvilLoader implements IChunkLoader {
                         try {
                             regionFile.close();
                         } catch (IOException e) {
-                            serverProcess.getExceptionManager().handleException(e);
+                            serverProcess.getExceptionHandler().handleException(e);
                         }
                     }
                 }

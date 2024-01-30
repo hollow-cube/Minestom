@@ -143,7 +143,7 @@ public final class CommandManager {
                     try {
                         callable.call();
                     } catch (Exception e) {
-                        serverProcess.getExceptionManager().handleException(e);
+                        serverProcess.getExceptionHandler().handleException(e);
                     }
                 });
                 return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
@@ -151,7 +151,7 @@ public final class CommandManager {
                 return callable.call();
             }
         } catch (Exception e) {
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
             return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
         }
     }

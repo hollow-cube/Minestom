@@ -65,12 +65,12 @@ public interface PacketGroupingAudience extends ForwardingAudience, ServerObject
      * @param packet the packet to broadcast
      */
     default void sendGroupedPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(getServerProcess(), getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(getServerProcess().getServerSetting(), getPlayers(), packet);
     }
 
     @Override
     default void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        Messenger.sendMessage(getServerProcess(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
+        Messenger.sendMessage(getServerProcess().getServerSetting(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
     }
 
     @Override

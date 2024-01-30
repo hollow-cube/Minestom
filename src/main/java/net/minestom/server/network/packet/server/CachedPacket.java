@@ -1,6 +1,6 @@
 package net.minestom.server.network.packet.server;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -22,15 +22,15 @@ import java.util.function.Supplier;
 public final class CachedPacket implements SendablePacket {
     private final Supplier<ServerPacket> packetSupplier;
     private volatile SoftReference<FramedPacket> packet;
-    private final ServerProcess serverProcess;
+    private final ServerSettings serverSettings;
 
-    public CachedPacket(ServerProcess serverProcess, @NotNull Supplier<@NotNull ServerPacket> packetSupplier) {
+    public CachedPacket(ServerSettings serverSettings, @NotNull Supplier<@NotNull ServerPacket> packetSupplier) {
         this.packetSupplier = packetSupplier;
-        this.serverProcess = serverProcess;
+        this.serverSettings = serverSettings;
     }
 
-    public CachedPacket(ServerProcess serverProcess, @NotNull ServerPacket packet) {
-        this(serverProcess, () -> packet);
+    public CachedPacket(ServerSettings serverSettings, @NotNull ServerPacket packet) {
+        this(serverSettings, () -> packet);
     }
 
     public void invalidate() {
@@ -53,7 +53,7 @@ public final class CachedPacket implements SendablePacket {
         SoftReference<FramedPacket> ref = packet;
         FramedPacket cache;
         if (ref == null || (cache = ref.get()) == null) {
-            cache = PacketUtils.allocateTrimmedPacket(serverProcess, state, packetSupplier.get());
+            cache = PacketUtils.allocateTrimmedPacket(serverSettings, state, packetSupplier.get());
             this.packet = new SoftReference<>(cache);
         }
         return cache;

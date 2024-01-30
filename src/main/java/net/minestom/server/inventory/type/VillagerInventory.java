@@ -23,12 +23,12 @@ public class VillagerInventory extends Inventory {
 
     public VillagerInventory(ServerProcess serverProcess, @NotNull Component title) {
         super(serverProcess, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(serverProcess, this::createTradePacket);
+        tradeCache = new CachedPacket(serverProcess.getServerSetting(), this::createTradePacket);
     }
 
     public VillagerInventory(ServerProcess serverProcess, @NotNull String title) {
         super(serverProcess, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(serverProcess, this::createTradePacket);
+        tradeCache = new CachedPacket(serverProcess.getServerSetting(), this::createTradePacket);
     }
 
     public List<TradeListPacket.Trade> getTrades() {

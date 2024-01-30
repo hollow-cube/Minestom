@@ -121,7 +121,7 @@ public class FullQueryResponse implements Writeable {
      * @return the string result
      */
     public static String generatePluginsValue(ServerProcess serverProcess) {
-        StringBuilder builder = new StringBuilder(serverProcess.getMinecraftServer().getBrandName())
+        StringBuilder builder = new StringBuilder(serverProcess.getServerSetting().getBrandName())
                 .append(' ')
                 .append(ServerConsts.VERSION_NAME);
 

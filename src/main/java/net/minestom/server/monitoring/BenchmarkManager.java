@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.ServerConsts;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
@@ -50,10 +50,10 @@ public final class BenchmarkManager {
     private boolean enabled = false;
     private volatile boolean stop = false;
     private long time;
-    private final ServerProcess serverProcess;
+    private final ExceptionHandler exceptionHandler;
 
-    public BenchmarkManager(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
+    public BenchmarkManager(ExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
     public void enable(@NotNull Duration duration) {
@@ -75,7 +75,7 @@ public final class BenchmarkManager {
                 try {
                     Thread.sleep(time);
                 } catch (InterruptedException e) {
-                    serverProcess.getExceptionManager().handleException(e);
+                    exceptionHandler.handleException(e);
                 }
             }
             stop = false;

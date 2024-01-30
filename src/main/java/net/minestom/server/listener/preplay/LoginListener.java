@@ -123,7 +123,7 @@ public final class LoginListener {
             final HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete((response, throwable) -> {
                 if (throwable != null) {
-                    connection.getServerProcess().getExceptionManager().handleException(throwable);
+                    connection.getServerProcess().getExceptionHandler().handleException(throwable);
                     if (socketConnection.getPlayer() != null) {
                         socketConnection.getPlayer().kick(Component.text("Failed to contact Mojang's Session Servers (Are they down?)"));
                     } else {
@@ -156,7 +156,7 @@ public final class LoginListener {
                     }
                     socketConnection.UNSAFE_setProfile(new GameProfile(profileUUID, profileName, propertyList));
                 } catch (Exception e) {
-                    connection.getServerProcess().getExceptionManager().handleException(e);
+                    connection.getServerProcess().getExceptionHandler().handleException(e);
                 }
             });
         });
@@ -188,7 +188,7 @@ public final class LoginListener {
                             try {
                                 address = InetAddress.getByName(buffer.read(STRING));
                             } catch (UnknownHostException e) {
-                                connection.getServerProcess().getExceptionManager().handleException(e);
+                                connection.getServerProcess().getExceptionHandler().handleException(e);
                                 return;
                             }
                             final int port = ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort();

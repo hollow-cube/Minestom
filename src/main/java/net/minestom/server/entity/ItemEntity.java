@@ -42,7 +42,7 @@ public class ItemEntity extends Entity {
         super(serverProcess, EntityType.ITEM);
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
-        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverProcess.getMinecraftServer()));
+        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverProcess.getServerSetting()));
     }
 
     /**

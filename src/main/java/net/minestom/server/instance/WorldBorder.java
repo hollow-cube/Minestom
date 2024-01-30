@@ -254,7 +254,7 @@ public class WorldBorder {
     }
 
     private void sendPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(instance.getServerProcess(), instance.getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(instance.getServerProcess().getServerSetting(), instance.getPlayers(), packet);
     }
 
     public enum CollisionAxis {

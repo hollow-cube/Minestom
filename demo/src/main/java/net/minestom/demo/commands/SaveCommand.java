@@ -24,7 +24,7 @@ public class SaveCommand extends Command {
             try {
                 instanceSave.get();
             } catch (InterruptedException | ExecutionException e) {
-                commandSender.getServerProcess().getExceptionManager().handleException(e);
+                commandSender.getServerProcess().getExceptionHandler().handleException(e);
             }
         }
         commandSender.sendMessage("Saving done!");

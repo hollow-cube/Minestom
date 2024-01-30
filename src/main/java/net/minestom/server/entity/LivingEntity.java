@@ -89,7 +89,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
     public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
         super(serverProcess, entityType, uuid);
         initEquipments();
-        itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(serverProcess.getMinecraftServer())));
+        itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(serverProcess.getServerSetting())));
     }
 
     public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
@@ -277,7 +277,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
      * @param duration duration in ticks of the effect
      */
     public void setFireForDuration(int duration) {
-        setFireForDuration(duration, TimeUnit.getServerTick(getServerProcess().getMinecraftServer()));
+        setFireForDuration(duration, TimeUnit.getServerTick(getServerProcess().getServerSetting()));
     }
 
     /**

@@ -63,7 +63,7 @@ public class RangedAttackGoal extends GoalSelector {
         this.comeClose = comeClose;
         this.power = power;
         this.spread = spread;
-        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getMinecraftServer())));
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getServerSetting())));
         Check.argCondition(desirableRange > attackRange, "Desirable range can not exceed attack range!");
     }
 

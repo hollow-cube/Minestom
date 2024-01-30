@@ -43,7 +43,7 @@ public class ArgumentTime extends Argument<Duration> {
 
         TemporalUnit timeUnit;
         if (Character.isDigit(lastChar))
-            timeUnit = TimeUnit.getServerTick(sender.getServerProcess().getMinecraftServer());
+            timeUnit = TimeUnit.getServerTick(sender.getServerProcess().getServerSetting());
         else if (SUFFIXES.contains(lastChar)) {
             input = input.substring(0, input.length() - 1);
 
@@ -52,7 +52,7 @@ public class ArgumentTime extends Argument<Duration> {
             } else if (lastChar == 's') {
                 timeUnit = TimeUnit.SECOND;
             } else if (lastChar == 't') {
-                timeUnit = TimeUnit.getServerTick(sender.getServerProcess().getMinecraftServer());
+                timeUnit = TimeUnit.getServerTick(sender.getServerProcess().getServerSetting());
             } else {
                 throw new ArgumentSyntaxException("Time needs to have the unit d, s, t, or none", input, NO_NUMBER);
             }

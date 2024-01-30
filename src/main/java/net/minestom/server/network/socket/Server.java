@@ -95,7 +95,7 @@ public final class Server {
                         }
                     });
                 } catch (IOException e) {
-                    serverProcess.getExceptionManager().handleException(e);
+                    serverProcess.getExceptionHandler().handleException(e);
                 }
             }
         }, "Ms-entrypoint").start();
@@ -120,7 +120,7 @@ public final class Server {
                 Files.deleteIfExists(unixDomainSocketAddress.getPath());
             }
         } catch (IOException e) {
-            serverProcess.getExceptionManager().handleException(e);
+            serverProcess.getExceptionHandler().handleException(e);
         }
         this.selector.wakeup();
         this.workers.forEach(worker -> worker.selector.wakeup());

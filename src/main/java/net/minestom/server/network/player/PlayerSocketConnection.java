@@ -93,7 +93,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                 try {
                     encryptionContext.decrypt().update(input, input.duplicate());
                 } catch (ShortBufferException e) {
-                    getServerProcess().getExceptionManager().handleException(e);
+                    getServerProcess().getExceptionHandler().handleException(e);
                     return;
                 }
             }
@@ -109,7 +109,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                             packet = packetProcessor.process(this, id, payload);
                         } catch (Exception e) {
                             // Error while reading the packet
-                            getServerProcess().getExceptionManager().handleException(e);
+                            getServerProcess().getExceptionHandler().handleException(e);
                         } finally {
                             if (payload.position() != payload.limit()) {
                                 LOGGER.warn("WARNING: Packet ({}) 0x{} not fully read ({}) {}", getConnectionState(), Integer.toHexString(id), payload, packet);
@@ -117,7 +117,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                         }
                     });
         } catch (DataFormatException e) {
-            getServerProcess().getExceptionManager().handleException(e);
+            getServerProcess().getExceptionHandler().handleException(e);
             disconnect();
         }
     }
@@ -149,7 +149,7 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void startCompression() {
         Check.stateCondition(compressed, "Compression is already enabled!");
-        final int threshold = getServerProcess().getMinecraftServer().getCompressionThreshold();
+        final int threshold = getServerProcess().getServerSetting().getCompressionThreshold();
         Check.stateCondition(threshold == 0, "Compression cannot be enabled because the threshold is equal to 0");
         sendPacket(new SetCompressionPacket(threshold));
         this.compressed = true;
@@ -370,7 +370,7 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(getServerProcess(), getConnectionState(), hold.get(), serverPacket, compressed);
+            var buffer = PacketUtils.createFramedPacket(getServerProcess().getServerSetting(), getConnectionState(), hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
         }
     }
@@ -385,7 +385,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                     length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
                     writeBufferSync0(output, 0, length);
                 } catch (ShortBufferException e) {
-                    getServerProcess().getExceptionManager().handleException(e);
+                    getServerProcess().getExceptionHandler().handleException(e);
                 }
                 return;
             }

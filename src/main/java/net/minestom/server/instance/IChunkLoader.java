@@ -66,7 +66,7 @@ public interface IChunkLoader extends ServerObject {
                 parallelSavingThreadPool.shutdown();
                 parallelSavingThreadPool.awaitTermination(1L, java.util.concurrent.TimeUnit.DAYS);
             } catch (InterruptedException e) {
-                getServerProcess().getExceptionManager().handleException(e);
+                getServerProcess().getExceptionHandler().handleException(e);
             }
             return AsyncUtils.VOID_FUTURE;
         } else {

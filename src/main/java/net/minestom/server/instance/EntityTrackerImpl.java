@@ -54,7 +54,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, this);
-            nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverProcess.getServerSetting().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.add(newEntity);
             });
@@ -75,7 +75,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, null);
-            nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverProcess.getServerSetting().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.remove(newEntity);
             });
@@ -187,7 +187,7 @@ final class EntityTrackerImpl implements EntityTracker {
                                                @NotNull Target<T> target, @NotNull Update<T> update) {
         final TargetEntry<Entity> entry = entries[target.ordinal()];
         forDifferingChunksInRange(newPoint.chunkX(), newPoint.chunkZ(), oldPoint.chunkX(), oldPoint.chunkZ(),
-                serverProcess.getMinecraftServer().getEntityViewDistance(), (chunkX, chunkZ) -> {
+                serverProcess.getServerSetting().getEntityViewDistance(), (chunkX, chunkZ) -> {
                     // Add
                     final List<Entity> entities = entry.chunkEntities.get(getChunkIndex(chunkX, chunkZ));
                     if (entities == null || entities.isEmpty()) return;
@@ -286,7 +286,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
 
         private void collectPlayers(EntityTracker tracker, Int2ObjectOpenHashMap<Player> map) {
-            tracker.nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getChunkViewDistance(),
+            tracker.nearbyEntitiesByChunkRange(point, serverProcess.getServerSetting().getChunkViewDistance(),
                     EntityTracker.Target.PLAYERS, (player) -> map.putIfAbsent(player.getEntityId(), player));
         }
 

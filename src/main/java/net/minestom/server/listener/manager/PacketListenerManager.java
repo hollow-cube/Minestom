@@ -1,7 +1,9 @@
 package net.minestom.server.listener.manager;
 
 import net.minestom.server.ServerProcess;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.PlayerPacketEvent;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.listener.*;
 import net.minestom.server.listener.common.KeepAliveListener;
 import net.minestom.server.listener.common.PluginMessageListener;
@@ -36,10 +38,16 @@ public final class PacketListenerManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(PacketListenerManager.class);
 
     private final Map<Class<? extends ClientPacket>, PacketPrePlayListenerConsumer>[] listeners = new Map[ConnectionState.values().length];
-    private final ServerProcess serverProcess;
+    private final GlobalEventHandler globalEventHandler;
+    private final ExceptionHandler exceptionHandler;
 
     public PacketListenerManager(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
+        this(serverProcess.getGlobalEventHandler(), serverProcess.getExceptionHandler());
+    }
+
+    public PacketListenerManager(GlobalEventHandler globalEventHandler, ExceptionHandler exceptionHandler) {
+        this.globalEventHandler = globalEventHandler;
+        this.exceptionHandler = exceptionHandler;
         for (int i = 0; i < listeners.length; i++) {
             listeners[i] = new ConcurrentHashMap<>();
         }
@@ -119,7 +127,7 @@ public final class PacketListenerManager {
         // Event
         if (state == ConnectionState.PLAY) {
             PlayerPacketEvent playerPacketEvent = new PlayerPacketEvent(connection.getPlayer(), packet);
-            serverProcess.getGlobalEventHandler().call(playerPacketEvent);
+            globalEventHandler.call(playerPacketEvent);
             if (playerPacketEvent.isCancelled()) {
                 return;
             }
@@ -130,7 +138,7 @@ public final class PacketListenerManager {
             packetListenerConsumer.accept(packet, connection);
         } catch (Exception e) {
             // Packet is likely invalid
-            serverProcess.getExceptionManager().handleException(e);
+            exceptionHandler.handleException(e);
         }
     }
 

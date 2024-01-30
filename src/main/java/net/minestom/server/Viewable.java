@@ -60,7 +60,7 @@ public interface Viewable extends ServerObject {
      */
     default void sendPacketToViewers(@NotNull SendablePacket packet) {
         if (packet instanceof ServerPacket serverPacket) {
-            PacketUtils.sendGroupedPacket(getServerProcess(), getViewers(), serverPacket);
+            PacketUtils.sendGroupedPacket(getServerProcess().getServerSetting(), getViewers(), serverPacket);
         } else {
             getViewers().forEach(player -> player.sendPacket(packet));
         }

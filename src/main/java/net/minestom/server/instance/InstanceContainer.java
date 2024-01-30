@@ -224,7 +224,7 @@ public class InstanceContainer extends Instance {
             UNSAFE_setBlock(chunk, x, y, z, resultBlock, null,
                     new BlockHandler.PlayerDestroy(block, this, blockPosition, player), doBlockUpdates, 0);
             // Send the block break effect packet
-            PacketUtils.sendGroupedPacket(getServerProcess(), chunk.getViewers(),
+            PacketUtils.sendGroupedPacket(getServerProcess().getServerSetting(), chunk.getViewers(),
                     new EffectPacket(2001 /*Block break + block break sound*/, blockPosition, block.stateId(), false),
                     // Prevent the block breaker to play the particles and sound two times
                     (viewer) -> !viewer.equals(player));
@@ -309,7 +309,7 @@ public class InstanceContainer extends Instance {
                     completableFuture.complete(chunk);
                 })
                 .exceptionally(throwable -> {
-                    getServerProcess().getExceptionManager().handleException(throwable);
+                    getServerProcess().getExceptionHandler().handleException(throwable);
                     return null;
                 });
         if (loader.supportsParallelLoading()) {
@@ -375,7 +375,7 @@ public class InstanceContainer extends Instance {
                     // Apply awaiting forks
                     processFork(chunk);
                 } catch (Throwable e) {
-                    getServerProcess().getExceptionManager().handleException(e);
+                    getServerProcess().getExceptionHandler().handleException(e);
                 } finally {
                     // End generation
                     refreshLastBlockChangeTime();

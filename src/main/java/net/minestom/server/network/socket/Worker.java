@@ -51,7 +51,7 @@ public final class Worker extends MinestomThread {
                 try {
                     this.queue.drain(Runnable::run);
                 } catch (Exception e) {
-                    serverProcess.getExceptionManager().handleException(e);
+                    serverProcess.getExceptionHandler().handleException(e);
                 }
                 // Flush all connections if needed
                 for (PlayerSocketConnection connection : connectionMap.values()) {
@@ -88,12 +88,12 @@ public final class Worker extends MinestomThread {
                         // TODO print exception? (should ignore disconnection)
                         connection.disconnect();
                     } catch (Throwable t) {
-                        serverProcess.getExceptionManager().handleException(t);
+                        serverProcess.getExceptionHandler().handleException(t);
                         connection.disconnect();
                     }
                 });
             } catch (Exception e) {
-                serverProcess.getExceptionManager().handleException(e);
+                serverProcess.getExceptionHandler().handleException(e);
             }
         }
     }

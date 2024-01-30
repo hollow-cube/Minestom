@@ -85,7 +85,7 @@ public class DisplayCommand extends Command {
     private void startSmoothFollow(@NotNull Entity entity, @NotNull Player player) {
 //        entity.setCustomName(Component.text("MY CUSTOM NAME"));
 //        entity.setCustomNameVisible(true);
-        TemporalUnit serverTick = TimeUnit.getServerTick(entity.getServerProcess().getMinecraftServer());
+        TemporalUnit serverTick = TimeUnit.getServerTick(entity.getServerProcess().getServerSetting());
         entity.getServerProcess().getSchedulerManager().buildTask(() -> {
             var meta = (AbstractDisplayMeta) entity.getEntityMeta();
             meta.setNotifyAboutChanges(false);

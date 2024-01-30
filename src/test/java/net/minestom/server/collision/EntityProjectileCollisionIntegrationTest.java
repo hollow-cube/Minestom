@@ -44,8 +44,8 @@ public class EntityProjectileCollisionIntegrationTest {
         final var eventRef = new AtomicReference<ProjectileCollideWithBlockEvent>();
         env.process().getGlobalEventHandler().addListener(ProjectileCollideWithBlockEvent.class, eventRef::set);
 
-        final long tick = TimeUnit.getServerTick(env.process().getMinecraftServer()).getDuration().toMillis();
-        for (int i = 0; i < env.process().getMinecraftServer().getTickPerSecond(); ++i) {
+        final long tick = TimeUnit.getServerTick(env.process().getServerSetting()).getDuration().toMillis();
+        for (int i = 0; i < env.process().getServerSetting().getTickPerSecond(); ++i) {
             projectile.tick(i * tick);
         }
 
@@ -59,8 +59,8 @@ public class EntityProjectileCollisionIntegrationTest {
         eventRef.set(null);
         instance.setBlock(blockPosition, Block.AIR);
 
-        for (int i = 0; i < env.process().getMinecraftServer().getTickPerSecond(); ++i) {
-            projectile.tick((env.process().getMinecraftServer().getTickPerSecond() + i) * tick);
+        for (int i = 0; i < env.process().getServerSetting().getTickPerSecond(); ++i) {
+            projectile.tick((env.process().getServerSetting().getTickPerSecond() + i) * tick);
         }
         event = eventRef.get();
         final var event2 = eventRef2.get();
@@ -103,8 +103,8 @@ public class EntityProjectileCollisionIntegrationTest {
         });
         shooter.getServerProcess().getGlobalEventHandler().addChild(eventNode);
 
-        final long tick = TimeUnit.getServerTick(instance.getServerProcess().getMinecraftServer()).getDuration().toMillis();
-        for (int i = 0; i < instance.getServerProcess().getMinecraftServer().getTickPerSecond(); ++i) {
+        final long tick = TimeUnit.getServerTick(instance.getServerProcess().getServerSetting()).getDuration().toMillis();
+        for (int i = 0; i < instance.getServerProcess().getServerSetting().getTickPerSecond(); ++i) {
             if (!projectile.isRemoved()) {
                 projectile.tick(i * tick);
             }
@@ -136,8 +136,8 @@ public class EntityProjectileCollisionIntegrationTest {
             eventRef.set(event);
         });
 
-        final long tick = TimeUnit.getServerTick(env.process().getMinecraftServer()).getDuration().toMillis();
-        for (int i = 0; i < env.process().getMinecraftServer().getTickPerSecond() * 5; ++i) {
+        final long tick = TimeUnit.getServerTick(env.process().getServerSetting()).getDuration().toMillis();
+        for (int i = 0; i < env.process().getServerSetting().getTickPerSecond() * 5; ++i) {
             if (!projectile.isRemoved()) {
                 projectile.tick(i * tick);
             }

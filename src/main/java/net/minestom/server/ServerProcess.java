@@ -6,7 +6,7 @@ import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.event.GlobalEventHandler;
-import net.minestom.server.exception.ExceptionManager;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Chunk;
@@ -39,7 +39,7 @@ public interface ServerProcess extends Snapshotable {
         return new ServerProcessImpl(serverSettings);
     }
 
-    ServerSettings getMinecraftServer();
+    ServerSettings getServerSetting();
 
     /**
      * Handles incoming connections/players.
@@ -114,7 +114,7 @@ public interface ServerProcess extends Snapshotable {
     /**
      * Handles all thrown exceptions from the server.
      */
-    @NotNull ExceptionManager getExceptionManager();
+    @NotNull ExceptionHandler getExceptionHandler();
 
     /**
      * Handles incoming packets.

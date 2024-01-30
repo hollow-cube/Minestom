@@ -56,7 +56,7 @@ public class DynamicChunk extends Chunk {
         var sectionsTemp = new Section[maxSection - minSection];
         Arrays.setAll(sectionsTemp, value -> new Section(getServerProcess()));
         this.sections = List.of(sectionsTemp);
-        chunkCache = new CachedPacket(getServerProcess(), this::createChunkPacket);
+        chunkCache = new CachedPacket(getServerProcess().getServerSetting(), this::createChunkPacket);
     }
 
     @Override

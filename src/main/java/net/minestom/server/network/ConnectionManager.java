@@ -3,6 +3,7 @@ package net.minestom.server.network;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
@@ -79,9 +80,9 @@ public final class ConnectionManager {
     private final PlayerProvider defaultPlayerProvider;
     private volatile PlayerProvider playerProvider;
 
-    public ConnectionManager(ServerProcess serverProcess, TagManager tagManager) {
+    public ConnectionManager(ServerProcess serverProcess, ServerSettings serverSettings, TagManager tagManager) {
         this.serverProcess = serverProcess;
-        this.defaultTags = new CachedPacket(serverProcess, new TagsPacket(tagManager.getTagMap()));
+        this.defaultTags = new CachedPacket(serverSettings, new TagsPacket(tagManager.getTagMap()));
         defaultPlayerProvider = (uuid, username, connection) -> new Player(serverProcess, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }
@@ -232,7 +233,7 @@ public final class ConnectionManager {
 
             // Compression
             if (playerConnection instanceof PlayerSocketConnection socketConnection) {
-                final int threshold = serverProcess.getMinecraftServer().getCompressionThreshold();
+                final int threshold = serverProcess.getServerSetting().getCompressionThreshold();
                 if (threshold > 0) socketConnection.startCompression();
             }
 
@@ -275,7 +276,7 @@ public final class ConnectionManager {
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
         CompletableFuture<Void> configFuture = AsyncUtils.runAsync(serverProcess, () -> {
-            player.sendPacket(PluginMessagePacket.getBrandPacket(serverProcess.getMinecraftServer()));
+            player.sendPacket(PluginMessagePacket.getBrandPacket(serverProcess.getServerSetting()));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
             serverProcess.getGlobalEventHandler().call(event);

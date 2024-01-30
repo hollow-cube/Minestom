@@ -27,7 +27,7 @@ public class AcquirableTest {
         Object first = new Object();
         Object second = new Object();
 
-        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.of(serverProcess, ThreadProvider.counter(), 2);
+        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.of(serverProcess.getExceptionHandler(), ThreadProvider.counter(), 2);
         dispatcher.createPartition(first);
         dispatcher.createPartition(second);
 

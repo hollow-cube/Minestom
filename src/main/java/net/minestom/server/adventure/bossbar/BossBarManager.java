@@ -76,7 +76,7 @@ public class BossBarManager {
         BossBarHolder holder = this.getOrCreateHandler(bar);
         Collection<Player> addedPlayers = players.stream().filter(holder::addViewer).toList();
         if (!addedPlayers.isEmpty()) {
-            PacketUtils.sendGroupedPacket(serverProcess, addedPlayers, holder.createAddPacket());
+            PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), addedPlayers, holder.createAddPacket());
         }
     }
 
@@ -91,7 +91,7 @@ public class BossBarManager {
         if (holder != null) {
             Collection<Player> removedPlayers = players.stream().filter(holder::removeViewer).toList();
             if (!removedPlayers.isEmpty()) {
-                PacketUtils.sendGroupedPacket(serverProcess, removedPlayers, holder.createRemovePacket());
+                PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), removedPlayers, holder.createRemovePacket());
             }
         }
     }
@@ -104,7 +104,7 @@ public class BossBarManager {
     public void destroyBossBar(@NotNull BossBar bossBar) {
         BossBarHolder holder = this.bars.remove(bossBar);
         if (holder != null) {
-            PacketUtils.sendGroupedPacket(serverProcess, holder.players, holder.createRemovePacket());
+            PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), holder.players, holder.createRemovePacket());
             for (Player player : holder.players) {
                 this.removePlayer(player, holder);
             }

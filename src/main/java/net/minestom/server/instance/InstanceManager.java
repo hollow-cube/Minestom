@@ -1,8 +1,10 @@
 package net.minestom.server.instance;
 
 import net.minestom.server.ServerProcess;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.instance.InstanceRegisterEvent;
 import net.minestom.server.event.instance.InstanceUnregisterEvent;
+import net.minestom.server.thread.ThreadDispatcher;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.ApiStatus;
@@ -19,18 +21,21 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Used to register {@link Instance}.
  */
 public final class InstanceManager {
-    private final ServerProcess serverProcess;
+    private final @NotNull ThreadDispatcher<Chunk> dispatcher;
+    private final @NotNull GlobalEventHandler globalEventHandler;
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
 
-    public InstanceManager(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
+    public InstanceManager(@NotNull ThreadDispatcher<Chunk> dispatcher, @NotNull GlobalEventHandler globalEventHandler) {
+        this.dispatcher = dispatcher;
+        this.globalEventHandler = globalEventHandler;
     }
+
 
     /**
      * Registers an {@link Instance} internally.
      * <p>
-     * Note: not necessary if you created your instance using {@link #createInstanceContainer()} or {@link #createSharedInstance(InstanceContainer)}
+     * Note: not necessary if you created your instance using {@link #createInstanceContainer(ServerProcess)} or {@link #createSharedInstance(ServerProcess, InstanceContainer)}
      * but only if you instantiated your instance object manually
      *
      * @param instance the {@link Instance} to register
@@ -49,19 +54,19 @@ public final class InstanceManager {
      * @return the created {@link InstanceContainer}
      */
     @ApiStatus.Experimental
-    public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
+    public @NotNull InstanceContainer createInstanceContainer(@NotNull ServerProcess serverProcess, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
         final InstanceContainer instanceContainer = new InstanceContainer(serverProcess, UUID.randomUUID(), dimensionType, loader);
         registerInstance(instanceContainer);
         return instanceContainer;
     }
 
-    public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType) {
-        return createInstanceContainer(dimensionType, null);
+    public @NotNull InstanceContainer createInstanceContainer(@NotNull ServerProcess serverProcess, @NotNull DimensionType dimensionType) {
+        return createInstanceContainer(serverProcess, dimensionType, null);
     }
 
     @ApiStatus.Experimental
-    public @NotNull InstanceContainer createInstanceContainer(@Nullable IChunkLoader loader) {
-        return createInstanceContainer(DimensionType.OVERWORLD, loader);
+    public @NotNull InstanceContainer createInstanceContainer(@NotNull ServerProcess serverProcess, @Nullable IChunkLoader loader) {
+        return createInstanceContainer(serverProcess, DimensionType.OVERWORLD, loader);
     }
 
     /**
@@ -69,8 +74,8 @@ public final class InstanceManager {
      *
      * @return the created {@link InstanceContainer}
      */
-    public @NotNull InstanceContainer createInstanceContainer() {
-        return createInstanceContainer(DimensionType.OVERWORLD, null);
+    public @NotNull InstanceContainer createInstanceContainer(@NotNull ServerProcess serverProcess) {
+        return createInstanceContainer(serverProcess, DimensionType.OVERWORLD, null);
     }
 
     /**
@@ -98,7 +103,7 @@ public final class InstanceManager {
      * @return the created {@link SharedInstance}
      * @throws IllegalStateException if {@code instanceContainer} is not registered
      */
-    public @NotNull SharedInstance createSharedInstance(@NotNull InstanceContainer instanceContainer) {
+    public @NotNull SharedInstance createSharedInstance(@NotNull ServerProcess serverProcess, @NotNull InstanceContainer instanceContainer) {
         Check.notNull(instanceContainer, "Instance container cannot be null when creating a SharedInstance!");
         Check.stateCondition(!instanceContainer.isRegistered(), "The container needs to be register in the InstanceManager");
 
@@ -117,12 +122,11 @@ public final class InstanceManager {
         Check.stateCondition(!instance.getPlayers().isEmpty(), "You cannot unregister an instance with players inside.");
         synchronized (instance) {
             InstanceUnregisterEvent event = new InstanceUnregisterEvent(instance);
-            serverProcess.getGlobalEventHandler().call(event);
+            globalEventHandler.call(event);
 
             // Unload all chunks
             if (instance instanceof InstanceContainer) {
                 instance.getChunks().forEach(instance::unloadChunk);
-                var dispatcher = serverProcess.dispatcher();
                 instance.getChunks().forEach(dispatcher::deletePartition);
             }
             // Unregister
@@ -164,9 +168,8 @@ public final class InstanceManager {
     private void UNSAFE_registerInstance(@NotNull Instance instance) {
         instance.setRegistered(true);
         this.instances.add(instance);
-        var dispatcher = serverProcess.dispatcher();
         instance.getChunks().forEach(dispatcher::createPartition);
         InstanceRegisterEvent event = new InstanceRegisterEvent(instance);
-        serverProcess.getGlobalEventHandler().call(event);
+        globalEventHandler.call(event);
     }
 }

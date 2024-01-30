@@ -20,13 +20,13 @@ public final class TickSchedulerThread extends MinestomThread {
 
     @Override
     public void run() {
-        final long tickNs = (long) (serverProcess.getMinecraftServer().getTickMs() * 1e6);
+        final long tickNs = (long) (serverProcess.getServerSetting().getTickMs() * 1e6);
         while (serverProcess.isAlive()) {
             final long tickStart = System.nanoTime();
             try {
                 serverProcess.ticker().tick(tickStart);
             } catch (Exception e) {
-                serverProcess.getExceptionManager().handleException(e);
+                serverProcess.getExceptionHandler().handleException(e);
             }
             fixTickRate(tickNs);
         }

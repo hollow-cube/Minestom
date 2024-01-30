@@ -204,7 +204,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             // Local nodes require a server process
             this.eventNode = null;
         }
-        destroyPacketCache = new CachedPacket(serverProcess, () -> new DestroyEntitiesPacket(getEntityId()));
+        destroyPacketCache = new CachedPacket(serverProcess.getServerSetting(), () -> new DestroyEntitiesPacket(getEntityId()));
     }
 
     public Entity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
@@ -582,7 +582,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         if (!hasVelocity && noGravity) {
             return;
         }
-        final float tps = serverProcess.getMinecraftServer().getTickPerSecond();
+        final float tps = serverProcess.getServerSetting().getTickPerSecond();
         final Pos positionBeforeMove = getPosition();
         final Vec currentVelocity = getVelocity();
         final boolean wasOnGround = this.onGround;
@@ -681,7 +681,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                         z * drag
                 ))
                 // Convert from block/tick to block/sec
-                .mul(serverProcess.getMinecraftServer().getTickPerSecond())
+                .mul(serverProcess.getServerSetting().getTickPerSecond())
                 // Prevent infinitely decreasing velocity
                 .apply(Vec.Operator.EPSILON);
     }
@@ -726,7 +726,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         effects.removeIf(timedPotion -> {
             long duration = timedPotion.getPotion().duration();
             if (duration == Potion.INFINITE_DURATION) return false;
-            final long potionTime = duration * serverProcess.getMinecraftServer().getTickMs();
+            final long potionTime = duration * serverProcess.getServerSetting().getTickMs();
             // Remove if the potion should be expired
             if (time >= timedPotion.getStartingTime() + potionTime) {
                 // Send the packet that the potion should no longer be applied
@@ -896,7 +896,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                 spawn();
                 serverProcess.getGlobalEventHandler().call(new EntitySpawnEvent(this, instance));
             } catch (Exception e) {
-                serverProcess.getExceptionManager().handleException(e);
+                serverProcess.getExceptionHandler().handleException(e);
             }
         });
     }
@@ -1331,21 +1331,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         final Chunk chunk = getChunk();
         if (distanceX > 8 || distanceY > 8 || distanceZ > 8) {
-            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
             this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         } else if (positionChange && viewChange) {
-            PacketUtils.prepareViewablePacket(serverProcess, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
             // Fix head rotation
-            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
         } else if (positionChange) {
             // This is a confusing fix for a confusing issue. If rotation is only sent when the entity actually changes, then spawning an entity
             // on the ground causes the entity not to update its rotation correctly. It works fine if the entity is spawned in the air. Very weird.
-            PacketUtils.prepareViewablePacket(serverProcess, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, onGround), this);
         } else if (viewChange) {
-            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
-            PacketUtils.prepareViewablePacket(serverProcess,chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(),chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
         }
         this.lastSyncedPosition = position;
@@ -1535,7 +1535,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         try {
             despawn();
         } catch (Throwable t) {
-            serverProcess.getExceptionManager().handleException(t);
+            serverProcess.getExceptionHandler().handleException(t);
         }
 
         // Remove passengers if any (also done with LivingEntity#kill)
@@ -1580,7 +1580,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @param temporalUnit the unit of the delay
      */
     public void scheduleRemove(long delay, @NotNull TemporalUnit temporalUnit) {
-        if (temporalUnit.equals(TimeUnit.getServerTick(serverProcess.getMinecraftServer()))) {
+        if (temporalUnit.equals(TimeUnit.getServerTick(serverProcess.getServerSetting()))) {
             scheduleRemove(TaskSchedule.tick((int) delay));
         } else {
             scheduleRemove(Duration.of(delay, temporalUnit));
@@ -1601,7 +1601,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     protected @NotNull Vec getVelocityForPacket() {
-        return this.velocity.mul(8000f / serverProcess.getMinecraftServer().getTickPerSecond());
+        return this.velocity.mul(8000f / serverProcess.getServerSetting().getTickPerSecond());
     }
 
     protected @NotNull EntityVelocityPacket getVelocityPacket() {
@@ -1630,7 +1630,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     protected void synchronizePosition(boolean includeSelf) {
         final Pos posCache = this.position;
         final ServerPacket packet = new EntityTeleportPacket(getEntityId(), posCache, isOnGround());
-        PacketUtils.prepareViewablePacket(serverProcess, currentChunk, packet, this);
+        PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), currentChunk, packet, this);
         this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         this.lastSyncedPosition = posCache;
     }
@@ -1708,9 +1708,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void takeKnockback(float strength, final double x, final double z) {
         if (strength > 0) {
             //TODO check possible side effects of unnatural TPS (other than 20TPS)
-            strength *= serverProcess.getMinecraftServer().getTickPerSecond();
+            strength *= serverProcess.getServerSetting().getTickPerSecond();
             final Vec velocityModifier = new Vec(x, z).normalize().mul(strength);
-            final double verticalLimit = .4d * serverProcess.getMinecraftServer().getTickPerSecond();
+            final double verticalLimit = .4d * serverProcess.getServerSetting().getTickPerSecond();
 
             setVelocity(new Vec(velocity.x() / 2d - velocityModifier.x(),
                     onGround ? Math.min(verticalLimit, velocity.y() / 2d + strength) : velocity.y(),

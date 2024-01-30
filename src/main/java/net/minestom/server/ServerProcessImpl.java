@@ -8,7 +8,8 @@ import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
-import net.minestom.server.exception.ExceptionManager;
+import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerImpl;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Chunk;
@@ -34,6 +35,7 @@ import net.minestom.server.utils.collection.MappedCollection;
 import net.minestom.server.world.DimensionTypeManager;
 import net.minestom.server.world.biomes.BiomeManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,7 +51,7 @@ final class ServerProcessImpl implements ServerProcess {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
     private static final Boolean SHUTDOWN_ON_SIGNAL = PropertyUtils.getBoolean("minestom.shutdown-on-signal", true);
 
-    private final ExceptionManager exceptionManager;
+    private final ExceptionHandler exceptionHandler;
     private final ConnectionManager connectionManager;
     private final PacketListenerManager packetListenerManager;
     private final PacketProcessor packetProcessor;
@@ -77,34 +80,38 @@ final class ServerProcessImpl implements ServerProcess {
     private final MojangAuth mojangAuth;
 
     public ServerProcessImpl(ServerSettings serverSettings) {
+        this(serverSettings, null);
+    }
+
+    public ServerProcessImpl(ServerSettings serverSettings, @Nullable ExceptionHandler exceptionHandler) {
         this.serverSettings = serverSettings;
-        this.exceptionManager = new ExceptionManager(this);
-        this.packetListenerManager = new PacketListenerManager(this);
+        this.exceptionHandler = Objects.requireNonNullElseGet(exceptionHandler, () -> new ExceptionHandlerImpl(this));
+        this.globalEventHandler = new GlobalEventHandler(exceptionHandler);
+        this.packetListenerManager = new PacketListenerManager(globalEventHandler, exceptionHandler);
         this.packetProcessor = new PacketProcessor(packetListenerManager);
-        this.instanceManager = new InstanceManager(this);
+        this.dispatcher = ThreadDispatcher.singleThread(exceptionHandler);
+        this.instanceManager = new InstanceManager(dispatcher, globalEventHandler);
         this.blockManager = new BlockManager();
         this.commandManager = new CommandManager(this);
         this.recipeManager = new RecipeManager();
         this.teamManager = new TeamManager(this);
-        this.globalEventHandler = new GlobalEventHandler(this);
         this.schedulerManager = new SchedulerManager();
-        this.benchmarkManager = new BenchmarkManager(this);
+        this.benchmarkManager = new BenchmarkManager(exceptionHandler);
         this.dimensionTypeManager = new DimensionTypeManager();
         this.biomeManager = new BiomeManager();
         this.advancementManager = new AdvancementManager(this);
         this.bossBarManager = new BossBarManager(this);
         this.tagManager = new TagManager();
-        this.connectionManager = new ConnectionManager(this, tagManager);
+        this.connectionManager = new ConnectionManager(this, serverSettings, tagManager);
         this.server = new Server(this, packetProcessor);
-        this.mojangAuth = new MojangAuth(this);
-        this.audiences = new Audiences(this);
+        this.mojangAuth = new MojangAuth(this, exceptionHandler);
+        this.audiences = new Audiences(this, connectionManager, commandManager);
 
-        this.dispatcher = ThreadDispatcher.singleThread(this);
         this.ticker = new TickerImpl();
     }
 
     @Override
-    public ServerSettings getMinecraftServer() {
+    public ServerSettings getServerSetting() {
         return serverSettings;
     }
 
@@ -179,8 +186,8 @@ final class ServerProcessImpl implements ServerProcess {
     }
 
     @Override
-    public @NotNull ExceptionManager getExceptionManager() {
-        return exceptionManager;
+    public @NotNull ExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
     }
 
     @Override
@@ -220,7 +227,7 @@ final class ServerProcessImpl implements ServerProcess {
         try {
             server.init(socketAddress);
         } catch (IOException e) {
-            exceptionManager.handleException(e);
+            exceptionHandler.handleException(e);
             throw new RuntimeException(e);
         }
 
@@ -311,7 +318,7 @@ final class ServerProcessImpl implements ServerProcess {
                 try {
                     instance.tick(tickStart);
                 } catch (Exception e) {
-                    getExceptionManager().handleException(e);
+                    getExceptionHandler().handleException(e);
                 }
             }
             // Tick all chunks (and entities inside)

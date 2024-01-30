@@ -1,6 +1,5 @@
 package net.minestom.server.network;
 
-import net.minestom.server.ServerProcess;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.utils.ObjectPool;
@@ -44,11 +43,11 @@ public class SocketWriteTest {
 
     @Test
     public void writeSingleUncompressed() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var packet = new IntPacket(5);
 
         var buffer = ObjectPool.PACKET_POOL.get();
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, false);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, false);
 
         // 3 bytes length [var-int] + 1 byte packet id [var-int] + 4 bytes int
         // The 3 bytes var-int length is hardcoded for performance purpose, could change in the future
@@ -57,12 +56,13 @@ public class SocketWriteTest {
 
     @Test
     public void writeMultiUncompressed() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var packet = new IntPacket(5);
 
         var buffer = ObjectPool.PACKET_POOL.get();
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, false);
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, false);
+
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, false);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, false);
 
         // 3 bytes length [var-int] + 1 byte packet id [var-int] + 4 bytes int
         // The 3 bytes var-int length is hardcoded for performance purpose, could change in the future
@@ -71,7 +71,7 @@ public class SocketWriteTest {
 
     @Test
     public void writeSingleCompressed() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var string = "Hello world!".repeat(200);
         var stringLength = string.getBytes(StandardCharsets.UTF_8).length;
         var lengthLength = Utils.getVarIntSize(stringLength);
@@ -79,7 +79,7 @@ public class SocketWriteTest {
         var packet = new CompressiblePacket(string);
 
         var buffer = ObjectPool.PACKET_POOL.get();
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, true);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, true);
 
         // 3 bytes packet length [var-int] + 3 bytes data length [var-int] + 1 byte packet id [var-int] + payload
         // The 3 bytes var-int length is hardcoded for performance purpose, could change in the future
@@ -88,11 +88,11 @@ public class SocketWriteTest {
 
     @Test
     public void writeSingleCompressedSmall() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var packet = new IntPacket(5);
 
         var buffer = ObjectPool.PACKET_POOL.get();
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, true);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, true);
 
         // 3 bytes packet length [var-int] + 3 bytes data length [var-int] + 1 byte packet id [var-int] + 4 bytes int
         // The 3 bytes var-int length is hardcoded for performance purpose, could change in the future
@@ -101,12 +101,12 @@ public class SocketWriteTest {
 
     @Test
     public void writeMultiCompressedSmall() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var packet = new IntPacket(5);
 
         var buffer = ObjectPool.PACKET_POOL.get();
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, true);
-        PacketUtils.writeFramedPacket(serverProcess, ConnectionState.PLAY, buffer, packet, true);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, true);
+        PacketUtils.writeFramedPacket(serverSettings, ConnectionState.PLAY, buffer, packet, true);
 
         // 3 bytes packet length [var-int] + 3 bytes data length [var-int] + 1 byte packet id [var-int] + 4 bytes int
         // The 3 bytes var-int length is hardcoded for performance purpose, could change in the future

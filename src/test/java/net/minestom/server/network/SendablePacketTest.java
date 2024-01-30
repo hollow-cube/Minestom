@@ -1,7 +1,6 @@
 package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.LazyPacket;
@@ -30,12 +29,12 @@ public class SendablePacketTest {
 
     @Test
     public void cached() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var packet = new SystemChatPacket(Component.text("Hello World!"), false);
-        var cached = new CachedPacket(serverProcess, packet);
+        var cached = new CachedPacket(serverSettings, packet);
         assertSame(packet, cached.packet(ConnectionState.PLAY));
 
-        var buffer = PacketUtils.allocateTrimmedPacket(serverProcess, ConnectionState.PLAY, packet);
+        var buffer = PacketUtils.allocateTrimmedPacket(serverSettings, ConnectionState.PLAY, packet);
         var cachedBuffer = cached.body(ConnectionState.PLAY);
         assertEquals(buffer.body(), cachedBuffer);
         // May fail in the very unlikely case where soft references are cleared

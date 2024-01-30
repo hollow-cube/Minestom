@@ -22,7 +22,7 @@ public class ChunkViewerIntegrationTest {
             // Chunks get their viewers from the instance
             // Ensuring that the system works with shared instances is therefore important
             var manager = env.process().getInstanceManager();
-            instance = manager.createSharedInstance((InstanceContainer) instance);
+            instance = manager.createSharedInstance(env.process(), (InstanceContainer) instance);
         }
 
         var chunk = instance.loadChunk(0, 0).join();
@@ -36,7 +36,7 @@ public class ChunkViewerIntegrationTest {
 
     @Test
     public void renderDistance(Env env) {
-        final int viewRadius = env.process().getMinecraftServer().getChunkViewDistance();
+        final int viewRadius = env.process().getServerSetting().getChunkViewDistance();
         final int count = ChunkUtils.getChunkCount(viewRadius);
         var instance = env.createFlatInstance();
         var connection = env.createConnection();

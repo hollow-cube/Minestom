@@ -2,7 +2,7 @@ package net.minestom.server.message;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.SystemChatPacket;
 import net.minestom.server.utils.PacketUtils;
@@ -93,9 +93,9 @@ public final class Messenger {
      * @param position the position
      * @param uuid     the UUID of the sender, if any
      */
-    public static void sendMessage(ServerProcess serverProcess, @NotNull Collection<Player> players, @NotNull Component message,
+    public static void sendMessage(ServerSettings serverSettings, @NotNull Collection<Player> players, @NotNull Component message,
                                    @NotNull ChatPosition position, @Nullable UUID uuid) {
-        PacketUtils.sendGroupedPacket(serverProcess, players, new SystemChatPacket(message, false),
+        PacketUtils.sendGroupedPacket(serverSettings, players, new SystemChatPacket(message, false),
                 player -> getChatMessageType(player).accepts(position));
     }
 

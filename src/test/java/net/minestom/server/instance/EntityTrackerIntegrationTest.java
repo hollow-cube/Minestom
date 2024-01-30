@@ -27,7 +27,7 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.process().getMinecraftServer().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSetting().getEntityViewDistance();
 
         final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
@@ -59,7 +59,7 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.process().getMinecraftServer().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSetting().getEntityViewDistance();
 
         final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
@@ -107,7 +107,7 @@ public class EntityTrackerIntegrationTest {
     @Test
     public void viewableShared(Env env) {
         final InstanceContainer instance = (InstanceContainer) env.createFlatInstance();
-        var shared = env.process().getInstanceManager().createSharedInstance(instance);
+        var shared = env.process().getInstanceManager().createSharedInstance(env.process(), instance);
         var sharedList = instance.getSharedInstances();
 
         final Pos spawnPos = new Pos(0, 41, 0);
@@ -124,7 +124,7 @@ public class EntityTrackerIntegrationTest {
         player.teleport(new Pos(10_000, 41, 0)).join();
         assertEquals(0, viewable.getViewers().size());
 
-        var shared2 = env.process().getInstanceManager().createSharedInstance(instance);
+        var shared2 = env.process().getInstanceManager().createSharedInstance(env.process(), instance);
         player.setInstance(shared2, spawnPos).join();
         assertEquals(1, viewable.getViewers().size());
     }

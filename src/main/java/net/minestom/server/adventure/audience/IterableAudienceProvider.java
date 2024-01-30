@@ -3,6 +3,7 @@ package net.minestom.server.adventure.audience;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.minestom.server.ServerProcess;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +23,9 @@ class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Au
     private final AudienceRegistry registry = new AudienceRegistry(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new);
     private final ServerProcess serverProcess;
 
-    protected IterableAudienceProvider(ServerProcess serverProcess) {
+    protected IterableAudienceProvider(ServerProcess serverProcess, CommandManager commandManager) {
         this.serverProcess = serverProcess;
-        this.console = List.of(serverProcess.getCommandManager().getConsoleSender());
+        this.console = List.of(commandManager.getConsoleSender());
     }
 
     @Override

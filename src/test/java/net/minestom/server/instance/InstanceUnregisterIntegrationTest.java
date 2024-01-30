@@ -21,8 +21,8 @@ public class InstanceUnregisterIntegrationTest {
     public void sharedInstance(Env env) {
         // Ensure that unregistering a shared instance does not unload the container chunks
         var instanceManager = env.process().getInstanceManager();
-        var instance = instanceManager.createInstanceContainer();
-        var shared1 = instanceManager.createSharedInstance(instance);
+        var instance = instanceManager.createInstanceContainer(env.process());
+        var shared1 = instanceManager.createSharedInstance(env.process(), instance);
         var connection = env.createConnection();
         var player = connection.connect(shared1, new Pos(0, 40, 0)).join();
 
@@ -30,7 +30,7 @@ public class InstanceUnregisterIntegrationTest {
         listener.followup();
         env.tick();
 
-        player.setInstance(instanceManager.createSharedInstance(instance)).join();
+        player.setInstance(instanceManager.createSharedInstance(env.process(), instance)).join();
         listener.followup();
         env.tick();
 
@@ -56,7 +56,7 @@ public class InstanceUnregisterIntegrationTest {
             final Instance instance;
 
             Game(Env env) {
-                instance = env.process().getInstanceManager().createInstanceContainer();
+                instance = env.process().getInstanceManager().createInstanceContainer(env.process());
                 instance.eventNode().addListener(PlayerMoveEvent.class, e -> System.out.println(instance));
             }
         }

@@ -449,7 +449,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      */
     public void setTime(long time) {
         this.time = time;
-        PacketUtils.sendGroupedPacket(serverProcess, getPlayers(), createTimePacket());
+        PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), getPlayers(), createTimePacket());
     }
 
     /**
@@ -664,7 +664,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             this.time += timeRate;
             // time needs to be sent to players
             if (timeUpdate != null && !Cooldown.hasCooldown(time, lastTimeUpdate, timeUpdate)) {
-                PacketUtils.sendGroupedPacket(serverProcess, getPlayers(), createTimePacket());
+                PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), getPlayers(), createTimePacket());
                 this.lastTimeUpdate = time;
             }
 

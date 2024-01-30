@@ -48,7 +48,7 @@ public class EntityRemovalIntegrationTest {
     @Test
     public void tickTimedRemoval(Env env) throws InterruptedException {
         var instance = env.createFlatInstance();
-        var entity = new TestEntity(env.process(), 2, TimeUnit.getServerTick(env.process().getMinecraftServer()));
+        var entity = new TestEntity(env.process(), 2, TimeUnit.getServerTick(env.process().getServerSetting()));
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
 
         assertFalse(entity.isRemoved());

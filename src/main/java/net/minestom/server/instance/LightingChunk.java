@@ -37,7 +37,7 @@ public class LightingChunk extends DynamicChunk {
     private static final ExecutorService pool = Executors.newWorkStealingPool();
 
     private int[] heightmap;
-    final CachedPacket lightCache = new CachedPacket(getServerProcess(), this::createLightPacket);
+    final CachedPacket lightCache = new CachedPacket(getServerProcess().getServerSetting(), this::createLightPacket);
     boolean sendNeighbours = true;
     boolean chunkLoaded = false;
 

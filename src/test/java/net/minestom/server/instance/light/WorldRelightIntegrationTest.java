@@ -18,7 +18,7 @@ import static net.minestom.server.instance.BlockLightMergeIntegrationTest.assert
 @EnvTest
 public class WorldRelightIntegrationTest {
     private @NotNull Instance createLightingInstance(@NotNull ServerProcess process) {
-        var instance = process.getInstanceManager().createInstanceContainer();
+        var instance = process.getInstanceManager().createInstanceContainer(process);
         instance.setGenerator(unit -> {
             unit.modifier().fillHeight(39, 40, Block.STONE);
             unit.subdivide().forEach(u -> u.modifier().setBlock(0, 10, 0, Block.GLOWSTONE));

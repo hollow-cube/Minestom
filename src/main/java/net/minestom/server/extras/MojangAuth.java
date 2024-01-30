@@ -1,6 +1,7 @@
 package net.minestom.server.extras;
 
 import net.minestom.server.ServerProcess;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.extras.mojangAuth.MojangCrypt;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.Nullable;
@@ -14,9 +15,9 @@ public final class MojangAuth {
     private final ServerProcess serverProcess;
     private final MojangCrypt mojangCrypt;
 
-    public MojangAuth(ServerProcess serverProcess) {
+    public MojangAuth(ServerProcess serverProcess, ExceptionHandler exceptionHandler) {
         this.serverProcess = serverProcess;
-        this.mojangCrypt = new MojangCrypt(serverProcess);
+        this.mojangCrypt = new MojangCrypt(exceptionHandler);
     }
 
     /**

@@ -14,7 +14,7 @@ public class InstanceEventsIntegrationTest {
         var unregisterListener = env.listen(InstanceUnregisterEvent.class);
 
         registerListener.followup();
-        Instance instance = env.process().getInstanceManager().createInstanceContainer();
+        Instance instance = env.process().getInstanceManager().createInstanceContainer(env.process());
 
         unregisterListener.followup();
         env.destroyInstance(instance);
