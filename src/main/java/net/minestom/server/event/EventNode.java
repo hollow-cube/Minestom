@@ -1,6 +1,7 @@
 package net.minestom.server.event;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerObject;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.tag.TagReadable;
@@ -24,7 +25,7 @@ import java.util.function.Predicate;
  *
  * @param <T> The event type accepted by this node
  */
-public sealed interface EventNode<T extends Event> permits EventNodeImpl {
+public sealed interface EventNode<T extends Event> extends ServerObject permits EventNodeImpl {
 
     /**
      * Creates an event node which accepts any event type with no filtering.
@@ -33,9 +34,9 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return An event node with no filtering
      */
     @Contract(value = "_, _ -> new", pure = true)
-    static @NotNull EventNode<Event> all(@NotNull MinecraftServer minecraftServer,
+    static @NotNull EventNode<Event> all(@NotNull ServerProcess serverProcess,
                                          @NotNull String name) {
-        return type(minecraftServer, name, EventFilter.ALL);
+        return type(serverProcess, name, EventFilter.ALL);
     }
 
     /**
@@ -53,10 +54,10 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with just an event type filter
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerProcess serverProcess,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter) {
-        return create(minecraftServer, name, filter, null);
+        return create(serverProcess, name, filter, null);
     }
 
     /**
@@ -79,11 +80,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull ServerProcess serverProcess,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<E> predicate) {
-        return create(minecraftServer, name, filter, (e, h) -> predicate.test(e));
+        return create(serverProcess, name, filter, (e, h) -> predicate.test(e));
     }
 
     /**
@@ -108,11 +109,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerProcess serverProcess,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter,
                                                            @NotNull BiPredicate<E, V> predicate) {
-        return create(minecraftServer, name, filter, predicate);
+        return create(serverProcess, name, filter, predicate);
     }
 
     /**
@@ -134,11 +135,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull ServerProcess serverProcess,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<V> predicate) {
-        return create(minecraftServer, name, filter, (e, h) -> predicate.test(h));
+        return create(serverProcess, name, filter, (e, h) -> predicate.test(h));
     }
 
     /**
@@ -154,11 +155,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event> @NotNull EventNode<E> tag(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event> @NotNull EventNode<E> tag(@NotNull ServerProcess serverProcess,
                                                        @NotNull String name,
                                                        @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                        @NotNull Tag<?> tag) {
-        return create(minecraftServer, name, filter, (e, h) -> h.hasTag(tag));
+        return create(serverProcess, name, filter, (e, h) -> h.hasTag(tag));
     }
 
     /**
@@ -173,20 +174,20 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull MinecraftServer minecraftServer,
+    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull ServerProcess serverProcess,
                                                           @NotNull String name,
                                                           @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                           @NotNull Tag<V> tag,
                                                           @NotNull Predicate<@Nullable V> consumer) {
-        return create(minecraftServer, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
+        return create(serverProcess, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
     }
 
-    private static <E extends Event, V> EventNode<E> create(@NotNull MinecraftServer minecraftServer,
+    private static <E extends Event, V> EventNode<E> create(@NotNull ServerProcess serverProcess,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @Nullable BiPredicate<E, V> predicate) {
         //noinspection unchecked
-        return new EventNodeImpl<>(minecraftServer, name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
+        return new EventNodeImpl<>(serverProcess, name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
     }
 
     /**

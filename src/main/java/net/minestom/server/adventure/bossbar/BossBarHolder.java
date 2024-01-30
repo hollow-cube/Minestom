@@ -2,7 +2,7 @@ package net.minestom.server.adventure.bossbar;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.entity.Player;
@@ -21,11 +21,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 final class BossBarHolder implements Viewable {
     final UUID uuid = UUID.randomUUID();
     final Set<Player> players = new CopyOnWriteArraySet<>();
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     final BossBar bar;
 
-    BossBarHolder(MinecraftServer minecraftServer, @NotNull BossBar bar) {
-        this.minecraftServer = minecraftServer;
+    BossBarHolder(ServerProcess serverProcess, @NotNull BossBar bar) {
+        this.serverProcess = serverProcess;
         this.bar = bar;
     }
 
@@ -77,7 +77,7 @@ final class BossBarHolder implements Viewable {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

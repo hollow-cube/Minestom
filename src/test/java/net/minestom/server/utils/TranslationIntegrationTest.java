@@ -39,7 +39,7 @@ public class TranslationIntegrationTest {
         MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = true;
         final var message = Component.translatable("test.key");
         final var packet = new SystemChatPacket(message, false);
-        PacketUtils.sendGroupedPacket(env.minecraftServer(), List.of(player), packet);
+        PacketUtils.sendGroupedPacket(env.process(), List.of(player), packet);
 
         // the message should not be changed if translations are enabled.
         // the translation of the message itself will be proceeded in PlayerConnectionImpl class
@@ -58,7 +58,7 @@ public class TranslationIntegrationTest {
         MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = false;
         final var message = Component.translatable("test.key");
         final var packet = new SystemChatPacket(message, false);
-        PacketUtils.sendGroupedPacket(env.minecraftServer(), List.of(player), packet);
+        PacketUtils.sendGroupedPacket(env.process(), List.of(player), packet);
 
         collector.assertSingle(received -> {
             assertEquals(message, received.message());

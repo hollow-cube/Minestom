@@ -1,6 +1,7 @@
 package net.minestom.server.command;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandResult;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -15,8 +16,8 @@ public class CommandManagerTest {
 
     @Test
     public void testCommandRegistration() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var manager = new CommandManager(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var manager = new CommandManager(serverProcess);
 
         var command = new Command("name1", "name2");
 
@@ -35,8 +36,8 @@ public class CommandManagerTest {
 
     @Test
     public void testUnknownCommandCallback() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var manager = new CommandManager(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var manager = new CommandManager(serverProcess);
 
         AtomicBoolean check = new AtomicBoolean(false);
         manager.setUnknownCommandCallback((sender, command) -> check.set(true));
@@ -52,8 +53,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxABFirst() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var manager = new CommandManager(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var manager = new CommandManager(serverProcess);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);
@@ -81,8 +82,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxAFirst() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var manager = new CommandManager(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var manager = new CommandManager(serverProcess);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);

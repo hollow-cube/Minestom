@@ -14,14 +14,14 @@ public final class StatusListener {
 
     public static void requestListener(@NotNull StatusRequestPacket packet, @NotNull PlayerConnection connection) {
         final ServerListPingType pingVersion = ServerListPingType.fromModernProtocolVersion(connection.getProtocolVersion());
-        final ServerListPingEvent statusRequestEvent = new ServerListPingEvent(connection.minecraftServer, connection, pingVersion);
-        connection.minecraftServer.process().getGlobalEventHandler().callCancellable(statusRequestEvent, () ->
+        final ServerListPingEvent statusRequestEvent = new ServerListPingEvent(connection.getServerProcess(), connection, pingVersion);
+        connection.getServerProcess().getGlobalEventHandler().callCancellable(statusRequestEvent, () ->
                 connection.sendPacket(new ResponsePacket(pingVersion.getPingResponse(statusRequestEvent.getResponseData()))));
     }
 
     public static void pingListener(@NotNull PingPacket packet, @NotNull PlayerConnection connection) {
         final ClientPingServerEvent clientPingEvent = new ClientPingServerEvent(connection, packet.number());
-        connection.minecraftServer.process().getGlobalEventHandler().call(clientPingEvent);
+        connection.getServerProcess().getGlobalEventHandler().call(clientPingEvent);
 
         if (clientPingEvent.isCancelled()) {
             connection.disconnect();
@@ -30,7 +30,7 @@ public final class StatusListener {
                 connection.sendPacket(new PongPacket(clientPingEvent.getPayload()));
                 connection.disconnect();
             } else {
-                connection.minecraftServer.process().getSchedulerManager().buildTask(() -> {
+                connection.getServerProcess().getSchedulerManager().buildTask(() -> {
                     connection.sendPacket(new PongPacket(clientPingEvent.getPayload()));
                     connection.disconnect();
                 }).delay(clientPingEvent.getDelay()).schedule();

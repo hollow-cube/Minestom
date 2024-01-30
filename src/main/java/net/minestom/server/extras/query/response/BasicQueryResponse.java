@@ -1,6 +1,6 @@
 package net.minestom.server.extras.query.response;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.extras.query.Query;
 import net.minestom.server.utils.binary.BinaryWriter;
 import net.minestom.server.utils.binary.Writeable;
@@ -13,18 +13,18 @@ import java.util.Objects;
  */
 public class BasicQueryResponse implements Writeable {
     @NotNull
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private String motd, gametype, map, numPlayers, maxPlayers;
 
     /**
      * Creates a new basic query response with pre-filled default values.
      */
-    public BasicQueryResponse(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public BasicQueryResponse(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         this.motd = "A Minestom Server";
         this.gametype = "SMP";
         this.map = "world";
-        this.numPlayers = String.valueOf(minecraftServer.process().getConnectionManager().getOnlinePlayerCount());
+        this.numPlayers = String.valueOf(serverProcess.getConnectionManager().getOnlinePlayerCount());
         this.maxPlayers = String.valueOf(Integer.parseInt(this.numPlayers) + 1);
     }
 
@@ -145,7 +145,7 @@ public class BasicQueryResponse implements Writeable {
         writer.writeNullTerminatedString(this.map, Query.CHARSET);
         writer.writeNullTerminatedString(this.numPlayers, Query.CHARSET);
         writer.writeNullTerminatedString(this.maxPlayers, Query.CHARSET);
-        writer.writeShort((short) minecraftServer.process().getServer().getPort()); // TODO little endian?
-        writer.writeNullTerminatedString(Objects.requireNonNullElse(minecraftServer.process().getServer().getAddress(), ""), Query.CHARSET);
+        writer.writeShort((short) serverProcess.getServer().getPort()); // TODO little endian?
+        writer.writeNullTerminatedString(Objects.requireNonNullElse(serverProcess.getServer().getAddress(), ""), Query.CHARSET);
     }
 }

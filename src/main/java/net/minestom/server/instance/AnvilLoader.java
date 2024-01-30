@@ -3,7 +3,6 @@ package net.minestom.server.instance;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
@@ -38,7 +37,6 @@ public class AnvilLoader implements IChunkLoader {
     private static final Biome BIOME = Biome.PLAINS;
 
     private final Map<String, RegionFile> alreadyLoaded = new ConcurrentHashMap<>();
-    private final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
     private final Path path;
     private final Path levelPath;
@@ -55,16 +53,15 @@ public class AnvilLoader implements IChunkLoader {
     // thread local to avoid contention issues with locks
     private final ThreadLocal<Int2ObjectMap<BlockState>> blockStateId2ObjectCacheTLS = ThreadLocal.withInitial(Int2ObjectArrayMap::new);
 
-    public AnvilLoader(@NotNull MinecraftServer minecraftServer, @NotNull Path path) {
-        this.minecraftServer = minecraftServer;
-        this.serverProcess = minecraftServer.process();
+    public AnvilLoader(@NotNull ServerProcess serverProcess, @NotNull Path path) {
+        this.serverProcess = serverProcess;
         this.path = path;
         this.levelPath = path.resolve("level.dat");
         this.regionPath = path.resolve("region");
     }
 
-    public AnvilLoader(@NotNull MinecraftServer minecraftServer, @NotNull String path) {
-        this(minecraftServer, Path.of(path));
+    public AnvilLoader(@NotNull ServerProcess serverProcess, @NotNull String path) {
+        this(serverProcess, Path.of(path));
     }
 
     @Override
@@ -481,5 +478,10 @@ public class AnvilLoader implements IChunkLoader {
     @Override
     public boolean supportsParallelSaving() {
         return true;
+    }
+
+    @Override
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

@@ -1,6 +1,7 @@
 package net.minestom.server.event;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.event.trait.EntityEvent;
@@ -59,8 +60,8 @@ public class EventNodeTest {
 
     @Test
     public void testCall() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         AtomicBoolean result = new AtomicBoolean(false);
         var listener = EventListener.of(EventTest.class, eventTest -> result.set(true));
         node.addListener(listener);
@@ -77,8 +78,8 @@ public class EventNodeTest {
 
     @Test
     public void testHandle() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         var handle = node.getHandle(EventTest.class);
         assertSame(handle, node.getHandle(EventTest.class));
 
@@ -88,8 +89,8 @@ public class EventNodeTest {
 
     @Test
     public void testCancellable() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         AtomicBoolean result = new AtomicBoolean(false);
         var listener = EventListener.builder(CancellableTest.class)
                 .handler(event -> {
@@ -108,8 +109,8 @@ public class EventNodeTest {
 
     @Test
     public void recursiveSub() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         AtomicBoolean result1 = new AtomicBoolean(false);
         AtomicBoolean result2 = new AtomicBoolean(false);
         var listener1 = EventListener.of(Recursive1.class, event -> result1.set(true));
@@ -150,15 +151,15 @@ public class EventNodeTest {
 
     @Test
     public void testChildren() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         AtomicInteger result = new AtomicInteger(0);
-        var child1 = EventNode.all(minecraftServer,"child1").setPriority(1)
+        var child1 = EventNode.all(serverProcess,"child1").setPriority(1)
                 .addListener(EventTest.class, eventTest -> {
                     assertEquals(0, result.get(), "child1 should be called before child2");
                     result.set(1);
                 });
-        var child2 = EventNode.all(minecraftServer,"child2").setPriority(2)
+        var child2 = EventNode.all(serverProcess,"child2").setPriority(2)
                 .addListener(EventTest.class, eventTest -> {
                     assertEquals(1, result.get(), "child2 should be called after child1");
                     result.set(2);
@@ -185,13 +186,13 @@ public class EventNodeTest {
 
     @Test
     public void testFiltering() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         AtomicBoolean result = new AtomicBoolean(false);
         AtomicBoolean childResult = new AtomicBoolean(false);
 
-        var node = EventNode.type(minecraftServer,"item_node", EventFilter.ITEM,
+        var node = EventNode.type(serverProcess,"item_node", EventFilter.ITEM,
                 (event, item) -> item.material() == Material.DIAMOND);
-        var child = EventNode.type(minecraftServer,"item_node2", EventFilter.ITEM)
+        var child = EventNode.type(serverProcess,"item_node2", EventFilter.ITEM)
                 .addListener(ItemTestEvent.class, event -> childResult.set(true));
         node.addChild(child);
 
@@ -210,8 +211,8 @@ public class EventNodeTest {
 
     @Test
     public void testBinding() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
 
         AtomicBoolean result = new AtomicBoolean(false);
         var binding = EventBinding.filtered(EventFilter.ITEM, itemStack -> itemStack.material() == Material.DIAMOND)
@@ -233,8 +234,8 @@ public class EventNodeTest {
 
     @Test
     public void nodeEmptyGC() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         var ref = new WeakReference<>(node);
 
         //noinspection UnusedAssignment
@@ -244,8 +245,8 @@ public class EventNodeTest {
 
     @Test
     public void nodeGC() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         var ref = new WeakReference<>(node);
         node.addListener(EventTest.class, event -> {
         });
@@ -272,8 +273,8 @@ public class EventNodeTest {
 
     @Test
     public void nodeMapGC() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
 
         var handler = ItemStack.AIR;
         var mapped = node.map(handler, EventFilter.ITEM);

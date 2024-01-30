@@ -86,7 +86,7 @@ public class InstanceUnregisterIntegrationTest {
 
     @Test
     public void testGCWithEventsLambda(Env env) {
-        var ref = new WeakReference<>(new InstanceContainer(env.minecraftServer(), UUID.randomUUID(), DimensionType.OVERWORLD));
+        var ref = new WeakReference<>(new InstanceContainer(env.process(), UUID.randomUUID(), DimensionType.OVERWORLD));
         env.process().getInstanceManager().registerInstance(ref.get());
 
         tmp(ref.get());

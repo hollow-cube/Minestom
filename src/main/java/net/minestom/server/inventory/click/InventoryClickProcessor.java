@@ -1,6 +1,6 @@
 package net.minestom.server.inventory.click;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.inventory.InventoryClickEvent;
@@ -31,10 +31,10 @@ public final class InventoryClickProcessor {
     private final Map<Player, List<DragData>> leftDraggingMap = new ConcurrentHashMap<>();
     private final Map<Player, List<DragData>> rightDraggingMap = new ConcurrentHashMap<>();
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public InventoryClickProcessor(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public InventoryClickProcessor(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     public @NotNull InventoryClickResult leftClick(@NotNull Player player, @NotNull AbstractInventory inventory,
@@ -433,7 +433,7 @@ public final class InventoryClickProcessor {
         {
             InventoryPreClickEvent inventoryPreClickEvent = new InventoryPreClickEvent(eventInventory, player, slot, clickType,
                     clickResult.getClicked(), clickResult.getCursor());
-            minecraftServer.process().getGlobalEventHandler().call(inventoryPreClickEvent);
+            serverProcess.getGlobalEventHandler().call(inventoryPreClickEvent);
             clickResult.setCursor(inventoryPreClickEvent.getCursorItem());
             clickResult.setClicked(inventoryPreClickEvent.getClickedItem());
             if (inventoryPreClickEvent.isCancelled()) {
@@ -469,7 +469,7 @@ public final class InventoryClickProcessor {
     private void callClickEvent(@NotNull Player player, @Nullable AbstractInventory inventory, int slot,
                                 @NotNull ClickType clickType, @NotNull ItemStack clicked, @NotNull ItemStack cursor) {
         final Inventory eventInventory = inventory instanceof Inventory ? (Inventory) inventory : null;
-        minecraftServer.process().getGlobalEventHandler().call(new InventoryClickEvent(eventInventory, player, slot, clickType, clicked, cursor));
+        serverProcess.getGlobalEventHandler().call(new InventoryClickEvent(eventInventory, player, slot, clickType, clicked, cursor));
     }
 
     public void clearCache(@NotNull Player player) {

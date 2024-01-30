@@ -16,7 +16,7 @@ public class PlayerHeldListener {
         final byte slot = (byte) packet.slot();
 
         PlayerChangeHeldSlotEvent changeHeldSlotEvent = new PlayerChangeHeldSlotEvent(player, slot);
-        player.minecraftServer.process().getGlobalEventHandler().call(changeHeldSlotEvent);
+        player.getServerProcess().getGlobalEventHandler().call(changeHeldSlotEvent);
 
         if (!changeHeldSlotEvent.isCancelled()) {
             // Event hasn't been canceled, process it

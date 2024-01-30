@@ -1,6 +1,7 @@
 package net.minestom.server.command;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.Argument;
@@ -147,10 +148,10 @@ public class CommandSyntaxSingleTest {
     }
 
     private static void assertSyntax(List<Argument<?>> args, String input, ExpectedExecution expectedExecution, Map<String, Object> expectedValues) {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final String commandName = "name";
 
-        var manager = new CommandManager(minecraftServer);
+        var manager = new CommandManager(serverProcess);
         var command = new Command(commandName);
         manager.register(command);
 

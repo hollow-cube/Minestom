@@ -1,7 +1,7 @@
 package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ScoreboardObjectivePacket;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +22,7 @@ public class BelowNameTag implements Scoreboard {
 
     private final Set<Player> viewers = new CopyOnWriteArraySet<>();
     private final Set<Player> unmodifiableViewers = Collections.unmodifiableSet(viewers);
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private final String objectiveName;
 
     private final ScoreboardObjectivePacket scoreboardObjectivePacket;
@@ -32,11 +32,11 @@ public class BelowNameTag implements Scoreboard {
      *
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
-     * @deprecated Use {@link #BelowNameTag(MinecraftServer, String, Component)}
+     * @deprecated Use {@link #BelowNameTag(ServerProcess, String, Component)}
      */
     @Deprecated
-    public BelowNameTag(MinecraftServer minecraftServer, String name, String value) {
-        this(minecraftServer, name, Component.text(value));
+    public BelowNameTag(ServerProcess serverProcess, String name, String value) {
+        this(serverProcess, name, Component.text(value));
     }
 
     /**
@@ -45,8 +45,8 @@ public class BelowNameTag implements Scoreboard {
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
      */
-    public BelowNameTag(MinecraftServer minecraftServer, String name, Component value) {
-        this.minecraftServer = minecraftServer;
+    public BelowNameTag(ServerProcess serverProcess, String name, Component value) {
+        this.serverProcess = serverProcess;
         this.objectiveName = BELOW_NAME_TAG_PREFIX + name;
         this.scoreboardObjectivePacket = this.getCreationObjectivePacket(value, ScoreboardObjectivePacket.Type.INTEGER);
     }
@@ -84,7 +84,7 @@ public class BelowNameTag implements Scoreboard {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

@@ -1,6 +1,7 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.world.DimensionType;
 import net.minestom.server.world.DimensionTypeManager;
@@ -18,9 +19,9 @@ public class InstanceContainerTest {
 
     @Test
     public void copyPreservesTag() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         var tag = Tag.String("test");
-        var instance = new InstanceContainer(minecraftServer, UUID.randomUUID(), DimensionType.OVERWORLD);
+        var instance = new InstanceContainer(serverProcess, UUID.randomUUID(), DimensionType.OVERWORLD);
         instance.setTag(tag, "123");
 
         var copyInstance = instance.copy();

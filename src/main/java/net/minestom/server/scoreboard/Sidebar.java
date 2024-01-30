@@ -3,7 +3,7 @@ package net.minestom.server.scoreboard;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.server.play.*;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Represents a sidebar which can contain up to 16 {@link ScoreboardLine}.
  * <p>
- * In order to use it you need to create a new instance using the constructor {@link #Sidebar(MinecraftServer, String)} and create new lines
+ * In order to use it you need to create a new instance using the constructor {@link #Sidebar(ServerProcess, String)} and create new lines
  * with {@link #createLine(ScoreboardLine)}. You can then add a {@link Player} to the viewing list using {@link #addViewer(Player)}
  * and remove him later with {@link #removeViewer(Player)}.
  * <p>
@@ -49,18 +49,18 @@ public class Sidebar implements Scoreboard {
 
     private final String objectiveName;
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private Component title;
 
     /**
      * Creates a new sidebar
      *
      * @param title The title of the sidebar
-     * @deprecated Use {@link #Sidebar(MinecraftServer, Component)}
+     * @deprecated Use {@link #Sidebar(ServerProcess, Component)}
      */
     @Deprecated
-    public Sidebar(MinecraftServer minecraftServer, @NotNull String title) {
-        this(minecraftServer, Component.text(title));
+    public Sidebar(ServerProcess serverProcess, @NotNull String title) {
+        this(serverProcess, Component.text(title));
     }
 
     /**
@@ -68,8 +68,8 @@ public class Sidebar implements Scoreboard {
      *
      * @param title The title of the sidebar
      */
-    public Sidebar(MinecraftServer minecraftServer, @NotNull Component title) {
-        this.minecraftServer = minecraftServer;
+    public Sidebar(ServerProcess serverProcess, @NotNull Component title) {
+        this.serverProcess = serverProcess;
         this.title = title;
 
         this.objectiveName = SCOREBOARD_PREFIX + COUNTER.incrementAndGet();
@@ -245,8 +245,8 @@ public class Sidebar implements Scoreboard {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 
     /**

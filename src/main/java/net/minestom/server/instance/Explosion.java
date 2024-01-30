@@ -73,7 +73,7 @@ public abstract class Explosion {
         ExplosionPacket packet = new ExplosionPacket(centerX, centerY, centerZ, strength,
                 records, 0, 0, 0);
         postExplosion(instance, blocks, packet);
-        PacketUtils.sendGroupedPacket(instance.getMinecraftServer(), instance.getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(instance.getServerProcess(), instance.getPlayers(), packet);
 
         postSend(instance, blocks);
     }

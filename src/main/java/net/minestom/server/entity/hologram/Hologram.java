@@ -1,7 +1,7 @@
 package net.minestom.server.entity.hologram;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
@@ -62,7 +62,7 @@ public class Hologram implements Viewable {
      * @param autoViewable  {@code true}if the hologram should be visible automatically, otherwise {@code false}.
      */
     public Hologram(Instance instance, Pos spawnPosition, Component text, boolean autoViewable, boolean marker) {
-        this.entity = new Entity(instance.minecraftServer, EntityType.ARMOR_STAND);
+        this.entity = new Entity(instance.getServerProcess(), EntityType.ARMOR_STAND);
 
         ArmorStandMeta armorStandMeta = (ArmorStandMeta) entity.getEntityMeta();
 
@@ -188,7 +188,7 @@ public class Hologram implements Viewable {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return entity.getMinecraftServer();
+    public ServerProcess getServerProcess() {
+        return entity.getServerProcess();
     }
 }

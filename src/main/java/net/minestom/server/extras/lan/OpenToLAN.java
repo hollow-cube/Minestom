@@ -1,6 +1,6 @@
 package net.minestom.server.extras.lan;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.timer.Task;
 import net.minestom.server.utils.time.Cooldown;
@@ -37,10 +37,10 @@ public class OpenToLAN {
     private volatile DatagramPacket packet = null;
     private volatile Task task = null;
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public OpenToLAN(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public OpenToLAN(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     /**
@@ -70,7 +70,7 @@ public class OpenToLAN {
         }
 
         eventCooldown = new Cooldown(config.delayBetweenEvent);
-        task = minecraftServer.process().getSchedulerManager().buildTask(this::ping)
+        task = serverProcess.getSchedulerManager().buildTask(this::ping)
                 .repeat(config.delayBetweenPings)
                 .schedule();
         return true;
@@ -104,10 +104,10 @@ public class OpenToLAN {
      * Performs the ping.
      */
     private void ping() {
-        if (!minecraftServer.process().getServer().isOpen()) return;
+        if (!serverProcess.getServer().isOpen()) return;
         if (packet == null || eventCooldown.isReady(System.currentTimeMillis())) {
-            final ServerListPingEvent event = new ServerListPingEvent(minecraftServer, OPEN_TO_LAN);
-            minecraftServer.process().getGlobalEventHandler().call(event);
+            final ServerListPingEvent event = new ServerListPingEvent(serverProcess, OPEN_TO_LAN);
+            serverProcess.getGlobalEventHandler().call(event);
 
             final byte[] data = OPEN_TO_LAN.getPingResponse(event.getResponseData()).getBytes(StandardCharsets.UTF_8);
             packet = new DatagramPacket(data, data.length, PING_ADDRESS);

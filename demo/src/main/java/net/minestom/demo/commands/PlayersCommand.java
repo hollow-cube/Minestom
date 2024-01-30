@@ -15,7 +15,7 @@ public class PlayersCommand extends Command {
     }
 
     private void usage(CommandSender sender, CommandContext context) {
-        final var players = List.copyOf(sender.getMinecraftServer().process().getConnectionManager().getOnlinePlayers());
+        final var players = List.copyOf(sender.getServerProcess().getConnectionManager().getOnlinePlayers());
         final int playerCount = players.size();
         sender.sendMessage(Component.text("Total players: " + playerCount));
 

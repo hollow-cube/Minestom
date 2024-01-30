@@ -18,6 +18,8 @@ import net.minestom.server.item.Material;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.temporal.TemporalUnit;
+
 public class DisplayCommand extends Command {
 
     public DisplayCommand() {
@@ -38,7 +40,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getMinecraftServer(), EntityType.ITEM_DISPLAY);
+        var entity = new Entity(sender.getServerProcess(), EntityType.ITEM_DISPLAY);
         var meta = (ItemDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setItemStack(ItemStack.of(Material.STICK));
@@ -53,7 +55,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getMinecraftServer(), EntityType.BLOCK_DISPLAY);
+        var entity = new Entity(sender.getServerProcess(), EntityType.BLOCK_DISPLAY);
         var meta = (BlockDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBlockState(Block.ORANGE_CANDLE_CAKE.stateId());
@@ -68,7 +70,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getMinecraftServer(), EntityType.TEXT_DISPLAY);
+        var entity = new Entity(sender.getServerProcess(), EntityType.TEXT_DISPLAY);
         var meta = (TextDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
@@ -83,7 +85,8 @@ public class DisplayCommand extends Command {
     private void startSmoothFollow(@NotNull Entity entity, @NotNull Player player) {
 //        entity.setCustomName(Component.text("MY CUSTOM NAME"));
 //        entity.setCustomNameVisible(true);
-        entity.getMinecraftServer().process().getSchedulerManager().buildTask(() -> {
+        TemporalUnit serverTick = TimeUnit.getServerTick(entity.getServerProcess().getMinecraftServer());
+        entity.getServerProcess().getSchedulerManager().buildTask(() -> {
             var meta = (AbstractDisplayMeta) entity.getEntityMeta();
             meta.setNotifyAboutChanges(false);
             meta.setTransformationInterpolationStartDelta(1);
@@ -93,6 +96,6 @@ public class DisplayCommand extends Command {
 //            meta.setScale(new Vec(5, 5, 5));
             meta.setTranslation(player.getPosition().sub(entity.getPosition()));
             meta.setNotifyAboutChanges(true);
-        }).delay(20, TimeUnit.SERVER_TICK).repeat(20, TimeUnit.SERVER_TICK).schedule();
+        }).delay(20, serverTick).repeat(20, serverTick).schedule();
     }
 }

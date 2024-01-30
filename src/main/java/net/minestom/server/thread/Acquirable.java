@@ -1,6 +1,6 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.utils.async.AsyncUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -99,7 +99,7 @@ public sealed interface Acquirable<T> permits AcquirableImpl {
      * Free if the element is already present in the current thread, blocking otherwise.
      *
      * @param consumer the callback to execute once the element has been safely acquired
-     * @see #async(MinecraftServer, Consumer)
+     * @see #async(ServerProcess, Consumer)
      */
     default void sync(@NotNull Consumer<T> consumer) {
         Acquired<T> acquired = lock();
@@ -113,9 +113,9 @@ public sealed interface Acquirable<T> permits AcquirableImpl {
      * @param consumer the callback to execute once the element has been safely acquired
      * @see #sync(Consumer)
      */
-    default void async(MinecraftServer minecraftServer, @NotNull Consumer<T> consumer) {
+    default void async(ServerProcess serverProcess, @NotNull Consumer<T> consumer) {
         // TODO per-thread list
-        AsyncUtils.runAsync(minecraftServer, () -> sync(consumer));
+        AsyncUtils.runAsync(serverProcess, () -> sync(consumer));
     }
 
     /**

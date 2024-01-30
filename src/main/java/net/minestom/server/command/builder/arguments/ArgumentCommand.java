@@ -25,7 +25,7 @@ public class ArgumentCommand extends Argument<CommandResult> {
         final String commandString = !shortcut.isEmpty() ?
                 shortcut + StringUtils.SPACE + input
                 : input;
-        CommandDispatcher dispatcher = sender.getMinecraftServer().process().getCommandManager().getDispatcher();
+        CommandDispatcher dispatcher = sender.getServerProcess().getCommandManager().getDispatcher();
         CommandResult result = dispatcher.parse(sender, commandString);
 
         if (onlyCorrect && result.getType() != CommandResult.Type.SUCCESS)

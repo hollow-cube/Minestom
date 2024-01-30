@@ -2,7 +2,7 @@ package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.network.packet.server.play.TeamsPacket.CollisionRule;
 import net.minestom.server.network.packet.server.play.TeamsPacket.NameTagVisibility;
 
@@ -30,8 +30,8 @@ public class TeamBuilder {
      * @param name        The name of the new team
      * @param teamManager The manager for the team
      */
-    public TeamBuilder(MinecraftServer minecraftServer, String name, TeamManager teamManager) {
-        this(teamManager.exists(name) ? teamManager.getTeam(name) : new Team(minecraftServer, name), teamManager);
+    public TeamBuilder(ServerProcess serverProcess, String name, TeamManager teamManager) {
+        this(teamManager.exists(name) ? teamManager.getTeam(name) : new Team(serverProcess, name), teamManager);
     }
 
     /**

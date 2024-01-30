@@ -1,6 +1,8 @@
 package net.minestom.server.network.player;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerConsts;
+import net.minestom.server.ServerObject;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.crypto.PlayerPublicKey;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -18,15 +20,15 @@ import java.util.List;
  * A PlayerConnection is an object needed for all created {@link Player}.
  * It can be extended to create a new kind of player (NPC for instance).
  */
-public abstract class PlayerConnection {
-    public final MinecraftServer minecraftServer;
+public abstract class PlayerConnection implements ServerObject {
+    private final ServerProcess serverProcess;
     private Player player;
     private volatile ConnectionState connectionState;
     private PlayerPublicKey playerPublicKey;
     volatile boolean online;
 
-    public PlayerConnection(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public PlayerConnection(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         this.online = true;
         this.connectionState = ConnectionState.HANDSHAKE;
     }
@@ -74,7 +76,7 @@ public abstract class PlayerConnection {
      * @return the protocol version
      */
     public int getProtocolVersion() {
-        return MinecraftServer.PROTOCOL_VERSION;
+        return ServerConsts.PROTOCOL_VERSION;
     }
 
     /**
@@ -85,7 +87,7 @@ public abstract class PlayerConnection {
      * @return the server address used
      */
     public @Nullable String getServerAddress() {
-        return minecraftServer.process().getServer().getAddress();
+        return serverProcess.getServer().getAddress();
     }
 
 
@@ -97,7 +99,7 @@ public abstract class PlayerConnection {
      * @return the server port used
      */
     public int getServerPort() {
-        return minecraftServer.process().getServer().getPort();
+        return serverProcess.getServer().getPort();
     }
 
     /**
@@ -105,7 +107,7 @@ public abstract class PlayerConnection {
      */
     public void disconnect() {
         this.online = false;
-        minecraftServer.process().getConnectionManager().removePlayer(this);
+        serverProcess.getConnectionManager().removePlayer(this);
         final Player player = getPlayer();
         if (player != null && !player.isRemoved()) {
             player.scheduleNextTick(Entity::remove);
@@ -168,5 +170,10 @@ public abstract class PlayerConnection {
                 "connectionState=" + connectionState +
                 ", identifier=" + getIdentifier() +
                 '}';
+    }
+
+    @Override
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

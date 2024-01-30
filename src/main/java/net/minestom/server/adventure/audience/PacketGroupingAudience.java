@@ -9,8 +9,8 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.TitlePart;
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.MinecraftServerObject;
+import net.minestom.server.ServerObject;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
@@ -28,7 +28,7 @@ import java.util.Collection;
 /**
  * An audience implementation that sends grouped packets if possible.
  */
-public interface PacketGroupingAudience extends ForwardingAudience, MinecraftServerObject {
+public interface PacketGroupingAudience extends ForwardingAudience, ServerObject {
 
     /**
      * Creates a packet grouping audience that copies an iterable of players. The
@@ -38,11 +38,11 @@ public interface PacketGroupingAudience extends ForwardingAudience, MinecraftSer
      * @param players the players
      * @return the audience
      */
-    static @NotNull PacketGroupingAudience of(MinecraftServer minecraftServer, @NotNull Collection<Player> players) {
+    static @NotNull PacketGroupingAudience of(ServerProcess serverProcess, @NotNull Collection<Player> players) {
         return new PacketGroupingAudience() {
             @Override
-            public MinecraftServer getMinecraftServer() {
-                return minecraftServer;
+            public ServerProcess getServerProcess() {
+                return serverProcess;
             }
 
             @Override
@@ -65,12 +65,12 @@ public interface PacketGroupingAudience extends ForwardingAudience, MinecraftSer
      * @param packet the packet to broadcast
      */
     default void sendGroupedPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(getMinecraftServer(), getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(getServerProcess(), getPlayers(), packet);
     }
 
     @Override
     default void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        Messenger.sendMessage(getMinecraftServer(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
+        Messenger.sendMessage(getServerProcess(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
     }
 
     @Override
@@ -100,12 +100,12 @@ public interface PacketGroupingAudience extends ForwardingAudience, MinecraftSer
 
     @Override
     default void showBossBar(@NotNull BossBar bar) {
-        getMinecraftServer().process().getBossBarManager().addBossBar(this.getPlayers(), bar);
+        getServerProcess().getBossBarManager().addBossBar(this.getPlayers(), bar);
     }
 
     @Override
     default void hideBossBar(@NotNull BossBar bar) {
-        getMinecraftServer().process().getBossBarManager().removeBossBar(this.getPlayers(), bar);
+        getServerProcess().getBossBarManager().removeBossBar(this.getPlayers(), bar);
     }
 
     /**

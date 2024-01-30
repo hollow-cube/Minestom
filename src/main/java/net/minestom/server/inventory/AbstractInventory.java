@@ -1,6 +1,7 @@
 package net.minestom.server.inventory;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerObject;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.inventory.InventoryItemChangeEvent;
 import net.minestom.server.event.inventory.PlayerInventoryItemChangeEvent;
 import net.minestom.server.inventory.click.InventoryClickProcessor;
@@ -23,12 +24,12 @@ import java.util.function.UnaryOperator;
 /**
  * Represents an inventory where items can be modified/retrieved.
  */
-public sealed abstract class AbstractInventory implements InventoryClickHandler, Taggable
+public sealed abstract class AbstractInventory implements InventoryClickHandler, Taggable, ServerObject
         permits Inventory, PlayerInventory {
 
     private static final VarHandle ITEM_UPDATER = MethodHandles.arrayElementVarHandle(ItemStack[].class);
 
-    public final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private final int size;
     protected final ItemStack[] itemStacks;
 
@@ -39,12 +40,12 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
 
     private final TagHandler tagHandler = TagHandler.newHandler();
 
-    protected AbstractInventory(@NotNull MinecraftServer minecraftServer, int size) {
-        this.minecraftServer = minecraftServer;
+    protected AbstractInventory(@NotNull ServerProcess serverProcess, int size) {
+        this.serverProcess = serverProcess;
         this.size = size;
         this.itemStacks = new ItemStack[getSize()];
         Arrays.fill(itemStacks, ItemStack.AIR);
-        clickProcessor = new InventoryClickProcessor(minecraftServer);
+        clickProcessor = new InventoryClickProcessor(serverProcess);
     }
 
     /**
@@ -82,9 +83,9 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
             UNSAFE_itemInsert(slot, itemStack, sendPacket);
         }
         if (this instanceof PlayerInventory inv) {
-            minecraftServer.process().getGlobalEventHandler().call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
+            serverProcess.getGlobalEventHandler().call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
         } else if (this instanceof Inventory inv) {
-            minecraftServer.process().getGlobalEventHandler().call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
+            serverProcess.getGlobalEventHandler().call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
         }
     }
 
@@ -257,5 +258,10 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
     @Override
     public @NotNull TagHandler tagHandler() {
         return tagHandler;
+    }
+
+    @Override
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

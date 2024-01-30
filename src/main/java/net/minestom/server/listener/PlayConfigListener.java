@@ -6,6 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayConfigListener {
     public static void configAckListener(@NotNull ClientConfigurationAckPacket packet, @NotNull Player player) {
-        player.minecraftServer.process().getConnectionManager().doConfiguration(player, false);
+        player.getServerProcess().getConnectionManager().doConfiguration(player, false);
     }
 }

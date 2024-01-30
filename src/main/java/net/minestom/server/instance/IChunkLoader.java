@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerObject;
 import net.minestom.server.utils.async.AsyncUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * See {@link AnvilLoader} for the default implementation used in {@link InstanceContainer}.
  */
-public interface IChunkLoader {
+public interface IChunkLoader extends ServerObject {
 
     /**
      * Loads instance data from the loader.
@@ -58,7 +58,7 @@ public interface IChunkLoader {
      * @return a {@link CompletableFuture} executed when the {@link Chunk} is done saving,
      * should be called even if the saving failed (you can throw an exception).
      */
-    default @NotNull CompletableFuture<Void> saveChunks(MinecraftServer minecraftServer, @NotNull Collection<Chunk> chunks) {
+    default @NotNull CompletableFuture<Void> saveChunks(@NotNull Collection<Chunk> chunks) {
         if (supportsParallelSaving()) {
             ExecutorService parallelSavingThreadPool = ForkJoinPool.commonPool();
             chunks.forEach(c -> parallelSavingThreadPool.execute(() -> saveChunk(c)));
@@ -66,7 +66,7 @@ public interface IChunkLoader {
                 parallelSavingThreadPool.shutdown();
                 parallelSavingThreadPool.awaitTermination(1L, java.util.concurrent.TimeUnit.DAYS);
             } catch (InterruptedException e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                getServerProcess().getExceptionManager().handleException(e);
             }
             return AsyncUtils.VOID_FUTURE;
         } else {

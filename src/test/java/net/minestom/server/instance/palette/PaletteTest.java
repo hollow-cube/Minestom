@@ -1,6 +1,7 @@
 package net.minestom.server.instance.palette;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import org.junit.jupiter.api.Test;
@@ -16,16 +17,16 @@ public class PaletteTest {
 
     @Test
     public void singlePlacement() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palette = Palette.blocks(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverProcess);
         palette.set(0, 0, 1, 1);
         assertEquals(1, palette.get(0, 0, 1));
     }
 
     @Test
     public void placement() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             final int dimension = palette.dimension();
             assertEquals(0, palette.get(0, 0, 0), "Default value should be 0");
@@ -60,9 +61,9 @@ public class PaletteTest {
 
     @Test
     public void placementHighValue() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int value = 250_000;
-        for (Palette palette : testPalettes(minecraftServer)) {
+        for (Palette palette : testPalettes(serverProcess)) {
             palette.set(0, 0, 1, value);
             assertEquals(value, palette.get(0, 0, 1));
         }
@@ -70,8 +71,8 @@ public class PaletteTest {
 
     @Test
     public void negPlacement() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             assertThrows(IllegalArgumentException.class, () -> palette.set(-1, 0, 0, 64));
             assertThrows(IllegalArgumentException.class, () -> palette.set(0, -1, 0, 64));
@@ -85,8 +86,8 @@ public class PaletteTest {
 
     @Test
     public void resize() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        Palette palette = Palette.newPalette(minecraftServer,16, 5, 2);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        Palette palette = Palette.newPalette(serverProcess,16, 5, 2);
         palette.set(0, 0, 0, 1);
         assertEquals(2, palette.bitsPerEntry());
         palette.set(0, 0, 1, 2);
@@ -105,8 +106,8 @@ public class PaletteTest {
 
     @Test
     public void fill() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             assertEquals(0, palette.count());
             palette.set(0, 0, 0, 5);
@@ -137,8 +138,8 @@ public class PaletteTest {
 
     @Test
     public void bulk() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             final int dimension = palette.dimension();
             // Place
@@ -163,8 +164,8 @@ public class PaletteTest {
 
     @Test
     public void bulkAll() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             // Fill all entries
             palette.setAll((x, y, z) -> x + y + z + 1);
@@ -182,8 +183,8 @@ public class PaletteTest {
 
     @Test
     public void bulkAllOrder() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             AtomicInteger count = new AtomicInteger();
 
@@ -221,8 +222,8 @@ public class PaletteTest {
 
     @Test
     public void setAllConstant() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             palette.setAll((x, y, z) -> 1);
             palette.getAll((x, y, z, value) -> assertEquals(1, value));
@@ -231,8 +232,8 @@ public class PaletteTest {
 
     @Test
     public void getAllPresent() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             palette.getAllPresent((x, y, z, value) -> fail("The palette should be empty"));
             palette.set(0, 0, 1, 1);
@@ -247,8 +248,8 @@ public class PaletteTest {
 
     @Test
     public void replaceAll() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             palette.setAll((x, y, z) -> x + y + z + 1);
             palette.replaceAll((x, y, z, value) -> {
@@ -261,8 +262,8 @@ public class PaletteTest {
 
     @Test
     public void replace() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palettes = testPalettes(minecraftServer);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverProcess);
         for (Palette palette : palettes) {
             palette.set(0, 0, 0, 1);
             palette.replace(0, 0, 0, operand -> {
@@ -275,8 +276,8 @@ public class PaletteTest {
 
     @Test
     public void replaceLoop() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var palette = Palette.newPalette(minecraftServer,2, 15, 4);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var palette = Palette.newPalette(serverProcess,2, 15, 4);
         palette.setAll((x, y, z) -> x + y + z);
         final int dimension = palette.dimension();
         for (int x = 0; x < dimension; x++) {
@@ -290,22 +291,22 @@ public class PaletteTest {
 
     @Test
     public void dimension() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        assertThrows(Exception.class, () -> Palette.newPalette(minecraftServer,-4, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(minecraftServer,0, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(minecraftServer,1, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(minecraftServer,2, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(minecraftServer,3, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(minecraftServer,4, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(minecraftServer,6, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(minecraftServer,16, 5, 3));
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,-4, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,0, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,1, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,2, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,3, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,4, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,6, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,16, 5, 3));
     }
 
-    private static List<Palette> testPalettes(MinecraftServer minecraftServer) {
+    private static List<Palette> testPalettes(ServerProcess serverProcess) {
         return List.of(
-                Palette.newPalette(minecraftServer,2, 5, 3),
-                Palette.newPalette(minecraftServer,4, 5, 3),
-                Palette.newPalette(minecraftServer,8, 5, 3),
-                Palette.newPalette(minecraftServer,16, 5, 3));
+                Palette.newPalette(serverProcess,2, 5, 3),
+                Palette.newPalette(serverProcess,4, 5, 3),
+                Palette.newPalette(serverProcess,8, 5, 3),
+                Palette.newPalette(serverProcess,16, 5, 3));
     }
 }

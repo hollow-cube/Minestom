@@ -21,7 +21,7 @@ public class EntityVelocityIntegrationTest {
         var instance = env.createFlatInstance();
         loadChunks(instance);
 
-        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         env.tick(); // Ensure velocity downwards is present
 
@@ -40,7 +40,7 @@ public class EntityVelocityIntegrationTest {
         var instance = env.createFlatInstance();
         loadChunks(instance);
 
-        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
         env.tick();
         env.tick(); // Ensures the entity is onGround
@@ -71,7 +71,7 @@ public class EntityVelocityIntegrationTest {
         var instance = env.createFlatInstance();
         loadChunks(instance);
 
-        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
         env.tick();
         env.tick(); // Ensures the entity is onGround
@@ -145,7 +145,7 @@ public class EntityVelocityIntegrationTest {
         var instance = env.createFlatInstance();
         loadChunks(instance);
 
-        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var entity = new Entity(env.process(), EntityType.ZOMBIE);
         // Should  be false because the new entity should have no velocity
         assertFalse(entity.hasVelocity());
 
@@ -170,7 +170,7 @@ public class EntityVelocityIntegrationTest {
         var instance = env.createFlatInstance();
         var viewerConnection = env.createConnection();
         viewerConnection.connect(instance, new Pos(1, 40, 1)).join();
-        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var entity = new Entity(env.process(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(0,40,0)).join();
 
         AtomicInteger i = new AtomicInteger();

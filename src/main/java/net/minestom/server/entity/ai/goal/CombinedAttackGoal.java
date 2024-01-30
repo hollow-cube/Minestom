@@ -20,7 +20,7 @@ import java.util.function.Function;
  */
 public class CombinedAttackGoal extends GoalSelector {
 
-    private final Cooldown cooldown = new Cooldown(Duration.of(5, TimeUnit.SERVER_TICK));
+    private final Cooldown cooldown;
 
     private final int meleeRangeSquared;
     private final Duration meleeDelay;
@@ -127,6 +127,7 @@ public class CombinedAttackGoal extends GoalSelector {
         this.rangedDelay = rangedDelay;
         this.desirableRangeSquared = desirableRange * desirableRange;
         this.comeClose = comeClose;
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getMinecraftServer())));
         Check.argCondition(desirableRange > rangedRange, "Desirable range can not exceed ranged range!");
     }
 
@@ -178,7 +179,7 @@ public class CombinedAttackGoal extends GoalSelector {
 
                     Function<Entity, EntityProjectile> projectileGenerator = this.projectileGenerator;
                     if (projectileGenerator == null) {
-                        projectileGenerator = shooter -> new EntityProjectile(shooter.minecraftServer, shooter, EntityType.ARROW);
+                        projectileGenerator = shooter -> new EntityProjectile(shooter.getServerProcess(), shooter, EntityType.ARROW);
                     }
                     EntityProjectile projectile = projectileGenerator.apply(this.entityCreature);
                     projectile.setInstance(this.entityCreature.getInstance(), this.entityCreature.getPosition());

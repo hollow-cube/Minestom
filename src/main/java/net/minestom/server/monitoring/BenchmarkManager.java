@@ -5,7 +5,8 @@ import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerConsts;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static net.minestom.server.MinecraftServer.THREAD_NAME_TICK;
-import static net.minestom.server.MinecraftServer.THREAD_NAME_TICK_SCHEDULER;
-
 /**
  * Small monitoring tools that can be used to check the current memory usage and Minestom threads CPU usage.
  * <p>
@@ -39,8 +37,8 @@ public final class BenchmarkManager {
     private static final List<String> THREADS = new ArrayList<>();
 
     static {
-        THREADS.add(THREAD_NAME_TICK_SCHEDULER);
-        THREADS.add(THREAD_NAME_TICK);
+        THREADS.add(ServerConsts.THREAD_NAME_TICK_SCHEDULER);
+        THREADS.add(ServerConsts.THREAD_NAME_TICK);
     }
 
     private final Long2LongMap lastCpuTimeMap = new Long2LongOpenHashMap();
@@ -52,10 +50,10 @@ public final class BenchmarkManager {
     private boolean enabled = false;
     private volatile boolean stop = false;
     private long time;
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public BenchmarkManager(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public BenchmarkManager(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     public void enable(@NotNull Duration duration) {
@@ -77,11 +75,11 @@ public final class BenchmarkManager {
                 try {
                     Thread.sleep(time);
                 } catch (InterruptedException e) {
-                    minecraftServer.process().getExceptionManager().handleException(e);
+                    serverProcess.getExceptionManager().handleException(e);
                 }
             }
             stop = false;
-        }, MinecraftServer.THREAD_NAME_BENCHMARK);
+        }, ServerConsts.THREAD_NAME_BENCHMARK);
         thread.setDaemon(true);
         thread.start();
 

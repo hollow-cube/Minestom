@@ -1,7 +1,6 @@
 package net.minestom.demo;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.advancements.FrameType;
 import net.minestom.server.advancements.notifications.Notification;
@@ -47,12 +46,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerInit {
 
-    private final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
 
-    public PlayerInit(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        this.serverProcess = minecraftServer.process();
+    public PlayerInit(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         InstanceManager instanceManager = serverProcess.getInstanceManager();
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
@@ -73,10 +70,10 @@ public class PlayerInit {
         //     System.out.println("load end");
         // });
 
-        inventory = new Inventory(minecraftServer, InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
+        inventory = new Inventory(serverProcess, InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
 
-        DEMO_NODE = EventNode.all(minecraftServer, "demo")
+        DEMO_NODE = EventNode.all(serverProcess, "demo")
                 .addListener(EntityAttackEvent.class, event -> {
                     final Entity source = event.getEntity();
                     final Entity entity = event.getTarget();
@@ -106,13 +103,13 @@ public class PlayerInit {
                     ItemStack droppedItem = event.getItemStack();
 
                     Pos playerPos = player.getPosition();
-                    ItemEntity itemEntity = new ItemEntity(minecraftServer, droppedItem);
+                    ItemEntity itemEntity = new ItemEntity(serverProcess, droppedItem);
                     itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
                     itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
                     Vec velocity = playerPos.direction().mul(6);
                     itemEntity.setVelocity(velocity);
 
-                    FakePlayer.initPlayer(minecraftServer, UUID.randomUUID(), "fake123", fp -> {
+                    FakePlayer.initPlayer(serverProcess, UUID.randomUUID(), "fake123", fp -> {
                         System.out.println("fp = " + fp);
                     });
                 })
@@ -225,6 +222,6 @@ public class PlayerInit {
                     .append(Component.text("ACQ TIME: " + MathUtils.round(tickMonitor.getAcquisitionTime(), 2) + "ms"));
             final Component footer = benchmarkManager.getCpuMonitoringMessage();
             serverProcess.getAudiences().players().sendPlayerListHeaderAndFooter(header, footer);
-        }).repeat(10, TimeUnit.SERVER_TICK); //.schedule();
+        }).repeat(10, TimeUnit.getServerTick(serverProcess.getMinecraftServer())); //.schedule();
     }
 }

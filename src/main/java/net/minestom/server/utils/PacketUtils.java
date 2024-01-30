@@ -10,7 +10,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.adventure.ComponentHolder;
 import net.minestom.server.adventure.MinestomAdventure;
@@ -67,7 +67,7 @@ public final class PacketUtils {
      * <ol>
      *     <li>If {@code audience} is a {@link Player}, send the packet to them.</li>
      *     <li>Otherwise, if {@code audience} is a {@link PacketGroupingAudience}, call
-     *     {@link #sendGroupedPacket(MinecraftServer, Collection, ServerPacket)} on the players that the
+     *     {@link #sendGroupedPacket(ServerProcess, Collection, ServerPacket)} on the players that the
      *     grouping audience contains.</li>
      *     <li>Otherwise, if {@code audience} is a {@link ForwardingAudience.Single},
      *     call this method on the single audience inside the forwarding audience.</li>
@@ -80,16 +80,16 @@ public final class PacketUtils {
      * @param packet   the packet
      */
     @SuppressWarnings("OverrideOnly") // we need to access the audiences inside ForwardingAudience
-    public static void sendPacket(MinecraftServer minecraftServer, @NotNull Audience audience, @NotNull ServerPacket packet) {
+    public static void sendPacket(ServerProcess serverProcess, @NotNull Audience audience, @NotNull ServerPacket packet) {
         if (audience instanceof Player player) {
             player.sendPacket(packet);
         } else if (audience instanceof PacketGroupingAudience groupingAudience) {
-            PacketUtils.sendGroupedPacket(minecraftServer, groupingAudience.getPlayers(), packet);
+            PacketUtils.sendGroupedPacket(serverProcess, groupingAudience.getPlayers(), packet);
         } else if (audience instanceof ForwardingAudience.Single singleAudience) {
-            PacketUtils.sendPacket(minecraftServer, singleAudience.audience(), packet);
+            PacketUtils.sendPacket(serverProcess, singleAudience.audience(), packet);
         } else if (audience instanceof ForwardingAudience forwardingAudience) {
             for (Audience member : forwardingAudience.audiences()) {
-                PacketUtils.sendPacket(minecraftServer, member, packet);
+                PacketUtils.sendPacket(serverProcess, member, packet);
             }
         }
     }
@@ -103,9 +103,9 @@ public final class PacketUtils {
      * @param packet    the packet to send to the players
      * @param predicate predicate to ignore specific players
      */
-    public static void sendGroupedPacket(MinecraftServer minecraftServer, @NotNull Collection<Player> players, @NotNull ServerPacket packet,
+    public static void sendGroupedPacket(ServerProcess serverProcess, @NotNull Collection<Player> players, @NotNull ServerPacket packet,
                                          @NotNull Predicate<Player> predicate) {
-        final var sendablePacket = shouldUseCachePacket(packet) ? new CachedPacket(minecraftServer, packet) : packet;
+        final var sendablePacket = shouldUseCachePacket(packet) ? new CachedPacket(serverProcess, packet) : packet;
 
         players.forEach(player -> {
             if (predicate.test(player)) player.sendPacket(sendablePacket);
@@ -146,21 +146,21 @@ public final class PacketUtils {
     }
 
     /**
-     * Same as {@link #sendGroupedPacket(MinecraftServer, Collection, ServerPacket, Predicate)}
+     * Same as {@link #sendGroupedPacket(ServerProcess, Collection, ServerPacket, Predicate)}
      * but with the player validator sets to null.
      *
-     * @see #sendGroupedPacket(MinecraftServer, Collection, ServerPacket, Predicate)
+     * @see #sendGroupedPacket(ServerProcess, Collection, ServerPacket, Predicate)
      */
-    public static void sendGroupedPacket(MinecraftServer minecraftServer, @NotNull Collection<Player> players, @NotNull ServerPacket packet) {
-        sendGroupedPacket(minecraftServer, players, packet, player -> true);
+    public static void sendGroupedPacket(ServerProcess serverProcess, @NotNull Collection<Player> players, @NotNull ServerPacket packet) {
+        sendGroupedPacket(serverProcess, players, packet, player -> true);
     }
 
-    public static void broadcastPlayPacket(MinecraftServer minecraftServer, @NotNull ServerPacket packet) {
-        sendGroupedPacket(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers(), packet);
+    public static void broadcastPlayPacket(ServerProcess serverProcess, @NotNull ServerPacket packet) {
+        sendGroupedPacket(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers(), packet);
     }
 
     @ApiStatus.Experimental
-    public static void prepareViewablePacket(MinecraftServer minecraftServer, @NotNull Viewable viewable, @NotNull ServerPacket serverPacket,
+    public static void prepareViewablePacket(ServerProcess serverProcess, @NotNull Viewable viewable, @NotNull ServerPacket serverPacket,
                                              @Nullable Entity entity) {
         if (entity != null && !entity.hasPredictableViewers()) {
             // Operation cannot be optimized
@@ -168,17 +168,17 @@ public final class PacketUtils {
             return;
         }
         if (!VIEWABLE_PACKET) {
-            sendGroupedPacket(minecraftServer, viewable.getViewers(), serverPacket, value -> !Objects.equals(value, entity));
+            sendGroupedPacket(serverProcess, viewable.getViewers(), serverPacket, value -> !Objects.equals(value, entity));
             return;
         }
         final Player exception = entity instanceof Player ? (Player) entity : null;
         ViewableStorage storage = VIEWABLE_STORAGE_MAP.get(viewable, (unused) -> new ViewableStorage());
-        storage.append(minecraftServer, viewable, serverPacket, exception);
+        storage.append(serverProcess, viewable, serverPacket, exception);
     }
 
     @ApiStatus.Experimental
-    public static void prepareViewablePacket(MinecraftServer minecraftServer, @NotNull Viewable viewable, @NotNull ServerPacket serverPacket) {
-        prepareViewablePacket(minecraftServer, viewable, serverPacket, null);
+    public static void prepareViewablePacket(ServerProcess serverProcess, @NotNull Viewable viewable, @NotNull ServerPacket serverPacket) {
+        prepareViewablePacket(serverProcess, viewable, serverPacket, null);
     }
 
     @ApiStatus.Internal
@@ -246,13 +246,13 @@ public final class PacketUtils {
         return remaining;
     }
 
-    public static void writeFramedPacket(MinecraftServer minecraftServer,
+    public static void writeFramedPacket(ServerProcess serverProcess,
                                          @NotNull ConnectionState state,
                                          @NotNull ByteBuffer buffer,
                                          @NotNull ServerPacket packet,
                                          boolean compression) {
         writeFramedPacket(buffer, packet.getId(state), packet,
-                compression ? minecraftServer.getCompressionThreshold() : 0);
+                compression ? serverProcess.getMinecraftServer().getCompressionThreshold() : 0);
     }
 
     public static void writeFramedPacket(@NotNull ByteBuffer buffer,
@@ -300,20 +300,20 @@ public final class PacketUtils {
     }
 
     @ApiStatus.Internal
-    public static ByteBuffer createFramedPacket(MinecraftServer minecraftServer, @NotNull ConnectionState state, @NotNull ByteBuffer buffer, @NotNull ServerPacket packet, boolean compression) {
-        writeFramedPacket(minecraftServer, state, buffer, packet, compression);
+    public static ByteBuffer createFramedPacket(ServerProcess serverProcess, @NotNull ConnectionState state, @NotNull ByteBuffer buffer, @NotNull ServerPacket packet, boolean compression) {
+        writeFramedPacket(serverProcess, state, buffer, packet, compression);
         return buffer.flip();
     }
 
     @ApiStatus.Internal
-    public static ByteBuffer createFramedPacket(MinecraftServer minecraftServer, @NotNull ConnectionState state, @NotNull ByteBuffer buffer, @NotNull ServerPacket packet) {
-        return createFramedPacket(minecraftServer, state, buffer, packet, minecraftServer.getCompressionThreshold() > 0);
+    public static ByteBuffer createFramedPacket(ServerProcess serverProcess, @NotNull ConnectionState state, @NotNull ByteBuffer buffer, @NotNull ServerPacket packet) {
+        return createFramedPacket(serverProcess, state, buffer, packet, serverProcess.getMinecraftServer().getCompressionThreshold() > 0);
     }
 
     @ApiStatus.Internal
-    public static FramedPacket allocateTrimmedPacket(MinecraftServer minecraftServer, @NotNull ConnectionState state, @NotNull ServerPacket packet) {
+    public static FramedPacket allocateTrimmedPacket(ServerProcess serverProcess, @NotNull ConnectionState state, @NotNull ServerPacket packet) {
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            final ByteBuffer temp = PacketUtils.createFramedPacket(minecraftServer, state, hold.get(), packet);
+            final ByteBuffer temp = PacketUtils.createFramedPacket(serverProcess, state, hold.get(), packet);
             final int size = temp.remaining();
             final ByteBuffer buffer = ByteBuffer.allocateDirect(size).put(0, temp, 0, size);
             return new FramedPacket(packet, buffer);
@@ -325,10 +325,10 @@ public final class PacketUtils {
         private final Int2ObjectMap<LongArrayList> entityIdMap = new Int2ObjectOpenHashMap<>();
         private final BinaryBuffer buffer = ObjectPool.BUFFER_POOL.getAndRegister(this);
 
-        private synchronized void append(MinecraftServer minecraftServer, Viewable viewable, ServerPacket serverPacket, @Nullable Player exception) {
+        private synchronized void append(ServerProcess serverProcess, Viewable viewable, ServerPacket serverPacket, @Nullable Player exception) {
             try (var hold = ObjectPool.PACKET_POOL.hold()) {
                 // Viewable storage is only used for play packets, so fine to assume this.
-                final ByteBuffer framedPacket = createFramedPacket(minecraftServer, ConnectionState.PLAY, hold.get(), serverPacket);
+                final ByteBuffer framedPacket = createFramedPacket(serverProcess, ConnectionState.PLAY, hold.get(), serverPacket);
                 final int packetSize = framedPacket.limit();
                 if (packetSize >= buffer.capacity()) {
                     process(viewable);

@@ -1,7 +1,7 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -28,7 +28,7 @@ import static net.minestom.server.utils.chunk.ChunkUtils.*;
 
 final class EntityTrackerImpl implements EntityTracker {
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     static final AtomicInteger TARGET_COUNTER = new AtomicInteger();
 
     // Store all data associated to a Target
@@ -36,8 +36,8 @@ final class EntityTrackerImpl implements EntityTracker {
     final TargetEntry<Entity>[] entries = EntityTracker.Target.TARGETS.stream().map((Function<Target<?>, TargetEntry>) TargetEntry::new).toArray(TargetEntry[]::new);
     private final Int2ObjectSyncMap<Point> entityPositions = Int2ObjectSyncMap.hashmap();
 
-    EntityTrackerImpl(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    EntityTrackerImpl(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     @Override
@@ -54,7 +54,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, this);
-            nearbyEntitiesByChunkRange(point, minecraftServer.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.add(newEntity);
             });
@@ -75,7 +75,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, null);
-            nearbyEntitiesByChunkRange(point, minecraftServer.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.remove(newEntity);
             });
@@ -187,7 +187,7 @@ final class EntityTrackerImpl implements EntityTracker {
                                                @NotNull Target<T> target, @NotNull Update<T> update) {
         final TargetEntry<Entity> entry = entries[target.ordinal()];
         forDifferingChunksInRange(newPoint.chunkX(), newPoint.chunkZ(), oldPoint.chunkX(), oldPoint.chunkZ(),
-                minecraftServer.getEntityViewDistance(), (chunkX, chunkZ) -> {
+                serverProcess.getMinecraftServer().getEntityViewDistance(), (chunkX, chunkZ) -> {
                     // Add
                     final List<Entity> entities = entry.chunkEntities.get(getChunkIndex(chunkX, chunkZ));
                     if (entities == null || entities.isEmpty()) return;
@@ -198,6 +198,11 @@ final class EntityTrackerImpl implements EntityTracker {
                     if (entities == null || entities.isEmpty()) return;
                     for (Entity entity : entities) update.remove((T) entity);
                 });
+    }
+
+    @Override
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 
     record ChunkViewKey(List<SharedInstance> sharedInstances, int chunkX, int chunkZ) {
@@ -281,13 +286,13 @@ final class EntityTrackerImpl implements EntityTracker {
         }
 
         private void collectPlayers(EntityTracker tracker, Int2ObjectOpenHashMap<Player> map) {
-            tracker.nearbyEntitiesByChunkRange(point, minecraftServer.getChunkViewDistance(),
+            tracker.nearbyEntitiesByChunkRange(point, serverProcess.getMinecraftServer().getChunkViewDistance(),
                     EntityTracker.Target.PLAYERS, (player) -> map.putIfAbsent(player.getEntityId(), player));
         }
 
         @Override
-        public MinecraftServer getMinecraftServer() {
-            return minecraftServer;
+        public ServerProcess getServerProcess() {
+            return serverProcess;
         }
 
         final class SetImpl extends AbstractSet<Player> {

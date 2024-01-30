@@ -3,7 +3,7 @@ package net.minestom.server.adventure.audience;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
@@ -15,12 +15,12 @@ import java.util.function.Predicate;
  */
 public class Audiences {
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private final SingleAudienceProvider audience;
 
-    public Audiences(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        audience = new SingleAudienceProvider(minecraftServer);
+    public Audiences(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
+        audience = new SingleAudienceProvider(serverProcess);
     }
 
     /**
@@ -68,7 +68,7 @@ public class Audiences {
      * @return all players matching the predicate
      */
     public @NotNull Audience players(ConnectionManager connectionManager, @NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     /**
@@ -77,7 +77,7 @@ public class Audiences {
      * @return the console
      */
     public @NotNull Audience console() {
-        return minecraftServer.process().getCommandManager().getConsoleSender();
+        return serverProcess.getCommandManager().getConsoleSender();
     }
 
     /**

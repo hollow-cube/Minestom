@@ -1,40 +1,39 @@
 package net.minestom.server.extras.query.response;
 
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.network.ConnectionState;
+import net.minestom.server.ServerConsts;
+import net.minestom.server.ServerProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * An enum of default query keys.
  */
 public enum QueryKey {
-    HOSTNAME((minecraftServer) -> "A Minestom Server"),
-    GAME_TYPE((minecraftServer) -> "SMP"),
-    GAME_ID("game_id", (minecraftServer) -> "MINECRAFT"),
-    VERSION((minecraftServer) -> MinecraftServer.VERSION_NAME),
+    HOSTNAME((serverProcess) -> "A Minestom Server"),
+    GAME_TYPE((serverProcess) -> "SMP"),
+    GAME_ID("game_id", (serverProcess) -> "MINECRAFT"),
+    VERSION((serverProcess) -> ServerConsts.VERSION_NAME),
     PLUGINS(FullQueryResponse::generatePluginsValue),
-    MAP((minecraftServer) -> "world"),
-    NUM_PLAYERS("numplayers", (minecraftServer) -> String.valueOf(minecraftServer.process().getConnectionManager().getOnlinePlayerCount())),
-    MAX_PLAYERS("maxplayers", (minecraftServer) -> String.valueOf(minecraftServer.process().getConnectionManager().getOnlinePlayerCount() + 1)),
-    HOST_PORT("hostport", (minecraftServer) -> String.valueOf(minecraftServer.process().getServer().getPort())),
-    HOST_IP("hostip", (minecraftServer) -> Objects.requireNonNullElse(minecraftServer.process().getServer().getAddress(), "localhost"));
+    MAP((serverProcess) -> "world"),
+    NUM_PLAYERS("numplayers", (serverProcess) -> String.valueOf(serverProcess.getConnectionManager().getOnlinePlayerCount())),
+    MAX_PLAYERS("maxplayers", (serverProcess) -> String.valueOf(serverProcess.getConnectionManager().getOnlinePlayerCount() + 1)),
+    HOST_PORT("hostport", (serverProcess) -> String.valueOf(serverProcess.getServer().getPort())),
+    HOST_IP("hostip", (serverProcess) -> Objects.requireNonNullElse(serverProcess.getServer().getAddress(), "localhost"));
 
     static QueryKey[] VALUES = QueryKey.values();
 
     private final String key;
-    private final Function<MinecraftServer, String> value;
+    private final Function<ServerProcess, String> value;
 
-    QueryKey(@NotNull Function<MinecraftServer, String> value) {
+    QueryKey(@NotNull Function<ServerProcess, String> value) {
         this(null, value);
     }
 
-    QueryKey(@Nullable String key, @NotNull Function<MinecraftServer, String> value) {
+    QueryKey(@Nullable String key, @NotNull Function<ServerProcess, String> value) {
         this.key = Objects.requireNonNullElse(key, this.name().toLowerCase(Locale.ROOT).replace('_', ' '));
         this.value = value;
     }
@@ -53,7 +52,7 @@ public enum QueryKey {
      *
      * @return the value
      */
-    public @NotNull String getValue(MinecraftServer minecraftServer) {
-        return this.value.apply(minecraftServer);
+    public @NotNull String getValue(ServerProcess serverProcess) {
+        return this.value.apply(serverProcess);
     }
 }

@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
@@ -27,11 +27,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.minecraftServer().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getMinecraftServer().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer(env.minecraftServer());
+        final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.process(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -59,11 +59,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.minecraftServer().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getMinecraftServer().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer(env.minecraftServer());
+        final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.process(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -129,8 +129,8 @@ public class EntityTrackerIntegrationTest {
         assertEquals(1, viewable.getViewers().size());
     }
 
-    private Player createTestPlayer(MinecraftServer minecraftServer) {
-        return new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", new PlayerConnection(minecraftServer) {
+    private Player createTestPlayer(ServerProcess serverProcess) {
+        return new Player(serverProcess, UUID.randomUUID(), "TestPlayer", new PlayerConnection(serverProcess) {
             @Override
             public void sendPacket(@NotNull SendablePacket packet) {
                 // nothing

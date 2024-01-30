@@ -5,7 +5,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +27,10 @@ public class ConsoleSender implements CommandSender {
             .withStatic(Identity.UUID, this.identity.uuid())
             .build();
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public ConsoleSender(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public ConsoleSender(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     @Override
@@ -60,8 +60,8 @@ public class ConsoleSender implements CommandSender {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 
     @Override

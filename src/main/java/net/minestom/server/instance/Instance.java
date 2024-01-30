@@ -3,8 +3,7 @@ package net.minestom.server.instance;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.MinecraftServerObject;
+import net.minestom.server.ServerObject;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.Tickable;
 import net.minestom.server.adventure.audience.PacketGroupingAudience;
@@ -65,9 +64,9 @@ import java.util.stream.Collectors;
  * you need to be sure to signal the {@link ThreadDispatcher} of every partition/element changes.
  */
 public abstract class Instance implements Block.Getter, Block.Setter,
-        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience, MinecraftServerObject {
+        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience, ServerObject {
 
-    public final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private boolean registered;
 
     private final DimensionType dimensionType;
@@ -114,8 +113,8 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(minecraftServer, uniqueId, dimensionType, dimensionType.getName());
+    public Instance(@NotNull ServerProcess serverProcess, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(serverProcess, uniqueId, dimensionType, dimensionType.getName());
     }
 
     /**
@@ -124,10 +123,10 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+    public Instance(@NotNull ServerProcess serverProcess, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
         Check.argCondition(!dimensionType.isRegistered(),
                 "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
-        this.minecraftServer = minecraftServer;
+        this.serverProcess = serverProcess;
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName.asString();
@@ -138,14 +137,13 @@ public abstract class Instance implements Block.Getter, Block.Setter,
                 .withDynamic(Identity.UUID, this::getUniqueId)
                 .build();
 
-        final ServerProcess process = minecraftServer.process();
-        if (process != null) {
-            this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.INSTANCE);
+        if (serverProcess != null) {
+            this.eventNode = serverProcess.getGlobalEventHandler().map(this, EventFilter.INSTANCE);
         } else {
             // Local nodes require a server process
             this.eventNode = null;
         }
-        entityTracker = new EntityTrackerImpl(minecraftServer);
+        entityTracker = new EntityTrackerImpl(serverProcess);
     }
 
     /**
@@ -451,7 +449,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      */
     public void setTime(long time) {
         this.time = time;
-        PacketUtils.sendGroupedPacket(minecraftServer, getPlayers(), createTimePacket());
+        PacketUtils.sendGroupedPacket(serverProcess, getPlayers(), createTimePacket());
     }
 
     /**
@@ -666,7 +664,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             this.time += timeRate;
             // time needs to be sent to players
             if (timeUpdate != null && !Cooldown.hasCooldown(time, lastTimeUpdate, timeUpdate)) {
-                PacketUtils.sendGroupedPacket(minecraftServer, getPlayers(), createTimePacket());
+                PacketUtils.sendGroupedPacket(serverProcess, getPlayers(), createTimePacket());
                 this.lastTimeUpdate = time;
             }
 
@@ -674,7 +672,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         // Tick event
         {
             // Process tick events
-            minecraftServer.process().getGlobalEventHandler().call(new InstanceTickEvent(this, time, lastTickAge));
+            serverProcess.getGlobalEventHandler().call(new InstanceTickEvent(this, time, lastTickAge));
             // Set last tick age
             this.lastTickAge = time;
         }
@@ -701,7 +699,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public @NotNull InstanceSnapshot updateSnapshot(@NotNull SnapshotUpdater updater) {
         final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
         final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
-        return new SnapshotImpl.Instance(updater.reference(minecraftServer.process()),
+        return new SnapshotImpl.Instance(updater.reference(serverProcess),
                 getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
                 tagHandler.readableCopy());
     }
@@ -774,7 +772,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

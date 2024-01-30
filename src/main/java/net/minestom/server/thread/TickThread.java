@@ -1,6 +1,7 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerConsts;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.instance.Chunk;
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @ApiStatus.Internal
 public final class TickThread extends MinestomThread {
     private final ReentrantLock lock = new ReentrantLock();
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private volatile boolean stop;
 
     private CountDownLatch latch;
@@ -31,9 +32,9 @@ public final class TickThread extends MinestomThread {
     private long tickNum = 0;
     private final List<ThreadDispatcher.Partition> entries = new ArrayList<>();
 
-    public TickThread(MinecraftServer minecraftServer, int number) {
-        super(MinecraftServer.THREAD_NAME_TICK + "-" + number);
-        this.minecraftServer = minecraftServer;
+    public TickThread(ServerProcess serverProcess, int number) {
+        super(ServerConsts.THREAD_NAME_TICK + "-" + number);
+        this.serverProcess = serverProcess;
     }
 
     public static @Nullable TickThread current() {
@@ -50,7 +51,7 @@ public final class TickThread extends MinestomThread {
             try {
                 tick();
             } catch (Exception e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
             this.lock.unlock();
             // #acquire() callbacks
@@ -75,7 +76,7 @@ public final class TickThread extends MinestomThread {
                 try {
                     element.tick(tickTime);
                 } catch (Throwable e) {
-                    minecraftServer.process().getExceptionManager().handleException(e);
+                    serverProcess.getExceptionManager().handleException(e);
                 }
             }
         }

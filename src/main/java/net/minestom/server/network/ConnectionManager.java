@@ -2,7 +2,6 @@ package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
@@ -48,8 +47,6 @@ public final class ConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
 
     public final CachedPacket defaultTags;
-
-    private final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
 
     private static final long KEEP_ALIVE_DELAY = 10_000;
@@ -82,11 +79,10 @@ public final class ConnectionManager {
     private final PlayerProvider defaultPlayerProvider;
     private volatile PlayerProvider playerProvider;
 
-    public ConnectionManager(MinecraftServer minecraftServer, TagManager tagManager) {
-        this.minecraftServer = minecraftServer;
-        this.serverProcess = minecraftServer.process();
-        this.defaultTags = new CachedPacket(minecraftServer, new TagsPacket(tagManager.getTagMap()));
-        defaultPlayerProvider = (uuid, username, connection) -> new Player(minecraftServer, uuid, username, connection);
+    public ConnectionManager(ServerProcess serverProcess, TagManager tagManager) {
+        this.serverProcess = serverProcess;
+        this.defaultTags = new CachedPacket(serverProcess, new TagsPacket(tagManager.getTagMap()));
+        defaultPlayerProvider = (uuid, username, connection) -> new Player(serverProcess, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }
 
@@ -231,18 +227,18 @@ public final class ConnectionManager {
 
     @ApiStatus.Internal
     public @NotNull CompletableFuture<Void> transitionLoginToConfig(@NotNull Player player) {
-        return AsyncUtils.runAsync(minecraftServer, () -> {
+        return AsyncUtils.runAsync(serverProcess, () -> {
             final PlayerConnection playerConnection = player.getPlayerConnection();
 
             // Compression
             if (playerConnection instanceof PlayerSocketConnection socketConnection) {
-                final int threshold = minecraftServer.getCompressionThreshold();
+                final int threshold = serverProcess.getMinecraftServer().getCompressionThreshold();
                 if (threshold > 0) socketConnection.startCompression();
             }
 
             // Call pre login event
             AsyncPlayerPreLoginEvent asyncPlayerPreLoginEvent = new AsyncPlayerPreLoginEvent(player);
-            minecraftServer.process().getGlobalEventHandler().call(asyncPlayerPreLoginEvent);
+            serverProcess.getGlobalEventHandler().call(asyncPlayerPreLoginEvent);
             if (!player.isOnline())
                 return; // Player has been kicked
 
@@ -278,11 +274,11 @@ public final class ConnectionManager {
         }
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
-        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(minecraftServer, () -> {
-            player.sendPacket(PluginMessagePacket.getBrandPacket(minecraftServer));
+        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(serverProcess, () -> {
+            player.sendPacket(PluginMessagePacket.getBrandPacket(serverProcess.getMinecraftServer()));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
-            minecraftServer.process().getGlobalEventHandler().call(event);
+            serverProcess.getGlobalEventHandler().call(event);
 
             final Instance spawningInstance = event.getSpawningInstance();
             Check.notNull(spawningInstance, "You need to specify a spawning instance in the AsyncPlayerConfigurationEvent");

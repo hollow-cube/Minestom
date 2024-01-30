@@ -1,6 +1,6 @@
 package net.minestom.demo.entity;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
@@ -10,8 +10,8 @@ import java.util.List;
 
 public class ChickenCreature extends EntityCreature {
 
-    public ChickenCreature(MinecraftServer minecraftServer) {
-        super(minecraftServer, EntityType.CHICKEN);
+    public ChickenCreature(ServerProcess serverProcess) {
+        super(serverProcess, EntityType.CHICKEN);
 
         addAIGroup(
                 List.of(

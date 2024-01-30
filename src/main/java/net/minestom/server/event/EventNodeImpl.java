@@ -1,7 +1,7 @@
 package net.minestom.server.event;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.trait.RecursiveEvent;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.Contract;
@@ -30,7 +30,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     final Map<Object, EventNodeImpl<T>> registeredMappedNode = Caffeine.newBuilder()
             .weakKeys().weakValues().<Object, EventNodeImpl<T>>build().asMap();
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     final String name;
     final EventFilter<T, ?> filter;
     final BiPredicate<T, Object> predicate;
@@ -38,11 +38,11 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     volatile int priority;
     volatile EventNodeImpl<? super T> parent;
 
-    EventNodeImpl(@NotNull MinecraftServer minecraftServer,
+    EventNodeImpl(@NotNull ServerProcess serverProcess,
                   @NotNull String name,
                   @NotNull EventFilter<T, ?> filter,
                   @Nullable BiPredicate<T, Object> predicate) {
-        this.minecraftServer = minecraftServer;
+        this.serverProcess = serverProcess;
         this.name = name;
         this.filter = filter;
         this.predicate = predicate;
@@ -159,7 +159,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
     public @NotNull <E extends T, H> EventNode<E> map(@NotNull H value, @NotNull EventFilter<E, H> filter) {
         EventNodeImpl<E> node;
         synchronized (GLOBAL_CHILD_LOCK) {
-            node = new EventNodeLazyImpl<>(minecraftServer,this, value, filter);
+            node = new EventNodeLazyImpl<>(serverProcess,this, value, filter);
             Check.stateCondition(node.parent != null, "Node already has a parent");
             Check.stateCondition(Objects.equals(parent, node), "Cannot map to self");
             EventNodeImpl<T> previous = this.mappedNodeCache.putIfAbsent(value, (EventNodeImpl<T>) node);
@@ -260,6 +260,11 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
         }
     }
 
+    @Override
+    public ServerProcess getServerProcess() {
+        return serverProcess;
+    }
+
     record Graph(String name, String eventType, int priority,
                  List<Graph> children) {
         public Graph {
@@ -329,7 +334,7 @@ non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
             try {
                 listener.accept(event);
             } catch (Throwable e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
         }
 

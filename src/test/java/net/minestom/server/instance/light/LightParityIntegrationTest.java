@@ -1,6 +1,6 @@
 package net.minestom.server.instance.light;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.*;
 import net.minestom.server.instance.block.Block;
@@ -30,12 +30,12 @@ public class LightParityIntegrationTest {
 
     @Test
     public void test(Env env) throws URISyntaxException, IOException, AnvilException {
-        Map<Vec, SectionEntry> sections = retrieveSections(env.minecraftServer());
+        Map<Vec, SectionEntry> sections = retrieveSections(env.process());
         // Generate our own light
 
         InstanceContainer instance = (InstanceContainer) env.createFlatInstance();
         instance.setChunkSupplier(LightingChunk::new);
-        instance.setChunkLoader(new AnvilLoader(env.minecraftServer(), Path.of("./src/test/resources/net/minestom/server/instance/lighting")));
+        instance.setChunkLoader(new AnvilLoader(env.process(), Path.of("./src/test/resources/net/minestom/server/instance/lighting")));
 
         List<CompletableFuture<Chunk>> futures = new ArrayList<>();
 
@@ -127,7 +127,7 @@ public class LightParityIntegrationTest {
     record SectionEntry(Palette blocks, byte[] sky, byte[] block) {
     }
 
-    private static Map<Vec, SectionEntry> retrieveSections(MinecraftServer minecraftServer) throws IOException, URISyntaxException, AnvilException {
+    private static Map<Vec, SectionEntry> retrieveSections(ServerProcess serverProcess) throws IOException, URISyntaxException, AnvilException {
         URL defaultImage = LightParityIntegrationTest.class.getResource("/net/minestom/server/instance/lighting/region/r.0.0.mca");
         assert defaultImage != null;
         File imageFile = new File(defaultImage.toURI());
@@ -143,7 +143,7 @@ public class LightParityIntegrationTest {
 
                 for (int yLevel = chunk.getMinY(); yLevel <= chunk.getMaxY(); yLevel += 16) {
                     var section = chunk.getSection((byte) (yLevel/16));
-                    var palette = loadBlocks(minecraftServer, section);
+                    var palette = loadBlocks(serverProcess, section);
                     var sky = section.getSkyLights();
                     var block = section.getBlockLights();
                     sections.put(new Vec(x, section.getY(), z), new SectionEntry(palette, sky, block));
@@ -153,8 +153,8 @@ public class LightParityIntegrationTest {
         return sections;
     }
 
-    private static Palette loadBlocks(MinecraftServer minecraftServer, ChunkSection section) throws AnvilException {
-        var palette = Palette.blocks(minecraftServer);
+    private static Palette loadBlocks(ServerProcess serverProcess, ChunkSection section) throws AnvilException {
+        var palette = Palette.blocks(serverProcess);
         for (int x = 0; x < Chunk.CHUNK_SECTION_SIZE; x++) {
             for (int z = 0; z < Chunk.CHUNK_SECTION_SIZE; z++) {
                 for (int y = 0; y < Chunk.CHUNK_SECTION_SIZE; y++) {

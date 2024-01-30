@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.ai.EntityAI;
 import net.minestom.server.entity.ai.EntityAIGroup;
@@ -33,13 +33,13 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
     /**
      * Constructor which allows to specify an UUID. Only use if you know what you are doing!
      */
-    public EntityCreature(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        super(minecraftServer, entityType, uuid);
+    public EntityCreature(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        super(serverProcess, entityType, uuid);
         heal();
     }
 
-    public EntityCreature(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
-        this(minecraftServer, entityType, UUID.randomUUID());
+    public EntityCreature(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
+        this(serverProcess, entityType, UUID.randomUUID());
     }
 
     @Override
@@ -134,7 +134,7 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
         if (swingHand)
             swingMainHand();
         EntityAttackEvent attackEvent = new EntityAttackEvent(this, target);
-        minecraftServer.process().getGlobalEventHandler().call(attackEvent);
+        getServerProcess().getGlobalEventHandler().call(attackEvent);
     }
 
     /**

@@ -18,7 +18,7 @@ public class UseItemListener {
         ItemStack itemStack = hand == Player.Hand.MAIN ? inventory.getItemInMainHand() : inventory.getItemInOffHand();
         //itemStack.onRightClick(player, hand);
         PlayerUseItemEvent useItemEvent = new PlayerUseItemEvent(player, hand, itemStack);
-        player.minecraftServer.process().getGlobalEventHandler().call(useItemEvent);
+        player.getServerProcess().getGlobalEventHandler().call(useItemEvent);
 
         final PlayerInventory playerInventory = player.getInventory();
         if (useItemEvent.isCancelled()) {
@@ -56,7 +56,7 @@ public class UseItemListener {
 
             // Eating code, contains the eating time customisation
             PlayerPreEatEvent playerPreEatEvent = new PlayerPreEatEvent(player, itemStack, hand, player.getDefaultEatingTime());
-            player.minecraftServer.process().getGlobalEventHandler().callCancellable(playerPreEatEvent, () -> player.refreshEating(hand, playerPreEatEvent.getEatingTime()));
+            player.getServerProcess().getGlobalEventHandler().callCancellable(playerPreEatEvent, () -> player.refreshEating(hand, playerPreEatEvent.getEatingTime()));
 
             if (playerPreEatEvent.isCancelled()) {
                 cancelAnimation = true;
@@ -65,7 +65,7 @@ public class UseItemListener {
 
         if (!cancelAnimation && itemAnimationType != null) {
             PlayerItemAnimationEvent playerItemAnimationEvent = new PlayerItemAnimationEvent(player, itemAnimationType, hand);
-            player.minecraftServer.process().getGlobalEventHandler().callCancellable(playerItemAnimationEvent, () -> {
+            player.getServerProcess().getGlobalEventHandler().callCancellable(playerItemAnimationEvent, () -> {
                 player.refreshActiveHand(true, hand == Player.Hand.OFF, false);
                 player.sendPacketToViewers(player.getMetadataPacket());
             });

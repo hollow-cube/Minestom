@@ -16,7 +16,7 @@ public class EntityInstanceIntegrationTest {
     @Test
     public void entityJoin(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(env.minecraftServer(), EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         assertEquals(instance, entity.getInstance());
         assertEquals(new Pos(0, 42, 0), entity.getPosition());

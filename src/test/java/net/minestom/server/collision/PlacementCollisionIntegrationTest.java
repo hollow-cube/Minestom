@@ -24,14 +24,14 @@ public class PlacementCollisionIntegrationTest {
     @Test
     public void entityBlock(Env env) {
         var instance = env.createFlatInstance();
-        new Entity(env.minecraftServer(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40, 0)).join();
+        new Entity(env.process(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40, 0)).join();
         assertNotNull(BlockCollision.canPlaceBlockAt(instance, new Vec(0, 40, 0), Block.STONE));
     }
 
     @Test
     public void slab(Env env) {
         var instance = env.createFlatInstance();
-        new Entity(env.minecraftServer(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40.75, 0)).join();
+        new Entity(env.process(), EntityType.ZOMBIE).setInstance(instance, new Pos(0, 40.75, 0)).join();
         assertNull(BlockCollision.canPlaceBlockAt(instance, new Vec(0, 40, 0), Block.STONE_SLAB));
     }
 

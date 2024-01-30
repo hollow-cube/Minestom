@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.instance.InstanceRegisterEvent;
 import net.minestom.server.event.instance.InstanceUnregisterEvent;
 import net.minestom.server.utils.validate.Check;
@@ -19,12 +19,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Used to register {@link Instance}.
  */
 public final class InstanceManager {
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
 
-    public InstanceManager(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public InstanceManager(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     /**
@@ -50,7 +50,7 @@ public final class InstanceManager {
      */
     @ApiStatus.Experimental
     public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        final InstanceContainer instanceContainer = new InstanceContainer(minecraftServer, UUID.randomUUID(), dimensionType, loader);
+        final InstanceContainer instanceContainer = new InstanceContainer(serverProcess, UUID.randomUUID(), dimensionType, loader);
         registerInstance(instanceContainer);
         return instanceContainer;
     }
@@ -102,7 +102,7 @@ public final class InstanceManager {
         Check.notNull(instanceContainer, "Instance container cannot be null when creating a SharedInstance!");
         Check.stateCondition(!instanceContainer.isRegistered(), "The container needs to be register in the InstanceManager");
 
-        final SharedInstance sharedInstance = new SharedInstance(instanceContainer.minecraftServer, UUID.randomUUID(), instanceContainer);
+        final SharedInstance sharedInstance = new SharedInstance(serverProcess, UUID.randomUUID(), instanceContainer);
         return registerSharedInstance(sharedInstance);
     }
 
@@ -117,12 +117,12 @@ public final class InstanceManager {
         Check.stateCondition(!instance.getPlayers().isEmpty(), "You cannot unregister an instance with players inside.");
         synchronized (instance) {
             InstanceUnregisterEvent event = new InstanceUnregisterEvent(instance);
-            minecraftServer.process().getGlobalEventHandler().call(event);
+            serverProcess.getGlobalEventHandler().call(event);
 
             // Unload all chunks
             if (instance instanceof InstanceContainer) {
                 instance.getChunks().forEach(instance::unloadChunk);
-                var dispatcher = minecraftServer.process().dispatcher();
+                var dispatcher = serverProcess.dispatcher();
                 instance.getChunks().forEach(dispatcher::deletePartition);
             }
             // Unregister
@@ -164,9 +164,9 @@ public final class InstanceManager {
     private void UNSAFE_registerInstance(@NotNull Instance instance) {
         instance.setRegistered(true);
         this.instances.add(instance);
-        var dispatcher = minecraftServer.process().dispatcher();
+        var dispatcher = serverProcess.dispatcher();
         instance.getChunks().forEach(dispatcher::createPartition);
         InstanceRegisterEvent event = new InstanceRegisterEvent(instance);
-        minecraftServer.process().getGlobalEventHandler().call(event);
+        serverProcess.getGlobalEventHandler().call(event);
     }
 }

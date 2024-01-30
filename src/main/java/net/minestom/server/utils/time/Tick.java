@@ -1,21 +1,16 @@
 package net.minestom.server.utils.time;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 
 import java.time.Duration;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalUnit;
+import java.util.Objects;
 
 /**
  * A TemporalUnit that represents one tick.
  */
 public final class Tick implements TemporalUnit {
-    /**
-     * A TemporalUnit representing the server tick. This is defined using
-     * {@link MinecraftServer#TICK_MS}.
-     */
-    public static Tick SERVER_TICKS = new Tick(MinecraftServer.TICK_MS);
-
     /**
      * A TemporalUnit representing the client tick. This is always equal to 50ms.
      */
@@ -38,14 +33,18 @@ public final class Tick implements TemporalUnit {
         this.tps = Math.toIntExact(Duration.ofSeconds(1).dividedBy(Duration.ofMillis(this.milliseconds)));
     }
 
+    public static Tick serverTick(ServerSettings serverSettings) {
+        return new Tick(serverSettings.getTickMs());
+    }
+
     /**
      * Creates a duration from an amount of ticks.
      *
      * @param ticks the amount of ticks
      * @return the duration
      */
-    public static Duration server(long ticks) {
-        return Duration.of(ticks, SERVER_TICKS);
+    public static Duration server(ServerSettings serverSettings, long ticks) {
+        return Duration.of(ticks, serverTick(serverSettings));
     }
 
     /**
@@ -108,5 +107,18 @@ public final class Tick implements TemporalUnit {
     @Override
     public long between(Temporal start, Temporal end) {
         return start.until(end, this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tick tick = (Tick) o;
+        return milliseconds == tick.milliseconds && tps == tick.tps;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(milliseconds, tps);
     }
 }

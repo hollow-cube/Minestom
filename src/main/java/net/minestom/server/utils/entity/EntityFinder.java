@@ -127,7 +127,7 @@ public class EntityFinder {
     public @NotNull List<@NotNull Entity> find(@Nullable Instance instance, @Nullable Entity self) {
         if (targetSelector == TargetSelector.MINESTOM_USERNAME) {
             Check.notNull(constantName, "The player name should not be null when searching for it");
-            final Player player = instance.minecraftServer.process().getConnectionManager().getOnlinePlayerByUsername(constantName);
+            final Player player = instance.getServerProcess().getConnectionManager().getOnlinePlayerByUsername(constantName);
             return player != null ? List.of(player) : List.of();
         } else if (targetSelector == TargetSelector.MINESTOM_UUID) {
             Check.notNull(constantUuid, "The UUID should not be null when searching for it");
@@ -306,7 +306,7 @@ public class EntityFinder {
     private static @NotNull List<@NotNull Entity> findTarget(@Nullable Instance instance,
                                                              @NotNull TargetSelector targetSelector,
                                                              @NotNull Point startPosition, @Nullable Entity self) {
-        final var players = instance != null ? instance.getPlayers() : instance.minecraftServer.process().getConnectionManager().getOnlinePlayers();
+        final var players = instance != null ? instance.getPlayers() : instance.getServerProcess().getConnectionManager().getOnlinePlayers();
         if (targetSelector == TargetSelector.NEAREST_PLAYER) {
             return players.stream()
                     .min(Comparator.comparingDouble(p -> p.getPosition().distanceSquared(startPosition)))
@@ -322,7 +322,7 @@ public class EntityFinder {
                 return List.copyOf(instance.getEntities());
             }
             // Get entities from every instance
-            var instances = instance.minecraftServer.process().getInstanceManager().getInstances();
+            var instances = instance.getServerProcess().getInstanceManager().getInstances();
             List<Entity> entities = new ArrayList<>();
             for (Instance inst : instances) {
                 entities.addAll(inst.getEntities());

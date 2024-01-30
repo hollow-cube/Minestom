@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandles;
@@ -24,9 +24,9 @@ final class EventNodeLazyImpl<E extends Event> extends EventNodeImpl<E> {
     @SuppressWarnings("unused")
     private boolean mapped;
 
-    EventNodeLazyImpl(@NotNull MinecraftServer minecraftServer, @NotNull EventNodeImpl<? super E> holder,
+    EventNodeLazyImpl(@NotNull ServerProcess serverProcess, @NotNull EventNodeImpl<? super E> holder,
                       @NotNull Object owner, @NotNull EventFilter<E, ?> filter) {
-        super(minecraftServer, owner.toString(), filter, null);
+        super(serverProcess, owner.toString(), filter, null);
         this.holder = holder;
         this.owner = new WeakReference<>(owner);
     }

@@ -4,7 +4,8 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerConsts;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.utils.identity.NamedAndIdentified;
@@ -22,7 +23,7 @@ public class ResponseData {
 
     private final List<NamedAndIdentified> entries;
     @NotNull
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     private String version;
     private int protocol;
@@ -35,12 +36,12 @@ public class ResponseData {
     /**
      * Constructs a new {@link ResponseData}.
      */
-    public ResponseData(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public ResponseData(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         this.entries = new ArrayList<>();
-        this.version = MinecraftServer.VERSION_NAME;
-        this.protocol = MinecraftServer.PROTOCOL_VERSION;
-        this.online = minecraftServer.process().getConnectionManager().getOnlinePlayerCount();
+        this.version = ServerConsts.VERSION_NAME;
+        this.protocol = ServerConsts.PROTOCOL_VERSION;
+        this.online = serverProcess.getConnectionManager().getOnlinePlayerCount();
         this.maxPlayer = this.online + 1;
         this.description = DEFAULT_DESCRIPTION;
         this.favicon = "";
@@ -316,6 +317,10 @@ public class ResponseData {
         return playersHidden;
     }
 
+    public ServerProcess getServerProcess() {
+        return serverProcess;
+    }
+
     /**
      * Converts the response data into a {@link JsonObject}.
      *
@@ -325,10 +330,6 @@ public class ResponseData {
     @Deprecated
     public @NotNull JsonObject build() {
         return ServerListPingType.getModernPingResponse(this, true);
-    }
-
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
     }
 
     /**

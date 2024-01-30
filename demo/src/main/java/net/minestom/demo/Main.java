@@ -8,7 +8,8 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.minestom.demo.block.TestBlockHandler;
 import net.minestom.demo.block.placement.DripstonePlacementRule;
 import net.minestom.demo.commands.*;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.extras.lan.OpenToLAN;
@@ -25,23 +26,22 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("minestom.experiment.pose-updates", "true");
 
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerSettings serverSettings = ServerSettings.builder().compressionThreshold(0).build();
 
-        minecraftServer.setCompressionThreshold(0);
+        ServerProcess serverProcess = ServerProcess.of(serverSettings);
 
-        minecraftServer.init();
 
-        BlockManager blockManager = minecraftServer.process().getBlockManager();
+        BlockManager blockManager = serverProcess.getBlockManager();
         blockManager.registerBlockPlacementRule(new DripstonePlacementRule());
         blockManager.registerHandler(TestBlockHandler.INSTANCE.getNamespaceId(), () -> TestBlockHandler.INSTANCE);
 
-        CommandManager commandManager = minecraftServer.process().getCommandManager();
+        CommandManager commandManager = serverProcess.getCommandManager();
         commandManager.register(new TestCommand());
         commandManager.register(new EntitySelectorCommand());
         commandManager.register(new HealthCommand());
         commandManager.register(new LegacyCommand());
-        commandManager.register(new DimensionCommand(minecraftServer));
-        commandManager.register(new ShutdownCommand(minecraftServer));
+        commandManager.register(new DimensionCommand(serverProcess));
+        commandManager.register(new ShutdownCommand(serverProcess));
         commandManager.register(new TeleportCommand());
         commandManager.register(new PlayersCommand());
         commandManager.register(new FindCommand());
@@ -63,15 +63,15 @@ public class Main {
         commandManager.register(new NotificationCommand());
         commandManager.register(new TestCommand2());
         commandManager.register(new ConfigCommand());
-        commandManager.register(new SidebarCommand(minecraftServer));
+        commandManager.register(new SidebarCommand(serverProcess));
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
-        minecraftServer.process().getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
+        serverProcess.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
 
-        minecraftServer.process().getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
+        serverProcess.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
 
-        minecraftServer.process().getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
+        serverProcess.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
             ResponseData responseData = event.getResponseData();
             responseData.addEntry(NamedAndIdentified.named("The first line is separated from the others"));
             responseData.addEntry(NamedAndIdentified.named("Could be a name, or a message"));
@@ -105,7 +105,7 @@ public class Main {
             //responseData.setPlayersHidden(true);
         });
 
-        new PlayerInit(minecraftServer).init();
+        new PlayerInit(serverProcess).init();
 
 //        VelocityProxy.enable("abcdef");
         //BungeeCordProxy.enable();
@@ -113,9 +113,9 @@ public class Main {
         //MojangAuth.init();
 
         // useful for testing - we don't need to worry about event calls so just set this to a long time
-        new OpenToLAN(minecraftServer).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
+        new OpenToLAN(serverProcess).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
 
-        minecraftServer.start("0.0.0.0", 25565);
+        serverProcess.start("0.0.0.0", 25565);
 //        minecraftServer.start(java.net.UnixDomainSocketAddress.of("minestom-demo.sock"));
         //Runtime.getRuntime().addShutdownHook(new Thread(MinecraftServer::stopCleanly));
     }

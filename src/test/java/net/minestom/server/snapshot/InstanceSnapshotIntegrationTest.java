@@ -12,7 +12,7 @@ public class InstanceSnapshotIntegrationTest {
     @Test
     public void basic(Env env) {
         env.createFlatInstance();
-        var snapshot = ServerSnapshot.update(env.minecraftServer());
+        var snapshot = ServerSnapshot.update(env.process());
 
         // Ensure that the collection is immutable
         {

@@ -4,7 +4,7 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +85,7 @@ public class CommandSenderTest {
         }
 
         @Override
-        public MinecraftServer getMinecraftServer() {
+        public ServerProcess getServerProcess() {
             return null;
         }
     }

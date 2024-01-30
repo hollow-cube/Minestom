@@ -1,6 +1,7 @@
 package net.minestom.server.command;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.entity.Player;
@@ -12,8 +13,8 @@ import java.util.UUID;
 
 @SuppressWarnings("ConstantConditions")
 public class CommandPacketFilteringTest {
-    private static final MinecraftServer minecraftServer = new MinecraftServer();
-    private static final Player PLAYER = new Player(minecraftServer, UUID.randomUUID(), "", null);
+    private static final ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+    private static final Player PLAYER = new Player(serverProcess, UUID.randomUUID(), "", null);
 
     @Test
     public void singleCommandFilteredFalse() {

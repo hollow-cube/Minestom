@@ -85,7 +85,7 @@ public class LeftClickIntegrationTest {
     public void leftExternal(Env env) {
         var instance = env.createFlatInstance();
         var player = env.createPlayer(instance, new Pos(0, 40, 0));
-        var inventory = new Inventory(env.minecraftServer(), InventoryType.HOPPER, "test");
+        var inventory = new Inventory(env.process(), InventoryType.HOPPER, "test");
         player.openInventory(inventory);
         var listener = env.listen(InventoryPreClickEvent.class);
         inventory.setItemStack(1, ItemStack.of(Material.DIAMOND));

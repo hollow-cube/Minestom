@@ -19,12 +19,12 @@ public class SaveCommand extends Command {
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        for(var instance : commandSender.getMinecraftServer().process().getInstanceManager().getInstances()) {
+        for(var instance : commandSender.getServerProcess().getInstanceManager().getInstances()) {
             CompletableFuture<Void> instanceSave = instance.saveInstance().thenCompose(v -> instance.saveChunksToStorage());
             try {
                 instanceSave.get();
             } catch (InterruptedException | ExecutionException e) {
-                commandSender.getMinecraftServer().process().getExceptionManager().handleException(e);
+                commandSender.getServerProcess().getExceptionManager().handleException(e);
             }
         }
         commandSender.sendMessage("Saving done!");

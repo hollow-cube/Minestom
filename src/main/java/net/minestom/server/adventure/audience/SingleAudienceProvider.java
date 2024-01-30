@@ -2,7 +2,7 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,13 +18,13 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
     protected final Audience players;
     protected final Audience server;
     @NotNull
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    protected SingleAudienceProvider(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        this.collection = new IterableAudienceProvider(minecraftServer);
-        this.players = PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers());
-        this.server = Audience.audience(this.players, minecraftServer.process().getCommandManager().getConsoleSender());
+    protected SingleAudienceProvider(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
+        this.collection = new IterableAudienceProvider(serverProcess);
+        this.players = PacketGroupingAudience.of(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers());
+        this.server = Audience.audience(this.players, serverProcess.getCommandManager().getConsoleSender());
     }
 
     /**
@@ -48,12 +48,12 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
 
     @Override
     public @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(minecraftServer, minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     @Override
     public @NotNull Audience console() {
-        return minecraftServer.process().getCommandManager().getConsoleSender();
+        return serverProcess.getCommandManager().getConsoleSender();
     }
 
     @Override

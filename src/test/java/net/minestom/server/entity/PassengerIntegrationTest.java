@@ -13,8 +13,8 @@ public class PassengerIntegrationTest {
     @Test
     public void passenger(Env env) {
         var instance = env.createFlatInstance();
-        var vehicle = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
-        var passenger = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var vehicle = new Entity(env.process(), EntityType.ZOMBIE);
+        var passenger = new Entity(env.process(), EntityType.ZOMBIE);
 
         vehicle.setInstance(instance, new Pos(0, 40, 0)).join();
         passenger.setInstance(instance, new Pos(0, 40, 0)).join();
@@ -30,8 +30,8 @@ public class PassengerIntegrationTest {
     @Test
     public void passengerTeleport(Env env) {
         var instance = env.createFlatInstance();
-        var vehicle = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
-        var passenger = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var vehicle = new Entity(env.process(), EntityType.ZOMBIE);
+        var passenger = new Entity(env.process(), EntityType.ZOMBIE);
 
         vehicle.setInstance(instance, new Pos(0, 40, 0)).join();
         passenger.setInstance(instance, new Pos(0, 40, 5000)).join();

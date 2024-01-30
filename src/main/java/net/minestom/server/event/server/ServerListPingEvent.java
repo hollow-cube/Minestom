@@ -1,6 +1,6 @@
 package net.minestom.server.event.server;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.ping.ResponseData;
@@ -26,8 +26,8 @@ public class ServerListPingEvent implements CancellableEvent {
      *
      * @param type the ping type to respond with
      */
-    public ServerListPingEvent(@NotNull MinecraftServer minecraftServer, @NotNull ServerListPingType type) {
-        this(minecraftServer, null, type);
+    public ServerListPingEvent(@NotNull ServerProcess serverProcess, @NotNull ServerListPingType type) {
+        this(serverProcess, null, type);
     }
 
     /**
@@ -36,8 +36,8 @@ public class ServerListPingEvent implements CancellableEvent {
      * @param connection the player connection, if the ping type is modern
      * @param type       the ping type to respond with
      */
-    public ServerListPingEvent(@NotNull MinecraftServer minecraftServer, @Nullable PlayerConnection connection, @NotNull ServerListPingType type) {
-        this.responseData = new ResponseData(minecraftServer);
+    public ServerListPingEvent(@NotNull ServerProcess serverProcess, @Nullable PlayerConnection connection, @NotNull ServerListPingType type) {
+        this.responseData = new ResponseData(serverProcess);
         this.connection = connection;
         this.type = type;
     }

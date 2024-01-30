@@ -1,7 +1,6 @@
 package net.minestom.testing;
 
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.coordinate.Pos;
@@ -33,7 +32,7 @@ final class TestConnectionImpl implements TestConnection {
     TestConnectionImpl(Env env) {
         this.env = env;
         this.process = env.process();
-        this.playerConnection = new PlayerConnectionImpl(env.minecraftServer());
+        this.playerConnection = new PlayerConnectionImpl(env.process());
     }
 
     @Override
@@ -64,8 +63,8 @@ final class TestConnectionImpl implements TestConnection {
 
     final class PlayerConnectionImpl extends PlayerConnection {
 
-        PlayerConnectionImpl(MinecraftServer minecraftServer) {
-            super(minecraftServer);
+        PlayerConnectionImpl(ServerProcess serverProcess) {
+            super(serverProcess);
         }
 
         @Override

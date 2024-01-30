@@ -2,7 +2,7 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
@@ -23,25 +23,25 @@ import static net.minestom.server.utils.chunk.ChunkUtils.*;
 final class GeneratorImpl {
     private static final Vec SECTION_SIZE = new Vec(16);
 
-    static GenerationUnit section(MinecraftServer minecraftServer, Section section, int sectionX, int sectionY, int sectionZ,
+    static GenerationUnit section(ServerProcess serverProcess, Section section, int sectionX, int sectionY, int sectionZ,
                                   boolean fork) {
         final Vec start = SECTION_SIZE.mul(sectionX, sectionY, sectionZ);
         final Vec end = start.add(SECTION_SIZE);
         final UnitModifier modifier = new SectionModifierImpl(SECTION_SIZE, start, end,
                 section.blockPalette(), section.biomePalette(), new Int2ObjectOpenHashMap<>(0), fork);
-        return unit(minecraftServer, modifier, start, end, null);
+        return unit(serverProcess, modifier, start, end, null);
     }
 
-    static GenerationUnit section(MinecraftServer minecraftServer, Section section, int sectionX, int sectionY, int sectionZ) {
-        return section(minecraftServer, section, sectionX, sectionY, sectionZ, false);
+    static GenerationUnit section(ServerProcess serverProcess, Section section, int sectionX, int sectionY, int sectionZ) {
+        return section(serverProcess, section, sectionX, sectionY, sectionZ, false);
     }
 
-    static UnitImpl chunk(Chunk chunk, int minSection, int maxSection,
+    static UnitImpl chunk(ServerProcess serverProcess, Chunk chunk, int minSection, int maxSection,
                           List<Section> chunkSections, int chunkX, int chunkZ) {
         final int minY = minSection * 16;
         AtomicInteger sectionCounterY = new AtomicInteger(minSection);
         List<GenerationUnit> sections = chunkSections.stream()
-                .map(section -> section(chunk.instance.minecraftServer, section, chunkX, sectionCounterY.getAndIncrement(), chunkZ))
+                .map(section -> section(serverProcess, section, chunkX, sectionCounterY.getAndIncrement(), chunkZ))
                 .toList();
 
         final Vec size = new Vec(16, (maxSection - minSection) * 16, 16);
@@ -49,19 +49,19 @@ final class GeneratorImpl {
         final Vec end = new Vec(chunkX * 16 + 16, size.y() + minY, chunkZ * 16 + 16);
         final UnitModifier modifier = new AreaModifierImpl(chunk,
                 size, start, end, 1, sections.size(), 1, sections);
-        return unit(chunk.instance.minecraftServer, modifier, start, end, sections);
+        return unit(serverProcess, modifier, start, end, sections);
     }
 
-    static UnitImpl chunk(int minSection, int maxSection,
+    static UnitImpl chunk(ServerProcess serverProcess, int minSection, int maxSection,
                           List<Section> chunkSections, int chunkX, int chunkZ) {
-        return chunk(null, minSection, maxSection, chunkSections, chunkX, chunkZ);
+        return chunk(serverProcess, null, minSection, maxSection, chunkSections, chunkX, chunkZ);
     }
 
     static UnitImpl chunk(Chunk chunk) {
-        return chunk(chunk, chunk.minSection, chunk.maxSection, chunk.getSections(), chunk.getChunkX(), chunk.getChunkZ());
+        return chunk(chunk.getServerProcess(), chunk, chunk.minSection, chunk.maxSection, chunk.getSections(), chunk.getChunkX(), chunk.getChunkZ());
     }
 
-    static UnitImpl unit(MinecraftServer minecraftServer, UnitModifier modifier, Point start, Point end,
+    static UnitImpl unit(ServerProcess serverProcess, UnitModifier modifier, Point start, Point end,
                          List<GenerationUnit> divided) {
         if (start.x() > end.x() || start.y() > end.y() || start.z() > end.z()) {
             throw new IllegalArgumentException("absoluteStart must be before absoluteEnd");
@@ -73,7 +73,7 @@ final class GeneratorImpl {
             throw new IllegalArgumentException("absoluteEnd must be a multiple of 16");
         }
         final Point size = end.sub(start);
-        return new UnitImpl(minecraftServer, modifier, size, start, end, divided, new CopyOnWriteArrayList<>());
+        return new UnitImpl(serverProcess, modifier, size, start, end, divided, new CopyOnWriteArrayList<>());
     }
 
     static final class DynamicFork implements Block.Setter {
@@ -81,10 +81,10 @@ final class GeneratorImpl {
         int width, height, depth;
         List<GenerationUnit> sections;
 
-        private final MinecraftServer minecraftServer;
+        private final ServerProcess serverProcess;
 
-        DynamicFork(MinecraftServer minecraftServer) {
-            this.minecraftServer = minecraftServer;
+        DynamicFork(ServerProcess serverProcess) {
+            this.serverProcess = serverProcess;
         }
 
         @Override
@@ -107,7 +107,7 @@ final class GeneratorImpl {
                 this.width = 1;
                 this.height = 1;
                 this.depth = 1;
-                this.sections = List.of(section(minecraftServer, new Section(minecraftServer), sectionX, sectionY, sectionZ, true));
+                this.sections = List.of(section(serverProcess, new Section(serverProcess), sectionX, sectionY, sectionZ, true));
             } else if (x < minSection.x() || y < minSection.y() || z < minSection.z() ||
                     x >= minSection.x() + width * 16 || y >= minSection.y() + height * 16 || z >= minSection.z() + depth * 16) {
                 // Resize necessary
@@ -141,7 +141,7 @@ final class GeneratorImpl {
                         final int newX = coordinates.blockX() + startX;
                         final int newY = coordinates.blockY() + startY;
                         final int newZ = coordinates.blockZ() + startZ;
-                        final GenerationUnit unit = section(minecraftServer, new Section(minecraftServer), newX, newY, newZ, true);
+                        final GenerationUnit unit = section(serverProcess, new Section(serverProcess), newX, newY, newZ, true);
                         newSections[i] = unit;
                     }
                 }
@@ -154,7 +154,7 @@ final class GeneratorImpl {
         }
     }
 
-    record UnitImpl(MinecraftServer minecraftServer, UnitModifier modifier, Point size,
+    record UnitImpl(ServerProcess serverProcess, UnitModifier modifier, Point size,
                     Point absoluteStart, Point absoluteEnd,
                     List<GenerationUnit> divided,
                     List<UnitImpl> forks) implements GenerationUnit {
@@ -177,7 +177,7 @@ final class GeneratorImpl {
             for (int sectionX = minSectionX; sectionX < maxSectionX; sectionX++) {
                 for (int sectionY = minSectionY; sectionY < maxSectionY; sectionY++) {
                     for (int sectionZ = minSectionZ; sectionZ < maxSectionZ; sectionZ++) {
-                        final GenerationUnit unit = section(minecraftServer, new Section(minecraftServer), sectionX, sectionY, sectionZ, true);
+                        final GenerationUnit unit = section(serverProcess, new Section(serverProcess), sectionX, sectionY, sectionZ, true);
                         units[index++] = unit;
                     }
                 }
@@ -189,7 +189,7 @@ final class GeneratorImpl {
 
         @Override
         public void fork(@NotNull Consumer<Block.@NotNull Setter> consumer) {
-            DynamicFork dynamicFork = new DynamicFork(minecraftServer);
+            DynamicFork dynamicFork = new DynamicFork(serverProcess);
             consumer.accept(dynamicFork);
             final Point startSection = dynamicFork.minSection;
             if (startSection == null)
@@ -212,7 +212,7 @@ final class GeneratorImpl {
             final Point size = end.sub(start);
             final AreaModifierImpl modifier = new AreaModifierImpl(null,
                     size, start, end, width, height, depth, sections);
-            final UnitImpl fork = new UnitImpl(minecraftServer, modifier, size, start, end, sections, forks);
+            final UnitImpl fork = new UnitImpl(serverProcess, modifier, size, start, end, sections, forks);
             forks.add(fork);
             return fork;
         }

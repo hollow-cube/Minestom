@@ -1,6 +1,7 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
@@ -30,13 +31,13 @@ public class GeneratorTest {
 
     @Test
     public void unitSize() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        assertDoesNotThrow(() -> dummyUnit(minecraftServer, Vec.ZERO, new Vec(16)));
-        assertDoesNotThrow(() -> dummyUnit(minecraftServer, new Vec(16), new Vec(32)));
-        assertThrows(IllegalArgumentException.class, () -> dummyUnit(minecraftServer, new Vec(15), Vec.ZERO));
-        assertThrows(IllegalArgumentException.class, () -> dummyUnit(minecraftServer, new Vec(15), new Vec(32)));
-        assertThrows(IllegalArgumentException.class, () -> dummyUnit(minecraftServer, new Vec(15), new Vec(31)));
-        assertThrows(IllegalArgumentException.class, () -> dummyUnit(minecraftServer, Vec.ZERO, new Vec(15)));
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        assertDoesNotThrow(() -> dummyUnit(serverProcess, Vec.ZERO, new Vec(16)));
+        assertDoesNotThrow(() -> dummyUnit(serverProcess, new Vec(16), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> dummyUnit(serverProcess, new Vec(15), Vec.ZERO));
+        assertThrows(IllegalArgumentException.class, () -> dummyUnit(serverProcess, new Vec(15), new Vec(32)));
+        assertThrows(IllegalArgumentException.class, () -> dummyUnit(serverProcess, new Vec(15), new Vec(31)));
+        assertThrows(IllegalArgumentException.class, () -> dummyUnit(serverProcess, Vec.ZERO, new Vec(15)));
     }
 
     @ParameterizedTest
@@ -79,15 +80,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkSize() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        GenerationUnit chunk = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        GenerationUnit chunk = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         assertEquals(new Vec(16, sectionCount * 16, 16), chunk.size());
         assertEquals(new Vec(chunkX * 16, minSection * 16, chunkZ * 16), chunk.absoluteStart());
         assertEquals(new Vec(chunkX * 16 + 16, maxSection * 16, chunkZ * 16 + 16), chunk.absoluteEnd());
@@ -95,15 +96,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkSizeNeg() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        GenerationUnit chunk = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        GenerationUnit chunk = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         assertEquals(new Vec(16, sectionCount * 16, 16), chunk.size());
         assertEquals(new Vec(chunkX * 16, minSection * 16, chunkZ * 16), chunk.absoluteStart());
         assertEquals(new Vec(chunkX * 16 + 16, maxSection * 16, chunkZ * 16 + 16), chunk.absoluteEnd());
@@ -111,11 +112,11 @@ public class GeneratorTest {
 
     @Test
     public void sectionSize() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int sectionX = 3;
         final int sectionY = -5;
         final int sectionZ = -2;
-        GenerationUnit section = GeneratorImpl.section(minecraftServer, new Section(minecraftServer), sectionX, sectionY, sectionZ);
+        GenerationUnit section = GeneratorImpl.section(serverProcess, new Section(serverProcess), sectionX, sectionY, sectionZ);
         assertEquals(new Vec(16), section.size());
         assertEquals(new Vec(sectionX * 16, sectionY * 16, sectionZ * 16), section.absoluteStart());
         assertEquals(new Vec(sectionX * 16 + 16, sectionY * 16 + 16, sectionZ * 16 + 16), section.absoluteEnd());
@@ -123,15 +124,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkSubdivide() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        GenerationUnit chunk = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        GenerationUnit chunk = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         var subUnits = chunk.subdivide();
         assertEquals(sectionCount, subUnits.size());
         for (int i = 0; i < sectionCount; i++) {
@@ -144,15 +145,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkAbsolute() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             assertThrows(Exception.class, () -> modifier.setBlock(0, 0, 0, Block.STONE), "Block outside of chunk");
@@ -166,15 +167,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkAbsoluteAll() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = 0;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             Set<Point> points = new HashSet<>();
@@ -195,15 +196,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkRelative() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             assertThrows(Exception.class, () -> modifier.setRelative(-1, 0, 0, Block.STONE));
@@ -223,15 +224,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkRelativeAll() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             Set<Point> points = new HashSet<>();
@@ -253,15 +254,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkBiomeSet() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             modifier.setBiome(48, 0, -32, Biome.PLAINS);
@@ -275,15 +276,15 @@ public class GeneratorTest {
 
     @Test
     public void chunkBiomeFill() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int chunkX = 3;
         final int chunkZ = -2;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
             modifier.fillBiome(Biome.PLAINS);
@@ -297,13 +298,13 @@ public class GeneratorTest {
 
     @Test
     public void chunkFillHeightExact() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), 3, -2);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), 3, -2);
         Generator generator = chunk -> chunk.modifier().fillHeight(0, 32, Block.STONE);
         generator.generate(chunkUnits);
 
@@ -322,13 +323,13 @@ public class GeneratorTest {
 
     @Test
     public void chunkFillHeightOneOff() {
-        MinecraftServer minecraftServer = new MinecraftServer();
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
         final int minSection = -1;
         final int maxSection = 5;
         final int sectionCount = maxSection - minSection;
         Section[] sections = new Section[sectionCount];
-        Arrays.setAll(sections, i -> new Section(minecraftServer));
-        var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), 3, -2);
+        Arrays.setAll(sections, i -> new Section(serverProcess));
+        var chunkUnits = GeneratorImpl.chunk(serverProcess, minSection, maxSection, List.of(sections), 3, -2);
         Generator generator = chunk -> chunk.modifier().fillHeight(1, 33, Block.STONE);
         generator.generate(chunkUnits);
 
@@ -361,16 +362,16 @@ public class GeneratorTest {
 
     @Test
     public void sectionFill() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        Section section = new Section(minecraftServer);
-        var chunkUnit = GeneratorImpl.section(minecraftServer, section, -1, -1, 0);
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        Section section = new Section(serverProcess);
+        var chunkUnit = GeneratorImpl.section(serverProcess, section, -1, -1, 0);
         Generator generator = chunk -> chunk.modifier().fill(Block.STONE);
         generator.generate(chunkUnit);
         section.blockPalette().getAll((x, y, z, value) ->
                 assertEquals(Block.STONE.stateId(), value));
     }
 
-    static GenerationUnit dummyUnit(MinecraftServer minecraftServer, Point start, Point end) {
-        return unit(minecraftServer,null, start, end, null);
+    static GenerationUnit dummyUnit(ServerProcess serverProcess, Point start, Point end) {
+        return unit(serverProcess,null, start, end, null);
     }
 }

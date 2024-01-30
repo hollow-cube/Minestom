@@ -1,6 +1,6 @@
 package net.minestom.server.network.player;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.entity.fakeplayer.FakePlayerController;
@@ -14,8 +14,8 @@ import java.net.SocketAddress;
 
 public class FakePlayerConnection extends PlayerConnection {
 
-    public FakePlayerConnection(MinecraftServer minecraftServer) {
-        super(minecraftServer);
+    public FakePlayerConnection(ServerProcess serverProcess) {
+        super(serverProcess);
     }
 
     @Override

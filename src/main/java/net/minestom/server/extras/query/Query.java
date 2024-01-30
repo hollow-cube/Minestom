@@ -3,7 +3,6 @@ package net.minestom.server.extras.query;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.extras.query.event.BasicQueryEvent;
 import net.minestom.server.extras.query.event.FullQueryEvent;
@@ -40,12 +39,10 @@ public class Query {
     private volatile DatagramSocket socket;
     private volatile Thread thread;
     private volatile Task task;
-    private final MinecraftServer minecraftServer;
     private final ServerProcess serverProcess;
 
-    public Query(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        this.serverProcess = minecraftServer.process();
+    public Query(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     /**
@@ -186,12 +183,12 @@ public class Query {
                     int remaining = data.remaining();
 
                     if (remaining == 0) { // basic
-                        BasicQueryEvent event = new BasicQueryEvent(minecraftServer, sender, sessionID);
-                        minecraftServer.process().getGlobalEventHandler().callCancellable(event, () ->
+                        BasicQueryEvent event = new BasicQueryEvent(serverProcess, sender, sessionID);
+                        serverProcess.getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     } else if (remaining == 5) { // full
-                        FullQueryEvent event = new FullQueryEvent(minecraftServer, sender, sessionID);
-                        minecraftServer.process().getGlobalEventHandler().callCancellable(event, () ->
+                        FullQueryEvent event = new FullQueryEvent(serverProcess, sender, sessionID);
+                        serverProcess.getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     }
                 }

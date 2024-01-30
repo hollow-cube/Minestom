@@ -1,11 +1,11 @@
 package net.minestom.server.entity.ai.goal;
 
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.ai.GoalSelector;
 import net.minestom.server.entity.ai.TargetSelector;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.coordinate.Point;
 import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ import java.time.temporal.TemporalUnit;
  */
 public class MeleeAttackGoal extends GoalSelector {
 
-    private final Cooldown cooldown = new Cooldown(Duration.of(5, TimeUnit.SERVER_TICK));
+    private final Cooldown cooldown;
 
     private long lastHit;
     private final double range;
@@ -47,6 +47,7 @@ public class MeleeAttackGoal extends GoalSelector {
         super(entityCreature);
         this.range = range;
         this.delay = delay;
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getMinecraftServer())));
     }
 
     public @NotNull Cooldown getCooldown() {

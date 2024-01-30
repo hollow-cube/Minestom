@@ -12,7 +12,7 @@ public class AnimationListener {
         final ItemStack itemStack = player.getItemInHand(hand);
         //itemStack.onLeftClick(player, hand);
         PlayerHandAnimationEvent handAnimationEvent = new PlayerHandAnimationEvent(player, hand);
-        player.minecraftServer.process().getGlobalEventHandler().callCancellable(handAnimationEvent, () -> {
+        player.getServerProcess().getGlobalEventHandler().callCancellable(handAnimationEvent, () -> {
             switch (hand) {
                 case MAIN -> player.swingMainHand();
                 case OFF -> player.swingOffHand();

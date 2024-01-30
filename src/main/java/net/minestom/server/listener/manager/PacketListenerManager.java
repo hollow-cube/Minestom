@@ -1,6 +1,6 @@
 package net.minestom.server.listener.manager;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.listener.*;
 import net.minestom.server.listener.common.KeepAliveListener;
@@ -36,10 +36,10 @@ public final class PacketListenerManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(PacketListenerManager.class);
 
     private final Map<Class<? extends ClientPacket>, PacketPrePlayListenerConsumer>[] listeners = new Map[ConnectionState.values().length];
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public PacketListenerManager(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public PacketListenerManager(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         for (int i = 0; i < listeners.length; i++) {
             listeners[i] = new ConcurrentHashMap<>();
         }
@@ -119,7 +119,7 @@ public final class PacketListenerManager {
         // Event
         if (state == ConnectionState.PLAY) {
             PlayerPacketEvent playerPacketEvent = new PlayerPacketEvent(connection.getPlayer(), packet);
-            minecraftServer.process().getGlobalEventHandler().call(playerPacketEvent);
+            serverProcess.getGlobalEventHandler().call(playerPacketEvent);
             if (playerPacketEvent.isCancelled()) {
                 return;
             }
@@ -130,7 +130,7 @@ public final class PacketListenerManager {
             packetListenerConsumer.accept(packet, connection);
         } catch (Exception e) {
             // Packet is likely invalid
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
         }
     }
 

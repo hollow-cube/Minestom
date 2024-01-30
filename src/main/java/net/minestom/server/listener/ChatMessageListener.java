@@ -18,7 +18,7 @@ public class ChatMessageListener {
     public static void commandChatListener(ClientCommandChatPacket packet, Player player) {
         final String command = packet.message();
         if (Messenger.canReceiveCommand(player)) {
-            player.minecraftServer.process().getCommandManager().execute(player, command);
+            player.getServerProcess().getCommandManager().execute(player, command);
         } else {
             Messenger.sendRejectionMessage(player);
         }
@@ -31,11 +31,11 @@ public class ChatMessageListener {
             return;
         }
 
-        final Collection<Player> players = player.minecraftServer.process().getConnectionManager().getOnlinePlayers();
+        final Collection<Player> players = player.getServerProcess().getConnectionManager().getOnlinePlayers();
         PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> buildDefaultChatMessage(player, message), message);
 
         // Call the event
-        player.minecraftServer.process().getGlobalEventHandler().callCancellable(playerChatEvent, () -> {
+        player.getServerProcess().getGlobalEventHandler().callCancellable(playerChatEvent, () -> {
             final Function<PlayerChatEvent, Component> formatFunction = playerChatEvent.getChatFormatFunction();
 
             Component textObject;
@@ -51,7 +51,7 @@ public class ChatMessageListener {
             final Collection<Player> recipients = playerChatEvent.getRecipients();
             if (!recipients.isEmpty()) {
                 // delegate to the messenger to avoid sending messages we shouldn't be
-                Messenger.sendMessage(player.getMinecraftServer(), recipients, textObject, ChatPosition.CHAT, player.getUuid());
+                Messenger.sendMessage(player.getServerProcess(), recipients, textObject, ChatPosition.CHAT, player.getUuid());
             }
         });
     }

@@ -1,5 +1,6 @@
 package net.minestom.server;
 
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.minestom.server.advancements.AdvancementManager;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.adventure.bossbar.BossBarManager;
@@ -27,11 +28,19 @@ import net.minestom.server.world.biomes.BiomeManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 @ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface ServerProcess extends Snapshotable {
+    ComponentLogger LOGGER = ComponentLogger.logger(ServerProcess.class);
+    static ServerProcess of(ServerSettings serverSettings) {
+        return new ServerProcessImpl(serverSettings);
+    }
+
+    ServerSettings getMinecraftServer();
+
     /**
      * Handles incoming connections/players.
      */
@@ -135,6 +144,10 @@ public interface ServerProcess extends Snapshotable {
     @NotNull Ticker ticker();
 
     void start(@NotNull SocketAddress socketAddress);
+
+    default void start(@NotNull String hostname, int port) {
+        start(new InetSocketAddress(hostname, port));
+    }
 
     void stop();
 

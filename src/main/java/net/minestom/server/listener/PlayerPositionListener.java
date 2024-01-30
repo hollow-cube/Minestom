@@ -53,7 +53,7 @@ public class PlayerPositionListener {
         }
 
         PlayerMoveEvent playerMoveEvent = new PlayerMoveEvent(player, packetPosition, onGround);
-        player.minecraftServer.process().getGlobalEventHandler().call(playerMoveEvent);
+        player.getServerProcess().getGlobalEventHandler().call(playerMoveEvent);
         if (!currentPosition.equals(player.getPosition())) {
             // Player has been teleported in the event
             return;

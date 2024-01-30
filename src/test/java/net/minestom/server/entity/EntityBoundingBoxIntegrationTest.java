@@ -58,7 +58,7 @@ public class EntityBoundingBoxIntegrationTest {
         final var instance = env.createFlatInstance();
         final var listener = env.listen(PickupItemEvent.class);
         final var spawnPos = new Pos(0, 42, 0);
-        final var entity = new LivingEntity(env.minecraftServer(), EntityType.ZOMBIE);
+        final var entity = new LivingEntity(env.process(), EntityType.ZOMBIE);
         entity.setCanPickupItem(true);
         entity.setInstance(instance, spawnPos).join();
 
@@ -74,7 +74,7 @@ public class EntityBoundingBoxIntegrationTest {
     }
 
     private void dropItem(final Instance instance, final Pos position) {
-        final var entity = new ItemEntity(instance.getMinecraftServer(), ItemStack.of(Material.STONE));
+        final var entity = new ItemEntity(instance.getServerProcess(), ItemStack.of(Material.STONE));
         entity.hasPhysics = false;
         entity.setNoGravity(true);
         entity.setInstance(instance, position).join();

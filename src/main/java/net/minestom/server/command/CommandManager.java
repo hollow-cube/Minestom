@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
@@ -35,12 +35,12 @@ public final class CommandManager {
     private final Set<Command> commands = new HashSet<>();
 
     private CommandCallback unknownCommandCallback;
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public CommandManager(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        this.serverSender = new ServerSender(minecraftServer);
-        this.consoleSender = new ConsoleSender(minecraftServer);
+    public CommandManager(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
+        this.serverSender = new ServerSender(serverProcess);
+        this.consoleSender = new ConsoleSender(serverProcess);
     }
 
     /**
@@ -110,7 +110,7 @@ public final class CommandManager {
             // Command event
             if (sender instanceof Player player) {
                 PlayerCommandEvent playerCommandEvent = new PlayerCommandEvent(player, command);
-                minecraftServer.process().getGlobalEventHandler().call(playerCommandEvent);
+                serverProcess.getGlobalEventHandler().call(playerCommandEvent);
                 if (playerCommandEvent.isCancelled())
                     return CommandResult.of(CommandResult.Type.CANCELLED, command);
                 command = playerCommandEvent.getCommand();
@@ -143,7 +143,7 @@ public final class CommandManager {
                     try {
                         callable.call();
                     } catch (Exception e) {
-                        minecraftServer.process().getExceptionManager().handleException(e);
+                        serverProcess.getExceptionManager().handleException(e);
                     }
                 });
                 return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
@@ -151,7 +151,7 @@ public final class CommandManager {
                 return callable.call();
             }
         } catch (Exception e) {
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
             return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
         }
     }

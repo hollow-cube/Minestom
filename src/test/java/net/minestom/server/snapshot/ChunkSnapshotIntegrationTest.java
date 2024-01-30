@@ -14,7 +14,7 @@ public class ChunkSnapshotIntegrationTest {
     public void blocks(Env env) {
         var instance = env.createFlatInstance();
         instance.setBlock(0, 0, 0, Block.STONE);
-        var snapshot = ServerSnapshot.update(env.minecraftServer());
+        var snapshot = ServerSnapshot.update(env.process());
 
         var inst = snapshot.instances().iterator().next();
         assertEquals(Block.STONE, inst.getBlock(0, 0, 0));

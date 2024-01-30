@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
 import net.minestom.server.event.entity.EntityItemMergeEvent;
 import net.minestom.server.instance.EntityTracker;
@@ -22,7 +22,7 @@ public class ItemEntity extends Entity {
     /**
      * Used to slow down the merge check delay
      */
-    private static Duration mergeDelay = Duration.of(10, TimeUnit.SERVER_TICK);
+    private Duration mergeDelay;
 
     /**
      * The last time that this item has checked his neighbors for merge
@@ -38,10 +38,11 @@ public class ItemEntity extends Entity {
     private long spawnTime;
     private long pickupDelay;
 
-    public ItemEntity(@NotNull MinecraftServer minecraftServer, @NotNull ItemStack itemStack) {
-        super(minecraftServer, EntityType.ITEM);
+    public ItemEntity(@NotNull ServerProcess serverProcess, @NotNull ItemStack itemStack) {
+        super(serverProcess, EntityType.ITEM);
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
+        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverProcess.getMinecraftServer()));
     }
 
     /**
@@ -50,7 +51,7 @@ public class ItemEntity extends Entity {
      * @return the merge update option
      */
     @Nullable
-    public static Duration getMergeDelay() {
+    public Duration getMergeDelay() {
         return mergeDelay;
     }
 
@@ -60,8 +61,8 @@ public class ItemEntity extends Entity {
      *
      * @param delay the new merge delay
      */
-    public static void setMergeDelay(@Nullable Duration delay) {
-        ItemEntity.mergeDelay = delay;
+    public void setMergeDelay(@Nullable Duration delay) {
+        mergeDelay = delay;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class ItemEntity extends Entity {
                         if (!stackingRule.canApply(itemStack, totalAmount)) return;
                         final ItemStack result = stackingRule.apply(itemStack, totalAmount);
                         EntityItemMergeEvent entityItemMergeEvent = new EntityItemMergeEvent(this, itemEntity, result);
-                        minecraftServer.process().getGlobalEventHandler().callCancellable(entityItemMergeEvent, () -> {
+                        getServerProcess().getGlobalEventHandler().callCancellable(entityItemMergeEvent, () -> {
                             setItemStack(entityItemMergeEvent.getResult());
                             itemEntity.remove();
                         });

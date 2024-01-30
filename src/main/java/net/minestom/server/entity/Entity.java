@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
 import net.minestom.server.Tickable;
 import net.minestom.server.Viewable;
@@ -92,7 +91,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     private static final AtomicInteger LAST_ENTITY_ID = new AtomicInteger();
 
     private final CachedPacket destroyPacketCache;
-    public final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     protected Instance instance;
     protected Chunk currentChunk;
@@ -180,8 +179,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     private final Acquirable<Entity> acquirable = Acquirable.of(this);
 
-    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this.minecraftServer = minecraftServer;
+    public Entity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this.serverProcess = serverProcess;
         this.id = generateId();
         this.entityType = entityType;
         this.uuid = uuid;
@@ -199,18 +198,17 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.gravityAcceleration = entityType.registry().acceleration();
         this.gravityDragPerTick = entityType.registry().drag();
 
-        final ServerProcess process = minecraftServer.process();
-        if (process != null) {
-            this.eventNode = process.getGlobalEventHandler().map(this, EventFilter.ENTITY);
+        if (serverProcess != null) {
+            this.eventNode = serverProcess.getGlobalEventHandler().map(this, EventFilter.ENTITY);
         } else {
             // Local nodes require a server process
             this.eventNode = null;
         }
-        destroyPacketCache = new CachedPacket(minecraftServer, () -> new DestroyEntitiesPacket(getEntityId()));
+        destroyPacketCache = new CachedPacket(serverProcess, () -> new DestroyEntitiesPacket(getEntityId()));
     }
 
-    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
-        this(minecraftServer, entityType, UUID.randomUUID());
+    public Entity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
+        this(serverProcess, entityType, UUID.randomUUID());
     }
 
     /**
@@ -564,7 +562,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             update(time);
 
             ticks++;
-            minecraftServer.process().getGlobalEventHandler().call(new EntityTickEvent(this));
+            serverProcess.getGlobalEventHandler().call(new EntityTickEvent(this));
 
             // remove expired effects
             effectTick(time);
@@ -584,7 +582,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         if (!hasVelocity && noGravity) {
             return;
         }
-        final float tps = MinecraftServer.TICK_PER_SECOND;
+        final float tps = serverProcess.getMinecraftServer().getTickPerSecond();
         final Pos positionBeforeMove = getPosition();
         final Vec currentVelocity = getVelocity();
         final boolean wasOnGround = this.onGround;
@@ -683,7 +681,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                         z * drag
                 ))
                 // Convert from block/tick to block/sec
-                .mul(MinecraftServer.TICK_PER_SECOND)
+                .mul(serverProcess.getMinecraftServer().getTickPerSecond())
                 // Prevent infinitely decreasing velocity
                 .apply(Vec.Operator.EPSILON);
     }
@@ -728,12 +726,12 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         effects.removeIf(timedPotion -> {
             long duration = timedPotion.getPotion().duration();
             if (duration == Potion.INFINITE_DURATION) return false;
-            final long potionTime = duration * MinecraftServer.TICK_MS;
+            final long potionTime = duration * serverProcess.getMinecraftServer().getTickMs();
             // Remove if the potion should be expired
             if (time >= timedPotion.getStartingTime() + potionTime) {
                 // Send the packet that the potion should no longer be applied
                 timedPotion.getPotion().sendRemovePacket(this);
-                minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -848,7 +846,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     @ApiStatus.Internal
     protected void refreshCurrentChunk(Chunk currentChunk) {
         this.currentChunk = currentChunk;
-        minecraftServer.process().dispatcher().updateElement(this, currentChunk);
+        serverProcess.dispatcher().updateElement(this, currentChunk);
     }
 
     /**
@@ -877,7 +875,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             return teleport(spawnPosition); // Already in the instance, teleport to spawn point
         }
         AddEntityToInstanceEvent event = new AddEntityToInstanceEvent(instance, this);
-        minecraftServer.process().getGlobalEventHandler().call(event);
+        serverProcess.getGlobalEventHandler().call(event);
         if (event.isCancelled()) return null; // TODO what to return?
 
         if (previousInstance != null) removeFromInstance(previousInstance);
@@ -896,9 +894,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                 }
                 instance.getEntityTracker().register(this, spawnPosition, trackingTarget, trackingUpdate);
                 spawn();
-                minecraftServer.process().getGlobalEventHandler().call(new EntitySpawnEvent(this, instance));
+                serverProcess.getGlobalEventHandler().call(new EntitySpawnEvent(this, instance));
             } catch (Exception e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
         });
     }
@@ -921,7 +919,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     private void removeFromInstance(Instance instance) {
-        minecraftServer.process().getGlobalEventHandler().call(new RemoveEntityFromInstanceEvent(instance, this));
+        serverProcess.getGlobalEventHandler().call(new RemoveEntityFromInstanceEvent(instance, this));
         instance.getEntityTracker().unregister(this, trackingTarget, trackingUpdate);
         this.viewEngine.forManuals(this::removeViewer);
     }
@@ -944,7 +942,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      */
     public void setVelocity(@NotNull Vec velocity) {
         EntityVelocityEvent entityVelocityEvent = new EntityVelocityEvent(this, velocity);
-        minecraftServer.process().getGlobalEventHandler().callCancellable(entityVelocityEvent, () -> {
+        serverProcess.getGlobalEventHandler().callCancellable(entityVelocityEvent, () -> {
             this.velocity = entityVelocityEvent.getVelocity();
             sendPacketToViewersAndSelf(getVelocityPacket());
         });
@@ -1333,21 +1331,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         final Chunk chunk = getChunk();
         if (distanceX > 8 || distanceY > 8 || distanceZ > 8) {
-            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
+            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
             this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         } else if (positionChange && viewChange) {
-            PacketUtils.prepareViewablePacket(minecraftServer, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
             // Fix head rotation
-            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
         } else if (positionChange) {
             // This is a confusing fix for a confusing issue. If rotation is only sent when the entity actually changes, then spawning an entity
             // on the ground causes the entity not to update its rotation correctly. It works fine if the entity is spawned in the air. Very weird.
-            PacketUtils.prepareViewablePacket(minecraftServer, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, onGround), this);
         } else if (viewChange) {
-            PacketUtils.prepareViewablePacket(minecraftServer, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
-            PacketUtils.prepareViewablePacket(minecraftServer,chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverProcess, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverProcess,chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
         }
         this.lastSyncedPosition = position;
@@ -1462,7 +1460,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         removeEffect(potion.effect());
         this.effects.add(new TimedPotion(potion, System.currentTimeMillis()));
         potion.sendAddPacket(this);
-        minecraftServer.process().getGlobalEventHandler().call(new EntityPotionAddEvent(this, potion));
+        serverProcess.getGlobalEventHandler().call(new EntityPotionAddEvent(this, potion));
     }
 
     /**
@@ -1474,7 +1472,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.effects.removeIf(timedPotion -> {
             if (timedPotion.getPotion().effect() == effect) {
                 timedPotion.getPotion().sendRemovePacket(this);
-                minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -1517,7 +1515,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void clearEffects() {
         for (TimedPotion timedPotion : effects) {
             timedPotion.getPotion().sendRemovePacket(this);
-            minecraftServer.process().getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+            serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
         }
         this.effects.clear();
     }
@@ -1533,11 +1531,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     protected void remove(boolean permanent) {
         if (isRemoved()) return;
-        minecraftServer.process().getGlobalEventHandler().call(new EntityDespawnEvent(this));
+        serverProcess.getGlobalEventHandler().call(new EntityDespawnEvent(this));
         try {
             despawn();
         } catch (Throwable t) {
-            minecraftServer.process().getExceptionManager().handleException(t);
+            serverProcess.getExceptionManager().handleException(t);
         }
 
         // Remove passengers if any (also done with LivingEntity#kill)
@@ -1546,7 +1544,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         final Entity vehicle = this.vehicle;
         if (vehicle != null) vehicle.removePassenger(this);
 
-        minecraftServer.process().dispatcher().removeElement(this);
+        serverProcess.dispatcher().removeElement(this);
         this.removed = true;
         if (permanent) {
             Entity.ENTITY_BY_ID.remove(id);
@@ -1582,7 +1580,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @param temporalUnit the unit of the delay
      */
     public void scheduleRemove(long delay, @NotNull TemporalUnit temporalUnit) {
-        if (temporalUnit == TimeUnit.SERVER_TICK) {
+        if (temporalUnit.equals(TimeUnit.getServerTick(serverProcess.getMinecraftServer()))) {
             scheduleRemove(TaskSchedule.tick((int) delay));
         } else {
             scheduleRemove(Duration.of(delay, temporalUnit));
@@ -1603,7 +1601,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     protected @NotNull Vec getVelocityForPacket() {
-        return this.velocity.mul(8000f / MinecraftServer.TICK_PER_SECOND);
+        return this.velocity.mul(8000f / serverProcess.getMinecraftServer().getTickPerSecond());
     }
 
     protected @NotNull EntityVelocityPacket getVelocityPacket() {
@@ -1632,7 +1630,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     protected void synchronizePosition(boolean includeSelf) {
         final Pos posCache = this.position;
         final ServerPacket packet = new EntityTeleportPacket(getEntityId(), posCache, isOnGround());
-        PacketUtils.prepareViewablePacket(minecraftServer, currentChunk, packet, this);
+        PacketUtils.prepareViewablePacket(serverProcess, currentChunk, packet, this);
         this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         this.lastSyncedPosition = posCache;
     }
@@ -1710,9 +1708,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void takeKnockback(float strength, final double x, final double z) {
         if (strength > 0) {
             //TODO check possible side effects of unnatural TPS (other than 20TPS)
-            strength *= MinecraftServer.TICK_PER_SECOND;
+            strength *= serverProcess.getMinecraftServer().getTickPerSecond();
             final Vec velocityModifier = new Vec(x, z).normalize().mul(strength);
-            final double verticalLimit = .4d * MinecraftServer.TICK_PER_SECOND;
+            final double verticalLimit = .4d * serverProcess.getMinecraftServer().getTickPerSecond();
 
             setVelocity(new Vec(velocity.x() / 2d - velocityModifier.x(),
                     onGround ? Math.min(verticalLimit, velocity.y() / 2d + strength) : velocity.y(),
@@ -1832,8 +1830,8 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 
     public enum Pose {

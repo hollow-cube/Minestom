@@ -1,6 +1,6 @@
 package net.minestom.server.utils.async;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,12 +15,12 @@ public final class AsyncUtils {
         return (CompletableFuture<T>) VOID_FUTURE;
     }
 
-    public static @NotNull CompletableFuture<Void> runAsync(MinecraftServer minecraftServer, @NotNull Runnable runnable) {
+    public static @NotNull CompletableFuture<Void> runAsync(ServerProcess serverProcess, @NotNull Runnable runnable) {
         return CompletableFuture.runAsync(() -> {
             try {
                 runnable.run();
             } catch (Exception e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
         });
     }

@@ -92,7 +92,7 @@ public class EntityMetaIntegrationTest {
         var incomingPackets = connection.trackIncoming(EntityMetaDataPacket.class);
 
         //Creates entity and name.
-        Entity entity = new Entity(env.minecraftServer(), EntityType.BEE);
+        Entity entity = new Entity(env.process(), EntityType.BEE);
         entity.setAutoViewable(false);
         entity.getEntityMeta().setNotifyAboutChanges(false);
         entity.setCustomName(Component.text("Custom Name"));

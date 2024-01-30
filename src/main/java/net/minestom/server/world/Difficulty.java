@@ -1,9 +1,12 @@
 package net.minestom.server.world;
 
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
+
 /**
  * Those are all the difficulties which can be displayed in the player menu.
  * <p>
- * Sets with {@link net.minestom.server.MinecraftServer#setDifficulty(Difficulty)}.
+ * Sets with {@link ServerSettings#setDifficulty(Difficulty, ServerProcess)}.
  */
 public enum Difficulty {
 

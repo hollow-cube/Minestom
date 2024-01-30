@@ -99,7 +99,7 @@ public class HeldClickIntegrationTest {
     public void heldExternal(Env env) {
         var instance = env.createFlatInstance();
         var player = env.createPlayer(instance, new Pos(0, 40, 0));
-        var inventory = new Inventory(env.minecraftServer(), InventoryType.HOPPER, "test");
+        var inventory = new Inventory(env.process(), InventoryType.HOPPER, "test");
         var playerInv = player.getInventory();
         player.openInventory(inventory);
         var listener = env.listen(InventoryPreClickEvent.class);

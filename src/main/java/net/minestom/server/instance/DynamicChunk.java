@@ -2,7 +2,6 @@ package net.minestom.server.instance;
 
 import com.extollit.gaming.ai.path.model.ColumnarOcclusionFieldList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -51,15 +50,13 @@ public class DynamicChunk extends Chunk {
 
     private long lastChange;
     final CachedPacket chunkCache;
-    public final MinecraftServer minecraftServer;
 
     public DynamicChunk(@NotNull Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ, true);
-        this.minecraftServer = instance.minecraftServer;
         var sectionsTemp = new Section[maxSection - minSection];
-        Arrays.setAll(sectionsTemp, value -> new Section(minecraftServer));
+        Arrays.setAll(sectionsTemp, value -> new Section(getServerProcess()));
         this.sections = List.of(sectionsTemp);
-        chunkCache = new CachedPacket(minecraftServer, this::createChunkPacket);
+        chunkCache = new CachedPacket(getServerProcess(), this::createChunkPacket);
     }
 
     @Override
@@ -183,7 +180,7 @@ public class DynamicChunk extends Chunk {
         final Section section = getSectionAt(y);
         final int id = section.biomePalette()
                 .get(toSectionRelativeCoordinate(x) / 4, toSectionRelativeCoordinate(y) / 4, toSectionRelativeCoordinate(z) / 4);
-        return minecraftServer.process().getBiomeManager().getById(id);
+        return getServerProcess().getBiomeManager().getById(id);
     }
 
     @Override
@@ -316,7 +313,7 @@ public class DynamicChunk extends Chunk {
             clonedSections[i] = sections.get(i).clone();
         var entities = instance.getEntityTracker().chunkEntities(chunkX, chunkZ, EntityTracker.Target.ENTITIES);
         final int[] entityIds = ArrayUtils.mapToIntArray(entities, Entity::getEntityId);
-        return new SnapshotImpl.Chunk(minecraftServer, minSection, chunkX, chunkZ,
+        return new SnapshotImpl.Chunk(getServerProcess(), minSection, chunkX, chunkZ,
                 clonedSections, entries.clone(), entityIds, updater.reference(instance),
                 tagHandler().readableCopy());
     }
@@ -366,10 +363,5 @@ public class DynamicChunk extends Chunk {
         }
 
         return data;
-    }
-
-    @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
     }
 }

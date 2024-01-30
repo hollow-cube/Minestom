@@ -26,6 +26,7 @@ import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.snapshot.*;
 import net.minestom.server.thread.Acquirable;
 import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.TickSchedulerThread;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.PropertyUtils;
@@ -71,36 +72,40 @@ final class ServerProcessImpl implements ServerProcess {
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
-    private final MinecraftServer minecraftServer;
+    private final ServerSettings serverSettings;
     private final Audiences audiences;
     private final MojangAuth mojangAuth;
 
-    public ServerProcessImpl(MinecraftServer minecraftServer) throws IOException {
-        minecraftServer.serverProcess = this;
-        this.minecraftServer = minecraftServer;
-        this.exceptionManager = new ExceptionManager(minecraftServer);
-        this.packetListenerManager = new PacketListenerManager(minecraftServer);
+    public ServerProcessImpl(ServerSettings serverSettings) {
+        this.serverSettings = serverSettings;
+        this.exceptionManager = new ExceptionManager(this);
+        this.packetListenerManager = new PacketListenerManager(this);
         this.packetProcessor = new PacketProcessor(packetListenerManager);
-        this.instanceManager = new InstanceManager(minecraftServer);
+        this.instanceManager = new InstanceManager(this);
         this.blockManager = new BlockManager();
-        this.commandManager = new CommandManager(minecraftServer);
+        this.commandManager = new CommandManager(this);
         this.recipeManager = new RecipeManager();
-        this.teamManager = new TeamManager(minecraftServer);
-        this.globalEventHandler = new GlobalEventHandler(minecraftServer);
+        this.teamManager = new TeamManager(this);
+        this.globalEventHandler = new GlobalEventHandler(this);
         this.schedulerManager = new SchedulerManager();
-        this.benchmarkManager = new BenchmarkManager(minecraftServer);
+        this.benchmarkManager = new BenchmarkManager(this);
         this.dimensionTypeManager = new DimensionTypeManager();
         this.biomeManager = new BiomeManager();
-        this.advancementManager = new AdvancementManager(minecraftServer);
-        this.bossBarManager = new BossBarManager(minecraftServer);
+        this.advancementManager = new AdvancementManager(this);
+        this.bossBarManager = new BossBarManager(this);
         this.tagManager = new TagManager();
-        this.connectionManager = new ConnectionManager(minecraftServer, tagManager);
-        this.server = new Server(minecraftServer, packetProcessor);
-        this.mojangAuth = new MojangAuth(minecraftServer);
-        this.audiences = new Audiences(minecraftServer);
+        this.connectionManager = new ConnectionManager(this, tagManager);
+        this.server = new Server(this, packetProcessor);
+        this.mojangAuth = new MojangAuth(this);
+        this.audiences = new Audiences(this);
 
-        this.dispatcher = ThreadDispatcher.singleThread(minecraftServer);
+        this.dispatcher = ThreadDispatcher.singleThread(this);
         this.ticker = new TickerImpl();
+    }
+
+    @Override
+    public ServerSettings getMinecraftServer() {
+        return serverSettings;
     }
 
     @Override
@@ -209,7 +214,7 @@ final class ServerProcessImpl implements ServerProcess {
             throw new IllegalStateException("Server already started");
         }
 
-        LOGGER.info("Starting " + minecraftServer.getBrandName() + " server.");
+        LOGGER.info("Starting " + serverSettings.getBrandName() + " server.");
 
         // Init server
         try {
@@ -222,24 +227,26 @@ final class ServerProcessImpl implements ServerProcess {
         // Start server
         server.start();
 
-        LOGGER.info(minecraftServer.getBrandName() + " server started successfully.");
+        LOGGER.info(serverSettings.getBrandName() + " server started successfully.");
 
         // Stop the server on SIGINT
         if (SHUTDOWN_ON_SIGNAL) Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+
+        new TickSchedulerThread(this).start();
     }
 
     @Override
     public void stop() {
         if (!stopped.compareAndSet(false, true))
             return;
-        LOGGER.info("Stopping " + minecraftServer.getBrandName() + " server.");
+        LOGGER.info("Stopping " + serverSettings.getBrandName() + " server.");
         schedulerManager.shutdown();
         connectionManager.shutdown();
         server.stop();
         LOGGER.info("Shutting down all thread pools.");
         benchmarkManager.disable();
         dispatcher.shutdown();
-        LOGGER.info(minecraftServer.getBrandName() + " server stopped successfully.");
+        LOGGER.info(serverSettings.getBrandName() + " server stopped successfully.");
     }
 
     @Override

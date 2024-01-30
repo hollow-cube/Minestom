@@ -17,10 +17,10 @@ public class AbilitiesListener {
 
             if (isFlying) {
                 PlayerStartFlyingEvent startFlyingEvent = new PlayerStartFlyingEvent(player);
-                player.minecraftServer.process().getGlobalEventHandler().call(startFlyingEvent);
+                player.getServerProcess().getGlobalEventHandler().call(startFlyingEvent);
             } else {
                 PlayerStopFlyingEvent stopFlyingEvent = new PlayerStopFlyingEvent(player);
-                player.minecraftServer.process().getGlobalEventHandler().call(stopFlyingEvent);
+                player.getServerProcess().getGlobalEventHandler().call(stopFlyingEvent);
             }
         }
     }

@@ -37,7 +37,7 @@ public class LightingChunk extends DynamicChunk {
     private static final ExecutorService pool = Executors.newWorkStealingPool();
 
     private int[] heightmap;
-    final CachedPacket lightCache = new CachedPacket(minecraftServer, this::createLightPacket);
+    final CachedPacket lightCache = new CachedPacket(getServerProcess(), this::createLightPacket);
     boolean sendNeighbours = true;
     boolean chunkLoaded = false;
 
@@ -256,7 +256,7 @@ public class LightingChunk extends DynamicChunk {
             return;
         }
 
-        sendingTask = chunk.minecraftServer.process().getSchedulerManager().scheduleTask(() -> {
+        sendingTask = chunk.getServerProcess().getSchedulerManager().scheduleTask(() -> {
             queueLock.lock();
             var copy = new ArrayList<>(sendQueue);
             sendQueue.clear();

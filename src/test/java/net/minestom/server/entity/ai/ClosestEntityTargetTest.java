@@ -18,19 +18,19 @@ public class ClosestEntityTargetTest {
     public void validFindTarget(Env env) {
         var instance = env.createFlatInstance();
 
-        var self = new EntityCreature(env.minecraftServer(), EntityType.ZOMBIE);
+        var self = new EntityCreature(env.process(), EntityType.ZOMBIE);
         self.setInstance(instance, new Pos(0, 42, 0)).join();
 
-        var spider = new EntityCreature(env.minecraftServer(), EntityType.SPIDER);
+        var spider = new EntityCreature(env.process(), EntityType.SPIDER);
         spider.setInstance(instance, new Pos(-3, 42, -3)).join();
 
-        var secondSpider = new EntityCreature(env.minecraftServer(), EntityType.SPIDER);
+        var secondSpider = new EntityCreature(env.process(), EntityType.SPIDER);
         secondSpider.setInstance(instance, new Pos(-4, 42, -4)).join();
 
-        var skeleton = new EntityCreature(env.minecraftServer(), EntityType.SKELETON);
+        var skeleton = new EntityCreature(env.process(), EntityType.SKELETON);
         skeleton.setInstance(instance, new Pos(5, 42, 5)).join();
 
-        var zombie = new EntityCreature(env.minecraftServer(), EntityType.ZOMBIE);
+        var zombie = new EntityCreature(env.process(), EntityType.ZOMBIE);
         zombie.setInstance(instance, new Pos(10, 42, -10)).join();
 
         assertEquals(5, instance.getEntities().size(), "Not all entities are in the instance");

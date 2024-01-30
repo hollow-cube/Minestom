@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
 import net.kyori.adventure.sound.Sound.Source;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.attribute.AttributeInstance;
 import net.minestom.server.collision.BoundingBox;
@@ -45,7 +45,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
 
     // ItemStack pickup
     protected boolean canPickupItem;
-    protected Cooldown itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.SERVER_TICK));
+    protected Cooldown itemPickupCooldown;
 
     protected boolean isDead;
 
@@ -86,13 +86,14 @@ public class LivingEntity extends Entity implements EquipmentHandler {
     /**
      * Constructor which allows to specify an UUID. Only use if you know what you are doing!
      */
-    public LivingEntity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        super(minecraftServer, entityType, uuid);
+    public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        super(serverProcess, entityType, uuid);
         initEquipments();
+        itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(serverProcess.getMinecraftServer())));
     }
 
-    public LivingEntity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
-        this(minecraftServer, entityType, UUID.randomUUID());
+    public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
+        this(serverProcess, entityType, UUID.randomUUID());
     }
 
     private void initEquipments() {
@@ -179,7 +180,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
 
     private ItemStack getEquipmentItem(@NotNull ItemStack itemStack, @NotNull EquipmentSlot slot) {
         EntityEquipEvent entityEquipEvent = new EntityEquipEvent(this, itemStack, slot);
-        minecraftServer.process().getGlobalEventHandler().call(entityEquipEvent);
+        getServerProcess().getGlobalEventHandler().call(entityEquipEvent);
         return entityEquipEvent.getEquippedItem();
     }
 
@@ -199,7 +200,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
                         if (!itemEntity.isPickable()) return;
                         if (expandedBoundingBox.intersectEntity(loweredPosition, itemEntity)) {
                             PickupItemEvent pickupItemEvent = new PickupItemEvent(this, itemEntity);
-                            minecraftServer.process().getGlobalEventHandler().callCancellable(pickupItemEvent, () -> {
+                            getServerProcess().getGlobalEventHandler().callCancellable(pickupItemEvent, () -> {
                                 final ItemStack item = itemEntity.getItemStack();
                                 sendPacketToViewersAndSelf(new CollectItemPacket(itemEntity.getEntityId(), getEntityId(), item.amount()));
                                 itemEntity.remove();
@@ -267,7 +268,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         }
 
         EntityDeathEvent entityDeathEvent = new EntityDeathEvent(this);
-        minecraftServer.process().getGlobalEventHandler().call(entityDeathEvent);
+        getServerProcess().getGlobalEventHandler().call(entityDeathEvent);
     }
 
     /**
@@ -276,7 +277,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
      * @param duration duration in ticks of the effect
      */
     public void setFireForDuration(int duration) {
-        setFireForDuration(duration, TimeUnit.SERVER_TICK);
+        setFireForDuration(duration, TimeUnit.getServerTick(getServerProcess().getMinecraftServer()));
     }
 
     /**
@@ -301,7 +302,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
 
         // Do not start fire event if the fire needs to be removed (< 0 duration)
         if (duration.toMillis() > 0) {
-            minecraftServer.process().getGlobalEventHandler().callCancellable(entityFireEvent, () -> {
+            getServerProcess().getGlobalEventHandler().callCancellable(entityFireEvent, () -> {
                 final long fireTime = entityFireEvent.getFireTime(TimeUnit.MILLISECOND);
                 setOnFire(true);
                 fireExtinguishTime = System.currentTimeMillis() + fireTime;
@@ -329,7 +330,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         }
 
         EntityDamageEvent entityDamageEvent = new EntityDamageEvent(this, damage, damage.getSound(this));
-        minecraftServer.process().getGlobalEventHandler().callCancellable(entityDamageEvent, () -> {
+        getServerProcess().getGlobalEventHandler().callCancellable(entityDamageEvent, () -> {
             // Set the last damage type since the event is not cancelled
             this.lastDamage = entityDamageEvent.getDamage();
 

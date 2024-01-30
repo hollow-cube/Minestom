@@ -41,7 +41,7 @@ public class SpectateListener {
         // Despite the name of this packet being spectate, it is sent when the player
         // uses their hotbar to switch between entities, which actually performs a teleport
         // instead of a spectate.
-        player.minecraftServer.process().getGlobalEventHandler().call(new PlayerSpectateEvent(player, target));
+        player.getServerProcess().getGlobalEventHandler().call(new PlayerSpectateEvent(player, target));
     }
 
 }

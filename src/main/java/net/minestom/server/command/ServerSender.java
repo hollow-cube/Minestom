@@ -2,7 +2,7 @@ package net.minestom.server.command;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
@@ -24,10 +24,10 @@ public class ServerSender implements CommandSender {
     private final Set<Permission> permissions = Collections.unmodifiableSet(new HashSet<>());
     private final TagHandler tagHandler = TagHandler.newHandler();
 
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public ServerSender(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public ServerSender(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     @NotNull
@@ -47,7 +47,7 @@ public class ServerSender implements CommandSender {
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public ServerProcess getServerProcess() {
+        return serverProcess;
     }
 }

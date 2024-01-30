@@ -15,9 +15,9 @@ public class EntitySnapshotIntegrationTest {
     @Test
     public void basic(Env env) {
         var instance = env.createFlatInstance();
-        var ent = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var ent = new Entity(env.process(), EntityType.ZOMBIE);
         ent.setInstance(instance).join();
-        var snapshot = ServerSnapshot.update(env.minecraftServer());
+        var snapshot = ServerSnapshot.update(env.process());
 
         var inst = snapshot.instances().iterator().next();
         var entities = inst.entities();

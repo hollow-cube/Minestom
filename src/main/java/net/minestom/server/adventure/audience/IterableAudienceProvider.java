@@ -2,7 +2,7 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +20,11 @@ import java.util.stream.StreamSupport;
 class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Audience>> {
     private final List<ConsoleSender> console;
     private final AudienceRegistry registry = new AudienceRegistry(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new);
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    protected IterableAudienceProvider(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
-        this.console = List.of(minecraftServer.process().getCommandManager().getConsoleSender());
+    protected IterableAudienceProvider(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
+        this.console = List.of(serverProcess.getCommandManager().getConsoleSender());
     }
 
     @Override
@@ -38,12 +38,12 @@ class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Au
 
     @Override
     public @NotNull Iterable<? extends Audience> players() {
-        return minecraftServer.process().getConnectionManager().getOnlinePlayers();
+        return serverProcess.getConnectionManager().getOnlinePlayers();
     }
 
     @Override
     public @NotNull Iterable<? extends Audience> players(@NotNull Predicate<Player> filter) {
-        return minecraftServer.process().getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
+        return serverProcess.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
     }
 
     @Override

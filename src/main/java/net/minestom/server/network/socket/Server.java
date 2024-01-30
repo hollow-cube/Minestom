@@ -1,6 +1,6 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.network.PacketProcessor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +25,8 @@ public final class Server {
 
     private volatile boolean stop;
 
-    private final Selector selector = Selector.open();
-    private final MinecraftServer minecraftServer;
+    private final Selector selector;
+    private final ServerProcess serverProcess;
     private final PacketProcessor packetProcessor;
     private final List<Worker> workers;
     private int index;
@@ -36,12 +36,17 @@ public final class Server {
     private String address;
     private int port;
 
-    public Server(MinecraftServer minecraftServer, PacketProcessor packetProcessor) throws IOException {
-        this.minecraftServer = minecraftServer;
+    public Server(ServerProcess serverProcess, PacketProcessor packetProcessor) {
+        this.serverProcess = serverProcess;
         this.packetProcessor = packetProcessor;
         Worker[] workers = new Worker[WORKER_COUNT];
-        Arrays.setAll(workers, value -> new Worker(minecraftServer,this));
+        Arrays.setAll(workers, value -> new Worker(serverProcess,this));
         this.workers = List.of(workers);
+        try {
+            this.selector = Selector.open();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @ApiStatus.Internal
@@ -90,7 +95,7 @@ public final class Server {
                         }
                     });
                 } catch (IOException e) {
-                    minecraftServer.process().getExceptionManager().handleException(e);
+                    serverProcess.getExceptionManager().handleException(e);
                 }
             }
         }, "Ms-entrypoint").start();
@@ -115,7 +120,7 @@ public final class Server {
                 Files.deleteIfExists(unixDomainSocketAddress.getPath());
             }
         } catch (IOException e) {
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
         }
         this.selector.wakeup();
         this.workers.forEach(worker -> worker.selector.wakeup());

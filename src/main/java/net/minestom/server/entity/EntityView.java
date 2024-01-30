@@ -228,7 +228,7 @@ final class EntityView {
             final Point point = trackedLocation.point();
 
             Int2ObjectOpenHashMap<T> entityMap = new Int2ObjectOpenHashMap<>(lastSize);
-            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, entity.minecraftServer.getEntityViewDistance(), target,
+            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, entity.getServerProcess().getMinecraftServer().getEntityViewDistance(), target,
                     (entity) -> entityMap.putIfAbsent(entity.getEntityId(), entity));
             this.lastSize = entityMap.size();
             return entityMap.values();

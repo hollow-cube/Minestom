@@ -25,7 +25,7 @@ public class TeleportCommand extends Command {
 
     private void onPlayerTeleport(CommandSender sender, CommandContext context) {
         final String playerName = context.get("player");
-        Player pl = sender.getMinecraftServer().process().getConnectionManager().getOnlinePlayerByUsername(playerName);
+        Player pl = sender.getServerProcess().getConnectionManager().getOnlinePlayerByUsername(playerName);
         if (sender instanceof Player player) {
             player.teleport(pl.getPosition());
         }

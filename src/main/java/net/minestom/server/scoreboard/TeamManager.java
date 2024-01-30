@@ -2,7 +2,7 @@ package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.utils.PacketUtils;
@@ -23,13 +23,13 @@ public final class TeamManager {
      * Represents all registered teams
      */
     private final Set<Team> teams;
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
     /**
      * Default constructor
      */
-    public TeamManager(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public TeamManager(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
         this.teams = new CopyOnWriteArraySet<>();
     }
 
@@ -40,7 +40,7 @@ public final class TeamManager {
      */
     protected void registerNewTeam(@NotNull Team team) {
         this.teams.add(team);
-        PacketUtils.broadcastPlayPacket(minecraftServer, team.createTeamsCreationPacket());
+        PacketUtils.broadcastPlayPacket(serverProcess, team.createTeamsCreationPacket());
     }
 
     /**
@@ -63,7 +63,7 @@ public final class TeamManager {
      */
     public boolean deleteTeam(@NotNull Team team) {
         // Sends to all online players a team destroy packet
-        PacketUtils.broadcastPlayPacket(minecraftServer, team.createTeamDestructionPacket());
+        PacketUtils.broadcastPlayPacket(serverProcess, team.createTeamDestructionPacket());
         return this.teams.remove(team);
     }
 
@@ -74,7 +74,7 @@ public final class TeamManager {
      * @return the team builder
      */
     public TeamBuilder createBuilder(@NotNull String name) {
-        return new TeamBuilder(minecraftServer, name, this);
+        return new TeamBuilder(serverProcess, name, this);
     }
 
     /**

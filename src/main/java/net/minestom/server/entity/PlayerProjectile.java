@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.collision.CollisionUtils;
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.ShapeImpl;
@@ -23,8 +23,8 @@ public class PlayerProjectile extends LivingEntity {
     private final Entity shooter;
     private long cooldown = 0;
 
-    public PlayerProjectile(MinecraftServer minecraftServer, Entity shooter, EntityType type) {
-        super(minecraftServer, type);
+    public PlayerProjectile(ServerProcess serverProcess, Entity shooter, EntityType type) {
+        super(serverProcess, type);
         this.shooter = shooter;
         this.hasCollision = false;
         setup();
@@ -50,7 +50,7 @@ public class PlayerProjectile extends LivingEntity {
         // Check if we're inside of a block
         if (insideBlock != null) {
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(spawnPosition), instance.getBlock(spawnPosition));
-            minecraftServer.process().getGlobalEventHandler().call(e);
+            getServerProcess().getGlobalEventHandler().call(e);
         }
 
         return res;
@@ -86,7 +86,7 @@ public class PlayerProjectile extends LivingEntity {
         dz += random.nextGaussian() * spread;
 
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, from, power, spread);
-        minecraftServer.process().getGlobalEventHandler().call(shootEvent);
+        getServerProcess().getGlobalEventHandler().call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;
@@ -148,7 +148,7 @@ public class PlayerProjectile extends LivingEntity {
         if (collided != null && collided.collisionShapes()[0] != shooter) {
             if (collided.collisionShapes()[0] instanceof Entity entity) {
                 var e = new ProjectileCollideWithEntityEvent(this, collided.newPosition(), entity);
-                minecraftServer.process().getGlobalEventHandler().call(e);
+                getServerProcess().getGlobalEventHandler().call(e);
                 return;
             }
         }
@@ -172,7 +172,7 @@ public class PlayerProjectile extends LivingEntity {
             if (hitBlock == null) return;
 
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(hitPoint), hitBlock);
-            minecraftServer.process().getGlobalEventHandler().call(e);
+            getServerProcess().getGlobalEventHandler().call(e);
         }
     }
 }

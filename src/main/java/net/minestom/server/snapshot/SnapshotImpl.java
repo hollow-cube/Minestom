@@ -1,7 +1,7 @@
 package net.minestom.server.snapshot;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.EntityType;
@@ -75,7 +75,7 @@ public final class SnapshotImpl {
         }
     }
 
-    public record Chunk(MinecraftServer minecraftServer,
+    public record Chunk(ServerProcess serverProcess,
                         int minSection, int chunkX, int chunkZ,
                         Section[] sections,
                         Int2ObjectOpenHashMap<Block> blockEntries,
@@ -104,7 +104,7 @@ public final class SnapshotImpl {
             final Section section = sections[getChunkCoordinate(y) - minSection];
             final int id = section.biomePalette()
                     .get(toSectionRelativeCoordinate(x) / 4, toSectionRelativeCoordinate(y) / 4, toSectionRelativeCoordinate(z) / 4);
-            return minecraftServer.process().getBiomeManager().getById(id);
+            return serverProcess.getBiomeManager().getById(id);
         }
 
         @Override

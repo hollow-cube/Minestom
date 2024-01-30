@@ -1,6 +1,7 @@
 package net.minestom.server.event;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.event.trait.PlayerEvent;
 import org.junit.jupiter.api.Test;
@@ -14,13 +15,13 @@ public class EventNodeQueryTest {
 
     @Test
     public void find() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer, "main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess, "main");
         assertEquals(List.of(), node.findChildren("test"));
 
-        var child1 = EventNode.all(minecraftServer,"test");
-        var child2 = EventNode.all(minecraftServer,"test");
-        var child3 = EventNode.all(minecraftServer,"test3");
+        var child1 = EventNode.all(serverProcess,"test");
+        var child2 = EventNode.all(serverProcess,"test");
+        var child3 = EventNode.all(serverProcess,"test3");
 
         node.addChild(child1);
         node.addChild(child2);
@@ -36,13 +37,13 @@ public class EventNodeQueryTest {
 
     @Test
     public void findType() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
         assertEquals(List.of(), node.findChildren("test", Event.class));
 
-        var child1 = EventNode.type(minecraftServer, "test", EventFilter.PLAYER);
-        var child2 = EventNode.type(minecraftServer, "test", EventFilter.ENTITY);
-        var child3 = EventNode.type(minecraftServer, "test3", EventFilter.ENTITY);
+        var child1 = EventNode.type(serverProcess, "test", EventFilter.PLAYER);
+        var child2 = EventNode.type(serverProcess, "test", EventFilter.ENTITY);
+        var child3 = EventNode.type(serverProcess, "test3", EventFilter.ENTITY);
 
         node.addChild(child1);
         node.addChild(child2);
@@ -62,19 +63,19 @@ public class EventNodeQueryTest {
 
     @Test
     public void replace() {
-        MinecraftServer minecraftServer = new MinecraftServer();
-        var node = EventNode.all(minecraftServer,"main");
+        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        var node = EventNode.all(serverProcess,"main");
 
-        var child1 = EventNode.all(minecraftServer,"test");
-        var child2 = EventNode.all(minecraftServer,"test");
-        var child3 = EventNode.all(minecraftServer,"test3");
+        var child1 = EventNode.all(serverProcess,"test");
+        var child2 = EventNode.all(serverProcess,"test");
+        var child3 = EventNode.all(serverProcess,"test3");
 
         node.addChild(child1);
         node.addChild(child2);
         node.addChild(child3);
 
-        var tmp1 = EventNode.all(minecraftServer,"tmp1");
-        var tmp2 = EventNode.all(minecraftServer,"tmp2");
+        var tmp1 = EventNode.all(serverProcess,"tmp1");
+        var tmp2 = EventNode.all(serverProcess,"tmp2");
 
         node.replaceChildren("test", tmp1);
         assertEqualsIgnoreOrder(List.of(child2), node.findChildren("test"));

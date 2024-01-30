@@ -1,7 +1,7 @@
 package net.minestom.server.inventory;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.click.ClickType;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Represents an inventory which can be viewed by a collection of {@link Player}.
  * <p>
- * You can create one with {@link Inventory#Inventory(MinecraftServer, InventoryType, String)} or by making your own subclass.
+ * You can create one with {@link Inventory#Inventory(ServerProcess, InventoryType, String)} or by making your own subclass.
  * It can then be opened using {@link Player#openInventory(Inventory)}.
  */
 public non-sealed class Inventory extends AbstractInventory implements Viewable {
@@ -45,8 +45,8 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     // (player -> cursor item) map, used by the click listeners
     private final ConcurrentHashMap<Player, ItemStack> cursorPlayersItem = new ConcurrentHashMap<>();
 
-    public Inventory(@NotNull MinecraftServer minecraftServer, @NotNull InventoryType inventoryType, @NotNull Component title) {
-        super(minecraftServer, inventoryType.getSize());
+    public Inventory(@NotNull ServerProcess serverProcess, @NotNull InventoryType inventoryType, @NotNull Component title) {
+        super(serverProcess, inventoryType.getSize());
         this.id = generateId();
         this.inventoryType = inventoryType;
         this.title = title;
@@ -54,8 +54,8 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
         this.offset = getSize();
     }
 
-    public Inventory(@NotNull MinecraftServer minecraftServer, @NotNull InventoryType inventoryType, @NotNull String title) {
-        this(minecraftServer, inventoryType, Component.text(title));
+    public Inventory(@NotNull ServerProcess serverProcess, @NotNull InventoryType inventoryType, @NotNull String title) {
+        this(serverProcess, inventoryType, Component.text(title));
     }
 
     private static byte generateId() {
@@ -231,7 +231,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
+        callClickEvent(getServerProcess().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -254,7 +254,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
+        callClickEvent(getServerProcess().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -304,7 +304,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         playerInventory.setItemStack(convertedKey, clickResult.getCursor());
-        callClickEvent(minecraftServer.process().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
+        callClickEvent(getServerProcess().getGlobalEventHandler(), player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
         return true;
     }
 
@@ -391,10 +391,5 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     private void updateAll(Player player) {
         player.getInventory().update();
         update(player);
-    }
-
-    @Override
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
     }
 }

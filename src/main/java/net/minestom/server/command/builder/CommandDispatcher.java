@@ -2,7 +2,7 @@ package net.minestom.server.command.builder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandParser;
 import net.minestom.server.command.CommandSender;
@@ -26,8 +26,8 @@ public class CommandDispatcher {
         this.manager = manager;
     }
 
-    public CommandDispatcher(MinecraftServer minecraftServer) {
-        this(new CommandManager(minecraftServer));
+    public CommandDispatcher(ServerProcess serverProcess) {
+        this(new CommandManager(serverProcess));
     }
 
     /**

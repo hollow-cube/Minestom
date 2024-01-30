@@ -15,7 +15,7 @@ public class EntityViewDirectionIntegrationTest {
     @Test
     public void viewYawAndPitch(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var entity = new Entity(env.process(), EntityType.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
         entity.setView(0, 0);
         assertEquals(0, entity.getPosition().yaw());
@@ -50,7 +50,7 @@ public class EntityViewDirectionIntegrationTest {
     @Test
     public void lookAtPos(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var entity = new Entity(env.process(), EntityType.ZOMBIE);
         double eyeHeight = entity.getEyeHeight(); // adding this to some position Y coordinates, to look horizontally
         
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
@@ -90,8 +90,8 @@ public class EntityViewDirectionIntegrationTest {
     public void lookAtEntitySameType(Env env) {
         var instance = env.createFlatInstance();
         // same type, same eye height
-        var e1 = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
-        var e2 = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var e1 = new Entity(env.process(), EntityType.ZOMBIE);
+        var e2 = new Entity(env.process(), EntityType.ZOMBIE);
         e1.setInstance(instance, new Pos(0, 40, 0)).join();
         e2.setInstance(instance, new Pos(0, 40, 0)).join();
 
@@ -124,9 +124,9 @@ public class EntityViewDirectionIntegrationTest {
     public void lookAtEntityDifferentType(Env env) {
         var instance = env.createFlatInstance();
         // same type, same eye height
-        var e1 = new Entity(env.minecraftServer(), EntityType.ZOMBIE);
+        var e1 = new Entity(env.process(), EntityType.ZOMBIE);
         // a chicken has a lower eye height than a zombie
-        var e2 = new Entity(env.minecraftServer(), EntityType.CHICKEN);
+        var e2 = new Entity(env.process(), EntityType.CHICKEN);
         e1.setInstance(instance, new Pos(0, 40, 0)).join();
         e2.setInstance(instance, new Pos(0, 40, 0)).join();
 

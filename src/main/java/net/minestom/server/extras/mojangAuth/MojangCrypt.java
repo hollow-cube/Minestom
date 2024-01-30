@@ -1,6 +1,6 @@
 package net.minestom.server.extras.mojangAuth;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +13,10 @@ import java.security.*;
 
 public final class MojangCrypt {
     private final Logger LOGGER = LoggerFactory.getLogger(MojangCrypt.class);
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
 
-    public MojangCrypt(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public MojangCrypt(ServerProcess serverProcess) {
+        this.serverProcess = serverProcess;
     }
 
     public @Nullable KeyPair generateKeyPair() {
@@ -25,7 +25,7 @@ public final class MojangCrypt {
             keyGen.initialize(1024);
             return keyGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
             LOGGER.error("Key pair generation failed!");
             return null;
         }
@@ -35,7 +35,7 @@ public final class MojangCrypt {
         try {
             return digestData("SHA-1", data.getBytes("ISO_8859_1"), secretKey.getEncoded(), publicKey.getEncoded());
         } catch (UnsupportedEncodingException e) {
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
             return null;
         }
     }
@@ -48,7 +48,7 @@ public final class MojangCrypt {
             }
             return digest.digest();
         } catch (NoSuchAlgorithmException e) {
-            minecraftServer.process().getExceptionManager().handleException(e);
+            serverProcess.getExceptionManager().handleException(e);
             return null;
         }
     }
@@ -65,7 +65,7 @@ public final class MojangCrypt {
         try {
             return setupCipher(mode, key.getAlgorithm(), key).doFinal(data);
         } catch (IllegalBlockSizeException | BadPaddingException var4) {
-            minecraftServer.process().getExceptionManager().handleException(var4);
+            serverProcess.getExceptionManager().handleException(var4);
         }
         LOGGER.error("Cipher data failed!");
         return null;
@@ -77,7 +77,7 @@ public final class MojangCrypt {
             cipher4.init(mode, key);
             return cipher4;
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException var4) {
-            minecraftServer.process().getExceptionManager().handleException(var4);
+            serverProcess.getExceptionManager().handleException(var4);
         }
         LOGGER.error("Cipher creation failed!");
         return null;

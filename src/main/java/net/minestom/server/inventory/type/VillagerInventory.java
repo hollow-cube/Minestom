@@ -1,7 +1,7 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
@@ -21,14 +21,14 @@ public class VillagerInventory extends Inventory {
     private boolean regularVillager;
     private boolean canRestock;
 
-    public VillagerInventory(MinecraftServer minecraftServer, @NotNull Component title) {
-        super(minecraftServer, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(minecraftServer, this::createTradePacket);
+    public VillagerInventory(ServerProcess serverProcess, @NotNull Component title) {
+        super(serverProcess, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(serverProcess, this::createTradePacket);
     }
 
-    public VillagerInventory(MinecraftServer minecraftServer, @NotNull String title) {
-        super(minecraftServer, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(minecraftServer, this::createTradePacket);
+    public VillagerInventory(ServerProcess serverProcess, @NotNull String title) {
+        super(serverProcess, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(serverProcess, this::createTradePacket);
     }
 
     public List<TradeListPacket.Trade> getTrades() {

@@ -1,6 +1,6 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.thread.MinestomThread;
 import net.minestom.server.utils.ObjectPool;
@@ -25,13 +25,13 @@ public final class Worker extends MinestomThread {
 
     final Selector selector;
     private final Map<SocketChannel, PlayerSocketConnection> connectionMap = new ConcurrentHashMap<>();
-    private final MinecraftServer minecraftServer;
+    private final ServerProcess serverProcess;
     private final Server server;
     private final MpscUnboundedXaddArrayQueue<Runnable> queue = new MpscUnboundedXaddArrayQueue<>(1024);
 
-    Worker(MinecraftServer minecraftServer, Server server) {
+    Worker(ServerProcess serverProcess, Server server) {
         super("Ms-worker-" + COUNTER.getAndIncrement());
-        this.minecraftServer = minecraftServer;
+        this.serverProcess = serverProcess;
         this.server = server;
         try {
             this.selector = Selector.open();
@@ -51,7 +51,7 @@ public final class Worker extends MinestomThread {
                 try {
                     this.queue.drain(Runnable::run);
                 } catch (Exception e) {
-                    minecraftServer.process().getExceptionManager().handleException(e);
+                    serverProcess.getExceptionManager().handleException(e);
                 }
                 // Flush all connections if needed
                 for (PlayerSocketConnection connection : connectionMap.values()) {
@@ -88,12 +88,12 @@ public final class Worker extends MinestomThread {
                         // TODO print exception? (should ignore disconnection)
                         connection.disconnect();
                     } catch (Throwable t) {
-                        minecraftServer.process().getExceptionManager().handleException(t);
+                        serverProcess.getExceptionManager().handleException(t);
                         connection.disconnect();
                     }
                 });
             } catch (Exception e) {
-                minecraftServer.process().getExceptionManager().handleException(e);
+                serverProcess.getExceptionManager().handleException(e);
             }
         }
     }
@@ -113,7 +113,7 @@ public final class Worker extends MinestomThread {
     }
 
     void receiveConnection(SocketChannel channel) throws IOException {
-        this.connectionMap.put(channel, new PlayerSocketConnection(minecraftServer, this, channel, channel.getRemoteAddress()));
+        this.connectionMap.put(channel, new PlayerSocketConnection(serverProcess, this, channel, channel.getRemoteAddress()));
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
         if (channel.getLocalAddress() instanceof InetSocketAddress) {
