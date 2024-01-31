@@ -1,6 +1,6 @@
 package net.minestom.server.permission;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import org.jglrxavpok.hephaistos.nbt.NBT;
@@ -20,12 +20,12 @@ public class TestPermissions {
     private Player player;
 
     private Permission permission1, permission2, permission3, wildcard;
-    private ServerProcess serverProcess;
+    private ServerFacade serverFacade;
 
     @BeforeEach
     public void init() {
-        serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        player = new Player(serverProcess, UUID.randomUUID(), "TestPlayer", null) {
+        serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        player = new Player(serverFacade, UUID.randomUUID(), "TestPlayer", null) {
             @Override
             protected void playerConnectionInit() {
             }

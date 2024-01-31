@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Represents something which can be displayed or hidden to players.
  */
-public interface Viewable extends ServerObject {
+public interface Viewable {
 
     /**
      * Adds a viewer.
@@ -58,31 +58,33 @@ public interface Viewable extends ServerObject {
      *
      * @param packet the packet to send to all viewers
      */
-    default void sendPacketToViewers(@NotNull SendablePacket packet) {
+    default void sendPacketToViewers(ServerSettings serverSettings, @NotNull SendablePacket packet) {
         if (packet instanceof ServerPacket serverPacket) {
-            PacketUtils.sendGroupedPacket(getServerProcess().getServerSetting(), getViewers(), serverPacket);
+            PacketUtils.sendGroupedPacket(serverSettings, getViewers(), serverPacket);
         } else {
             getViewers().forEach(player -> player.sendPacket(packet));
         }
     }
 
-    default void sendPacketsToViewers(@NotNull Collection<SendablePacket> packets) {
-        packets.forEach(this::sendPacketToViewers);
+    default void sendPacketsToViewers(ServerSettings serverSettings, @NotNull Collection<SendablePacket> packets) {
+        for (SendablePacket packet : packets) {
+            sendPacketToViewers(serverSettings, packet);
+        }
     }
 
-    default void sendPacketsToViewers(@NotNull SendablePacket... packets) {
-        sendPacketsToViewers(List.of(packets));
+    default void sendPacketsToViewers(ServerSettings serverSettings, @NotNull SendablePacket... packets) {
+        sendPacketsToViewers(serverSettings, List.of(packets));
     }
 
     /**
      * Sends a packet to all viewers and the viewable element if it is a player.
      * <p>
-     * If 'this' isn't a player, then only {@link #sendPacketToViewers(SendablePacket)} is called.
+     * If 'this' isn't a player, then only {@link #sendPacketToViewers(ServerSettings, SendablePacket)} is called.
      *
      * @param packet the packet to send
      */
-    default void sendPacketToViewersAndSelf(@NotNull SendablePacket packet) {
-        sendPacketToViewers(packet);
+    default void sendPacketToViewersAndSelf(ServerSettings serverSettings, @NotNull SendablePacket packet) {
+        sendPacketToViewers(serverSettings, packet);
     }
 
     /**
@@ -90,8 +92,8 @@ public interface Viewable extends ServerObject {
      *
      * @return the audience
      */
-    default @NotNull Audience getViewersAsAudience() {
-        return PacketGroupingAudience.of(getServerProcess(), this.getViewers());
+    default @NotNull Audience getViewersAsAudience(ServerSettings serverSettings) {
+        return PacketGroupingAudience.of(serverSettings, this.getViewers());
     }
 
     /**

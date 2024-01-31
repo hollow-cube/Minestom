@@ -1,5 +1,6 @@
 package net.minestom.demo.commands;
 
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -11,18 +12,19 @@ import net.minestom.server.utils.entity.EntityFinder;
 
 public class RemoveCommand extends Command {
 
-    public RemoveCommand() {
+
+    public RemoveCommand(ServerFacade serverFacade) {
         super("remove");
-        addSubcommand(new RemoveEntities());
+        addSubcommand(new RemoveEntities(serverFacade));
     }
 
     static class RemoveEntities extends Command {
         private final ArgumentEntity entity;
 
-        public RemoveEntities() {
+        public RemoveEntities(ServerFacade serverFacade) {
             super("entities");
             setCondition(Conditions::playerOnly);
-            entity = ArgumentType.Entity("entity");
+            entity = ArgumentType.Entity("entity", serverFacade.getInstanceManager(), serverFacade.getConnectionManager());
             addSyntax(this::remove, entity);
         }
 

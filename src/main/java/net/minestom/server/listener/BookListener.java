@@ -11,7 +11,7 @@ public class BookListener {
     public static void listener(ClientEditBookPacket packet, Player player) {
         int slot = PlayerInventoryUtils.convertClientInventorySlot(packet.slot());
         ItemStack itemStack = player.getInventory().getItemStack(slot);
-        player.getServerProcess().getGlobalEventHandler().call(new EditBookEvent(player, itemStack, packet.pages(), packet.title()));
+        player.getGlobalEventHandler().call(new EditBookEvent(player, itemStack, packet.pages(), packet.title()));
     }
 
 }

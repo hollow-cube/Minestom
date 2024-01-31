@@ -9,7 +9,7 @@ public class AdvancementTabListener {
     public static void listener(ClientAdvancementTabPacket packet, Player player) {
         final String tabIdentifier = packet.tabIdentifier();
         if (tabIdentifier != null) {
-            player.getServerProcess().getGlobalEventHandler().call(new AdvancementTabEvent(player, packet.action(), tabIdentifier));
+            player.getGlobalEventHandler().call(new AdvancementTabEvent(player, packet.action(), tabIdentifier));
         }
     }
 }

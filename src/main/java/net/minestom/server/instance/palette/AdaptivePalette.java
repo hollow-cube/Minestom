@@ -2,7 +2,6 @@ package net.minestom.server.instance.palette;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -14,11 +13,9 @@ import java.util.function.IntUnaryOperator;
  */
 final class AdaptivePalette implements Palette, Cloneable {
     final byte dimension, defaultBitsPerEntry, maxBitsPerEntry;
-    private final ServerProcess serverProcess;
     SpecializedPalette palette;
 
-    AdaptivePalette(ServerProcess serverProcess, byte dimension, byte maxBitsPerEntry, byte bitsPerEntry) {
-        this.serverProcess = serverProcess;
+    AdaptivePalette(byte dimension, byte maxBitsPerEntry, byte bitsPerEntry) {
         validateDimension(dimension);
         this.dimension = dimension;
         this.maxBitsPerEntry = maxBitsPerEntry;
@@ -59,7 +56,7 @@ final class AdaptivePalette implements Palette, Cloneable {
 
     @Override
     public void setAll(@NotNull EntrySupplier supplier) {
-        SpecializedPalette newPalette = new FlexiblePalette(serverProcess, this);
+        SpecializedPalette newPalette = new FlexiblePalette(this);
         newPalette.setAll(supplier);
         this.palette = newPalette;
     }
@@ -142,7 +139,7 @@ final class AdaptivePalette implements Palette, Cloneable {
     Palette flexiblePalette() {
         SpecializedPalette currentPalette = this.palette;
         if (currentPalette instanceof FilledPalette filledPalette) {
-            currentPalette = new FlexiblePalette(serverProcess, this);
+            currentPalette = new FlexiblePalette(this);
             currentPalette.fill(filledPalette.value());
             this.palette = currentPalette;
         }

@@ -2,7 +2,7 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
@@ -19,13 +19,16 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
     protected final IterableAudienceProvider collection;
     protected final Audience players;
     protected final Audience server;
-    @NotNull
-    private final ServerProcess serverProcess;
+    private final ServerSettings serverSettings;
+    private final ConnectionManager connectionManager;
+    private final CommandManager commandManager;
 
-    protected SingleAudienceProvider(ServerProcess serverProcess, ConnectionManager connectionManager, CommandManager commandManager) {
-        this.serverProcess = serverProcess;
-        this.collection = new IterableAudienceProvider(serverProcess, commandManager);
-        this.players = PacketGroupingAudience.of(serverProcess, connectionManager.getOnlinePlayers());
+    protected SingleAudienceProvider(ServerSettings serverSettings, ConnectionManager connectionManager, CommandManager commandManager) {
+        this.serverSettings = serverSettings;
+        this.connectionManager = connectionManager;
+        this.commandManager = commandManager;
+        this.collection = new IterableAudienceProvider(connectionManager, commandManager);
+        this.players = PacketGroupingAudience.of(serverSettings, connectionManager.getOnlinePlayers());
         this.server = Audience.audience(this.players, commandManager.getConsoleSender());
     }
 
@@ -50,12 +53,12 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
 
     @Override
     public @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(serverProcess, serverProcess.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(serverSettings, connectionManager.getOnlinePlayers().stream().filter(filter).toList());
     }
 
     @Override
     public @NotNull Audience console() {
-        return serverProcess.getCommandManager().getConsoleSender();
+        return commandManager.getConsoleSender();
     }
 
     @Override

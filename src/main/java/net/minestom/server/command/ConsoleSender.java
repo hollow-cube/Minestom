@@ -5,7 +5,6 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
 import org.jetbrains.annotations.NotNull;
@@ -26,12 +25,6 @@ public class ConsoleSender implements CommandSender {
     private final Pointers pointers = Pointers.builder()
             .withStatic(Identity.UUID, this.identity.uuid())
             .build();
-
-    private final ServerProcess serverProcess;
-
-    public ConsoleSender(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
-    }
 
     @Override
     public void sendMessage(@NotNull String message) {
@@ -57,11 +50,6 @@ public class ConsoleSender implements CommandSender {
     @Override
     public ConsoleSender asConsole() {
         return this;
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 
     @Override

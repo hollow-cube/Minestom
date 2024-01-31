@@ -1,5 +1,6 @@
 package net.minestom.server.inventory;
 
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
@@ -167,8 +168,10 @@ public interface EquipmentHandler {
 
         Entity entity = (Entity) this;
         final ItemStack itemStack = getEquipment(slot);
-        entity.sendPacketToViewers(new EntityEquipmentPacket(entity.getEntityId(), Map.of(slot, itemStack)));
+        entity.sendPacketToViewers(getServerSettings(), new EntityEquipmentPacket(entity.getEntityId(), Map.of(slot, itemStack)));
     }
+
+    ServerSettings getServerSettings();
 
     /**
      * Gets the packet with all the equipments.

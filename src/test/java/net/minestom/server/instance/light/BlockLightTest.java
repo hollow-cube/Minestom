@@ -1,6 +1,6 @@
 package net.minestom.server.instance.light;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
@@ -19,8 +19,8 @@ public class BlockLightTest {
 
     @Test
     public void empty() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         var result = LightCompute.compute(palette);
         for (byte light : result.light()) {
             assertEquals(0, light);
@@ -29,8 +29,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstone() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         var result = LightCompute.compute(palette);
         assertLight(result, Map.of(
@@ -41,8 +41,8 @@ public class BlockLightTest {
 
     @Test
     public void doubleGlowstone() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
 
@@ -56,8 +56,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstoneBorder() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         var result = LightCompute.compute(palette);
         assertLight(result, Map.of(
@@ -75,8 +75,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstoneBlock() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         palette.set(0, 1, 1, Block.STONE.stateId());
         var result = LightCompute.compute(palette);
@@ -88,8 +88,8 @@ public class BlockLightTest {
 
     @Test
     public void isolated() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
 
         palette.set(3, 1, 4, Block.STONE.stateId());
@@ -116,8 +116,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStair() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "east",
@@ -139,8 +139,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairOpposite() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "west",
@@ -167,8 +167,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairWest() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "west",
@@ -198,8 +198,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairSouth() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(serverFacade);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "south",

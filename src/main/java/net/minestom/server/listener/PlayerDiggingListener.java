@@ -58,7 +58,7 @@ public final class PlayerDiggingListener {
                 var registry = diggingResult.block().registry();
                 if (registry.isBlockEntity()) {
                     final NBTCompound data = BlockUtils.extractClientNbt(diggingResult.block());
-                    player.sendPacketToViewersAndSelf(new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
+                    player.sendPacketToViewersAndSelf(player.getServerSettings(), new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
                 }
             }
         }
@@ -82,7 +82,7 @@ public final class PlayerDiggingListener {
         final boolean instantBreak = player.isInstantBreak() || block.registry().hardness() == 0;
         if (!instantBreak) {
             PlayerStartDiggingEvent playerStartDiggingEvent = new PlayerStartDiggingEvent(player, block, blockPosition, blockFace);
-            player.getServerProcess().getGlobalEventHandler().call(playerStartDiggingEvent);
+            player.getGlobalEventHandler().call(playerStartDiggingEvent);
             return new DiggingResult(block, !playerStartDiggingEvent.isCancelled());
         }
         // Client only send a single STARTED_DIGGING when insta-break is enabled
@@ -92,7 +92,7 @@ public final class PlayerDiggingListener {
     private static DiggingResult cancelDigging(Player player, Instance instance, Point blockPosition) {
         final Block block = instance.getBlock(blockPosition);
         PlayerCancelDiggingEvent playerCancelDiggingEvent = new PlayerCancelDiggingEvent(player, block, blockPosition);
-        player.getServerProcess().getGlobalEventHandler().call(playerCancelDiggingEvent);
+        player.getGlobalEventHandler().call(playerCancelDiggingEvent);
         return new DiggingResult(block, true);
     }
 
@@ -104,7 +104,7 @@ public final class PlayerDiggingListener {
         }
 
         PlayerFinishDiggingEvent playerFinishDiggingEvent = new PlayerFinishDiggingEvent(player, block, blockPosition);
-        player.getServerProcess().getGlobalEventHandler().call(playerFinishDiggingEvent);
+        player.getGlobalEventHandler().call(playerFinishDiggingEvent);
 
         return breakBlock(instance, player, blockPosition, playerFinishDiggingEvent.getBlock(), blockFace);
     }
@@ -166,7 +166,7 @@ public final class PlayerDiggingListener {
         final ItemStack mainHand = inventory.getItemInMainHand();
         final ItemStack offHand = inventory.getItemInOffHand();
         PlayerSwapItemEvent swapItemEvent = new PlayerSwapItemEvent(player, offHand, mainHand);
-        player.getServerProcess().getGlobalEventHandler().callCancellable(swapItemEvent, () -> {
+        player.getGlobalEventHandler().callCancellable(swapItemEvent, () -> {
             inventory.setItemInMainHand(swapItemEvent.getMainHandItem());
             inventory.setItemInOffHand(swapItemEvent.getOffHandItem());
         });

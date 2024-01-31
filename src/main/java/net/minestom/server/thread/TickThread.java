@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Thread responsible for ticking {@link Chunk chunks} and {@link Entity entities}.
  * <p>
- * Created in {@link ThreadDispatcher}, and awaken every tick with a task to execute.
+ * Created in {@link ThreadDispatcherImpl}, and awaken every tick with a task to execute.
  */
 @ApiStatus.Internal
 public final class TickThread extends MinestomThread {
@@ -30,7 +30,7 @@ public final class TickThread extends MinestomThread {
     private CountDownLatch latch;
     private long tickTime;
     private long tickNum = 0;
-    private final List<ThreadDispatcher.Partition> entries = new ArrayList<>();
+    private final List<ThreadDispatcherImpl.Partition> entries = new ArrayList<>();
 
     public TickThread(ExceptionHandler exceptionHandler, int number) {
         super(ServerConsts.THREAD_NAME_TICK + "-" + number);
@@ -63,7 +63,7 @@ public final class TickThread extends MinestomThread {
     private void tick() {
         final ReentrantLock lock = this.lock;
         final long tickTime = this.tickTime;
-        for (ThreadDispatcher.Partition entry : entries) {
+        for (ThreadDispatcherImpl.Partition entry : entries) {
             assert entry.thread() == this;
             final List<Tickable> elements = entry.elements();
             if (elements.isEmpty()) continue;
@@ -95,7 +95,7 @@ public final class TickThread extends MinestomThread {
         LockSupport.unpark(this);
     }
 
-    public Collection<ThreadDispatcher.Partition> entries() {
+    public Collection<ThreadDispatcherImpl.Partition> entries() {
         return entries;
     }
 

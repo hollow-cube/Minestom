@@ -5,11 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.entity.Player;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.extras.bungee.BungeeCordProxy;
 import net.minestom.server.extras.velocity.VelocityProxy;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.network.packet.client.login.ClientEncryptionResponsePacket;
 import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
@@ -43,8 +45,7 @@ public final class LoginListener {
     private static final Component ALREADY_CONNECTED = Component.text("You are already on this server", NamedTextColor.RED);
     public static final Component INVALID_PROXY_RESPONSE = Component.text("Invalid proxy response!", NamedTextColor.RED);
 
-    public static void loginStartListener(@NotNull ClientLoginStartPacket packet, @NotNull PlayerConnection connection) {
-        MojangAuth mojangAuth = connection.getServerProcess().getMojangAuth();
+    public static void loginStartListener(MojangAuth mojangAuth, ConnectionManager connectionManager, @NotNull ClientLoginStartPacket packet, @NotNull PlayerConnection connection) {
         final boolean isSocketConnection = connection instanceof PlayerSocketConnection;
         // Proxy support (only for socket clients) and cache the login username
         if (isSocketConnection) {
@@ -63,7 +64,7 @@ public final class LoginListener {
 
         if (mojangAuth.isEnabled() && isSocketConnection) {
             // Mojang auth
-            if (connection.getServerProcess().getConnectionManager().getOnlinePlayerByUsername(packet.username()) != null) {
+            if (connectionManager.getOnlinePlayerByUsername(packet.username()) != null) {
                 connection.sendPacket(new LoginDisconnectPacket(ALREADY_CONNECTED));
                 connection.disconnect();
                 return;
@@ -80,16 +81,15 @@ public final class LoginListener {
             // Offline
             final UUID playerUuid = bungee && isSocketConnection ?
                     ((PlayerSocketConnection) connection).gameProfile().uuid() :
-                    connection.getServerProcess().getConnectionManager().getPlayerConnectionUuid(connection, packet.username());
-            connection.getServerProcess().getConnectionManager().createPlayer(connection, playerUuid, packet.username());
+                    connectionManager.getPlayerConnectionUuid(connection, packet.username());
+            connectionManager.createPlayer(connection, playerUuid, packet.username());
         }
     }
 
-    public static void loginEncryptionResponseListener(@NotNull ClientEncryptionResponsePacket packet, @NotNull PlayerConnection connection) {
+    public static void loginEncryptionResponseListener(MojangAuth mojangAuth, ExceptionHandler exceptionHandler, ConnectionManager connectionManager, @NotNull ClientEncryptionResponsePacket packet, @NotNull PlayerConnection connection) {
         // Encryption is only support for socket connection
-        MojangAuth mojangAuth = connection.getServerProcess().getMojangAuth();
         if (!(connection instanceof PlayerSocketConnection socketConnection)) return;
-        AsyncUtils.runAsync(connection.getServerProcess(), () -> {
+        AsyncUtils.runAsync(exceptionHandler, () -> {
             final String loginUsername = socketConnection.getLoginUsername();
             if (loginUsername == null || loginUsername.isEmpty()) {
                 // Shouldn't happen
@@ -101,14 +101,14 @@ public final class LoginListener {
                     mojangAuth.getMojangCrypt().decryptUsingKey(mojangAuth.getKeyPair().getPrivate(), packet.encryptedVerifyToken()));
 
             if (verificationFailed) {
-                ServerProcess.LOGGER.error("Encryption failed for {}", loginUsername);
+                ServerFacade.LOGGER.error("Encryption failed for {}", loginUsername);
                 return;
             }
 
             final byte[] digestedData = mojangAuth.getMojangCrypt().digestData("", mojangAuth.getKeyPair().getPublic(), getSecretKey(mojangAuth, packet.sharedSecret()));
             if (digestedData == null) {
                 // Incorrect key, probably because of the client
-                ServerProcess.LOGGER.error("Connection {} failed initializing encryption.", socketConnection.getRemoteAddress());
+                ServerFacade.LOGGER.error("Connection {} failed initializing encryption.", socketConnection.getRemoteAddress());
                 connection.disconnect();
                 return;
             }
@@ -126,7 +126,7 @@ public final class LoginListener {
 
                 if (!ok) {
                     if (throwable != null) {
-                        connection.getServerProcess().getExceptionHandler().handleException(throwable);
+                        exceptionHandler.handleException(throwable);
                     }
                     if (socketConnection.getPlayer() != null) {
                         socketConnection.getPlayer().kick(Component.text("Failed to contact Mojang's Session Servers (Are they down?)"));
@@ -142,8 +142,8 @@ public final class LoginListener {
                             .replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
                     final String profileName = gameProfile.get("name").getAsString();
 
-                    ServerProcess.LOGGER.info("UUID of player {} is {}", loginUsername, profileUUID);
-                    connection.getServerProcess().getConnectionManager().createPlayer(connection, profileUUID, profileName);
+                    ServerFacade.LOGGER.info("UUID of player {} is {}", loginUsername, profileUUID);
+                    connectionManager.createPlayer(connection, profileUUID, profileName);
                     List<GameProfile.Property> propertyList = new ArrayList<>();
                     for (JsonElement element : gameProfile.get("properties").getAsJsonArray()) {
                         JsonObject object = element.getAsJsonObject();
@@ -151,7 +151,7 @@ public final class LoginListener {
                     }
                     socketConnection.UNSAFE_setProfile(new GameProfile(profileUUID, profileName, propertyList));
                 } catch (Exception e) {
-                    connection.getServerProcess().getExceptionHandler().handleException(e);
+                    exceptionHandler.handleException(e);
                 }
             });
         });
@@ -161,7 +161,7 @@ public final class LoginListener {
         return mojangAuth.getMojangCrypt().decryptByteToSecretKey(mojangAuth.getKeyPair().getPrivate(), sharedSecret);
     }
 
-    public static void loginPluginResponseListener(@NotNull ClientLoginPluginResponsePacket packet, @NotNull PlayerConnection connection) {
+    public static void loginPluginResponseListener(ExceptionHandler exceptionHandler, ConnectionManager connectionManager, @NotNull ClientLoginPluginResponsePacket packet, @NotNull PlayerConnection connection) {
         // Proxy support
         if (connection instanceof PlayerSocketConnection socketConnection) {
             final String channel = socketConnection.getPluginRequestChannel(packet.messageId());
@@ -183,7 +183,7 @@ public final class LoginListener {
                             try {
                                 address = InetAddress.getByName(buffer.read(STRING));
                             } catch (UnknownHostException e) {
-                                connection.getServerProcess().getExceptionHandler().handleException(e);
+                                exceptionHandler.handleException(e);
                                 return;
                             }
                             final int port = ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort();
@@ -196,7 +196,7 @@ public final class LoginListener {
                 if (success) {
                     socketConnection.setRemoteAddress(socketAddress);
                     socketConnection.UNSAFE_setProfile(gameProfile);
-                    connection.getServerProcess().getConnectionManager().createPlayer(connection, gameProfile.uuid(), gameProfile.name());
+                    connectionManager.createPlayer(connection, gameProfile.uuid(), gameProfile.name());
                 } else {
                     LoginDisconnectPacket disconnectPacket = new LoginDisconnectPacket(INVALID_PROXY_RESPONSE);
                     socketConnection.sendPacket(disconnectPacket);
@@ -205,9 +205,9 @@ public final class LoginListener {
         }
     }
 
-    public static void loginAckListener(@NotNull ClientLoginAcknowledgedPacket ignored, @NotNull PlayerConnection connection) {
+    public static void loginAckListener(ConnectionManager connectionManager, @NotNull ClientLoginAcknowledgedPacket ignored, @NotNull PlayerConnection connection) {
         final Player player = Objects.requireNonNull(connection.getPlayer());
-        connection.getServerProcess().getConnectionManager().doConfiguration(player, true);
+        connectionManager.doConfiguration(player, true);
     }
 
 }

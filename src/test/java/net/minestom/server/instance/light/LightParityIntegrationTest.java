@@ -1,6 +1,6 @@
 package net.minestom.server.instance.light;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.*;
 import net.minestom.server.instance.block.Block;
@@ -127,7 +127,7 @@ public class LightParityIntegrationTest {
     record SectionEntry(Palette blocks, byte[] sky, byte[] block) {
     }
 
-    private static Map<Vec, SectionEntry> retrieveSections(ServerProcess serverProcess) throws IOException, URISyntaxException, AnvilException {
+    private static Map<Vec, SectionEntry> retrieveSections(ServerFacade serverFacade) throws IOException, URISyntaxException, AnvilException {
         URL defaultImage = LightParityIntegrationTest.class.getResource("/net/minestom/server/instance/lighting/region/r.0.0.mca");
         assert defaultImage != null;
         File imageFile = new File(defaultImage.toURI());
@@ -143,7 +143,7 @@ public class LightParityIntegrationTest {
 
                 for (int yLevel = chunk.getMinY(); yLevel <= chunk.getMaxY(); yLevel += 16) {
                     var section = chunk.getSection((byte) (yLevel/16));
-                    var palette = loadBlocks(serverProcess, section);
+                    var palette = loadBlocks(serverFacade, section);
                     var sky = section.getSkyLights();
                     var block = section.getBlockLights();
                     sections.put(new Vec(x, section.getY(), z), new SectionEntry(palette, sky, block));
@@ -153,8 +153,8 @@ public class LightParityIntegrationTest {
         return sections;
     }
 
-    private static Palette loadBlocks(ServerProcess serverProcess, ChunkSection section) throws AnvilException {
-        var palette = Palette.blocks(serverProcess);
+    private static Palette loadBlocks(ServerFacade serverFacade, ChunkSection section) throws AnvilException {
+        var palette = Palette.blocks(serverFacade);
         for (int x = 0; x < Chunk.CHUNK_SECTION_SIZE; x++) {
             for (int z = 0; z < Chunk.CHUNK_SECTION_SIZE; z++) {
                 for (int y = 0; y < Chunk.CHUNK_SECTION_SIZE; y++) {

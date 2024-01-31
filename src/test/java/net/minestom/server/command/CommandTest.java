@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -30,8 +30,8 @@ public class CommandTest {
 
     @Test
     public void testGlobalListener() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var manager = new CommandManager(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(serverFacade);
 
         AtomicBoolean hasRun = new AtomicBoolean(false);
 

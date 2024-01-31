@@ -17,10 +17,10 @@ public class AbilitiesListener {
 
             if (isFlying) {
                 PlayerStartFlyingEvent startFlyingEvent = new PlayerStartFlyingEvent(player);
-                player.getServerProcess().getGlobalEventHandler().call(startFlyingEvent);
+                player.getGlobalEventHandler().call(startFlyingEvent);
             } else {
                 PlayerStopFlyingEvent stopFlyingEvent = new PlayerStopFlyingEvent(player);
-                player.getServerProcess().getGlobalEventHandler().call(stopFlyingEvent);
+                player.getGlobalEventHandler().call(stopFlyingEvent);
             }
         }
     }

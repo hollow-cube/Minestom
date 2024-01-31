@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EntityTrackerTest {
     @Test
     public void register() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
         var updater = new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -31,7 +31,7 @@ public class EntityTrackerTest {
                 fail("No other entity should be registered yet");
             }
         };
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
         var chunkEntities = tracker.chunkEntities(Vec.ZERO, EntityTracker.Target.ENTITIES);
         assertTrue(chunkEntities.isEmpty());
 
@@ -44,8 +44,8 @@ public class EntityTrackerTest {
 
     @Test
     public void move() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
         var updater = new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -58,7 +58,7 @@ public class EntityTrackerTest {
             }
         };
 
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
 
         tracker.register(ent1, Vec.ZERO, EntityTracker.Target.ENTITIES, updater);
         assertEquals(1, tracker.chunkEntities(Vec.ZERO, EntityTracker.Target.ENTITIES).size());
@@ -70,11 +70,11 @@ public class EntityTrackerTest {
 
     @Test
     public void tracking() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
-        var ent2 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
+        var ent2 = new Entity(serverFacade, EntityType.ZOMBIE);
 
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
         tracker.register(ent1, Vec.ZERO, EntityTracker.Target.ENTITIES, new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -130,10 +130,10 @@ public class EntityTrackerTest {
 
     @Test
     public void nearby() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
-        var ent2 = new Entity(serverProcess, EntityType.ZOMBIE);
-        var ent3 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
+        var ent2 = new Entity(serverFacade, EntityType.ZOMBIE);
+        var ent3 = new Entity(serverFacade, EntityType.ZOMBIE);
         var updater = new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -146,7 +146,7 @@ public class EntityTrackerTest {
             }
         };
 
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
         tracker.register(ent2, new Vec(5, 0, 0), EntityTracker.Target.ENTITIES, updater);
         tracker.register(ent3, new Vec(50, 0, 0), EntityTracker.Target.ENTITIES, updater);
 
@@ -184,10 +184,10 @@ public class EntityTrackerTest {
 
     @Test
     public void nearbySingleChunk() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
-        var ent2 = new Entity(serverProcess, EntityType.ZOMBIE);
-        var ent3 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
+        var ent2 = new Entity(serverFacade, EntityType.ZOMBIE);
+        var ent3 = new Entity(serverFacade, EntityType.ZOMBIE);
         var updater = new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -200,7 +200,7 @@ public class EntityTrackerTest {
             }
         };
 
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
         tracker.register(ent1, new Vec(5, 0, 5), EntityTracker.Target.ENTITIES, updater);
         tracker.register(ent2, new Vec(8, 0, 8), EntityTracker.Target.ENTITIES, updater);
         tracker.register(ent3, new Vec(17, 0, 17), EntityTracker.Target.ENTITIES, updater);
@@ -225,8 +225,8 @@ public class EntityTrackerTest {
 
     @Test
     public void collectionView() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var ent1 = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var ent1 = new Entity(serverFacade, EntityType.ZOMBIE);
         var updater = new EntityTracker.Update<>() {
             @Override
             public void add(@NotNull Entity entity) {
@@ -241,7 +241,7 @@ public class EntityTrackerTest {
             }
         };
 
-        EntityTracker tracker = EntityTracker.newTracker(serverProcess);
+        EntityTracker tracker = EntityTracker.newTracker(serverFacade);
         var entities = tracker.entities();
         var chunkEntities = tracker.chunkEntities(Vec.ZERO, EntityTracker.Target.ENTITIES);
 
@@ -251,7 +251,7 @@ public class EntityTrackerTest {
         assertEquals(1, entities.size());
         assertEquals(1, chunkEntities.size());
 
-        assertThrows(Exception.class, () -> entities.add(new Entity(serverProcess, EntityType.ZOMBIE)));
-        assertThrows(Exception.class, () -> chunkEntities.add(new Entity(serverProcess, EntityType.ZOMBIE)));
+        assertThrows(Exception.class, () -> entities.add(new Entity(serverFacade, EntityType.ZOMBIE)));
+        assertThrows(Exception.class, () -> chunkEntities.add(new Entity(serverFacade, EntityType.ZOMBIE)));
     }
 }

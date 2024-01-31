@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.collision.CollisionUtils;
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.ShapeImpl;
@@ -8,14 +8,20 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
+import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.thread.ThreadDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -23,8 +29,8 @@ public class PlayerProjectile extends LivingEntity {
     private final Entity shooter;
     private long cooldown = 0;
 
-    public PlayerProjectile(ServerProcess serverProcess, Entity shooter, EntityType type) {
-        super(serverProcess, type);
+    public PlayerProjectile(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, Entity shooter, EntityType type) {
+        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, type, UUID.randomUUID());
         this.shooter = shooter;
         this.hasCollision = false;
         setup();
@@ -50,7 +56,7 @@ public class PlayerProjectile extends LivingEntity {
         // Check if we're inside of a block
         if (insideBlock != null) {
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(spawnPosition), instance.getBlock(spawnPosition));
-            getServerProcess().getGlobalEventHandler().call(e);
+            globalEventHandler.call(e);
         }
 
         return res;
@@ -86,7 +92,7 @@ public class PlayerProjectile extends LivingEntity {
         dz += random.nextGaussian() * spread;
 
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, from, power, spread);
-        getServerProcess().getGlobalEventHandler().call(shootEvent);
+        globalEventHandler.call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;
@@ -148,7 +154,7 @@ public class PlayerProjectile extends LivingEntity {
         if (collided != null && collided.collisionShapes()[0] != shooter) {
             if (collided.collisionShapes()[0] instanceof Entity entity) {
                 var e = new ProjectileCollideWithEntityEvent(this, collided.newPosition(), entity);
-                getServerProcess().getGlobalEventHandler().call(e);
+                globalEventHandler.call(e);
                 return;
             }
         }
@@ -172,7 +178,7 @@ public class PlayerProjectile extends LivingEntity {
             if (hitBlock == null) return;
 
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(hitPoint), hitBlock);
-            getServerProcess().getGlobalEventHandler().call(e);
+            globalEventHandler.call(e);
         }
     }
 }

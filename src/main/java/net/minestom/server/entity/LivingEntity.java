@@ -1,7 +1,8 @@
 package net.minestom.server.entity;
 
 import net.kyori.adventure.sound.Sound.Source;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.attribute.AttributeInstance;
 import net.minestom.server.collision.BoundingBox;
@@ -10,11 +11,15 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.entity.metadata.LivingEntityMeta;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityDamageEvent;
 import net.minestom.server.event.entity.EntityDeathEvent;
 import net.minestom.server.event.entity.EntityFireEvent;
 import net.minestom.server.event.item.EntityEquipEvent;
 import net.minestom.server.event.item.PickupItemEvent;
+import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.inventory.EquipmentHandler;
 import net.minestom.server.item.ItemStack;
@@ -27,6 +32,7 @@ import net.minestom.server.network.packet.server.play.SoundEffectPacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.scoreboard.Team;
 import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.thread.ThreadDispatcher;
 import net.minestom.server.utils.block.BlockIterator;
 import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
@@ -83,17 +89,21 @@ public class LivingEntity extends Entity implements EquipmentHandler {
     private ItemStack leggings;
     private ItemStack boots;
 
+    public LivingEntity(ServerFacade serverFacade, @NotNull EntityType entityType) {
+        this(serverFacade, entityType, UUID.randomUUID());
+    }
+
+    public LivingEntity(ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), entityType, uuid);
+    }
+
     /**
      * Constructor which allows to specify an UUID. Only use if you know what you are doing!
      */
-    public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        super(serverProcess, entityType, uuid);
+    public LivingEntity(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, entityType, uuid);
         initEquipments();
-        itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(serverProcess.getServerSetting())));
-    }
-
-    public LivingEntity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
-        this(serverProcess, entityType, UUID.randomUUID());
+        itemPickupCooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(serverSettings)));
     }
 
     private void initEquipments() {
@@ -178,9 +188,14 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         syncEquipment(EquipmentSlot.BOOTS);
     }
 
+    @Override
+    public ServerSettings getServerSettings() {
+        return serverSettings;
+    }
+
     private ItemStack getEquipmentItem(@NotNull ItemStack itemStack, @NotNull EquipmentSlot slot) {
         EntityEquipEvent entityEquipEvent = new EntityEquipEvent(this, itemStack, slot);
-        getServerProcess().getGlobalEventHandler().call(entityEquipEvent);
+        globalEventHandler.call(entityEquipEvent);
         return entityEquipEvent.getEquippedItem();
     }
 
@@ -200,9 +215,9 @@ public class LivingEntity extends Entity implements EquipmentHandler {
                         if (!itemEntity.isPickable()) return;
                         if (expandedBoundingBox.intersectEntity(loweredPosition, itemEntity)) {
                             PickupItemEvent pickupItemEvent = new PickupItemEvent(this, itemEntity);
-                            getServerProcess().getGlobalEventHandler().callCancellable(pickupItemEvent, () -> {
+                            globalEventHandler.callCancellable(pickupItemEvent, () -> {
                                 final ItemStack item = itemEntity.getItemStack();
-                                sendPacketToViewersAndSelf(new CollectItemPacket(itemEntity.getEntityId(), getEntityId(), item.amount()));
+                                sendPacketToViewersAndSelf(serverSettings, new CollectItemPacket(itemEntity.getEntityId(), getEntityId(), item.amount()));
                                 itemEntity.remove();
                             });
                         }
@@ -268,7 +283,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         }
 
         EntityDeathEvent entityDeathEvent = new EntityDeathEvent(this);
-        getServerProcess().getGlobalEventHandler().call(entityDeathEvent);
+        globalEventHandler.call(entityDeathEvent);
     }
 
     /**
@@ -277,7 +292,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
      * @param duration duration in ticks of the effect
      */
     public void setFireForDuration(int duration) {
-        setFireForDuration(duration, TimeUnit.getServerTick(getServerProcess().getServerSetting()));
+        setFireForDuration(duration, TimeUnit.getServerTick(serverSettings));
     }
 
     /**
@@ -302,7 +317,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
 
         // Do not start fire event if the fire needs to be removed (< 0 duration)
         if (duration.toMillis() > 0) {
-            getServerProcess().getGlobalEventHandler().callCancellable(entityFireEvent, () -> {
+            globalEventHandler.callCancellable(entityFireEvent, () -> {
                 final long fireTime = entityFireEvent.getFireTime(TimeUnit.MILLISECOND);
                 setOnFire(true);
                 fireExtinguishTime = System.currentTimeMillis() + fireTime;
@@ -330,14 +345,14 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         }
 
         EntityDamageEvent entityDamageEvent = new EntityDamageEvent(this, damage, damage.getSound(this));
-        getServerProcess().getGlobalEventHandler().callCancellable(entityDamageEvent, () -> {
+        globalEventHandler.callCancellable(entityDamageEvent, () -> {
             // Set the last damage type since the event is not cancelled
             this.lastDamage = entityDamageEvent.getDamage();
 
             float remainingDamage = entityDamageEvent.getDamage().getAmount();
 
             if (entityDamageEvent.shouldAnimate()) {
-                sendPacketToViewersAndSelf(new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.TAKE_DAMAGE));
+                sendPacketToViewersAndSelf(serverSettings, new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.TAKE_DAMAGE));
             }
 
             // Additional hearts support
@@ -367,7 +382,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
                     // TODO: separate living entity categories
                     soundCategory = Source.HOSTILE;
                 }
-                sendPacketToViewersAndSelf(new SoundEffectPacket(sound, null, soundCategory,
+                sendPacketToViewersAndSelf(serverSettings, new SoundEffectPacket(sound, null, soundCategory,
                         getPosition(), 1.0f, 1.0f, 0));
             }
         });
@@ -462,9 +477,9 @@ public class LivingEntity extends Entity implements EquipmentHandler {
         }
         EntityPropertiesPacket propertiesPacket = new EntityPropertiesPacket(getEntityId(), List.of(attributeInstance));
         if (self) {
-            sendPacketToViewersAndSelf(propertiesPacket);
+            sendPacketToViewersAndSelf(serverSettings, propertiesPacket);
         } else {
-            sendPacketToViewers(propertiesPacket);
+            sendPacketToViewers(serverSettings, propertiesPacket);
         }
     }
 
@@ -524,7 +539,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
      * (can be used for attack animation).
      */
     public void swingMainHand() {
-        sendPacketToViewers(new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.SWING_MAIN_ARM));
+        sendPacketToViewers(serverSettings, new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.SWING_MAIN_ARM));
     }
 
     /**
@@ -532,7 +547,7 @@ public class LivingEntity extends Entity implements EquipmentHandler {
      * (can be used for attack animation).
      */
     public void swingOffHand() {
-        sendPacketToViewers(new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.SWING_OFF_HAND));
+        sendPacketToViewers(serverSettings, new EntityAnimationPacket(getEntityId(), EntityAnimationPacket.Animation.SWING_OFF_HAND));
     }
 
     public void refreshActiveHand(boolean isHandActive, boolean offHand, boolean riptideSpinAttack) {

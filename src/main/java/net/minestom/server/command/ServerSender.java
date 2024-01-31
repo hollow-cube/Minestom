@@ -2,7 +2,6 @@ package net.minestom.server.command;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.permission.Permission;
 import net.minestom.server.tag.TagHandler;
@@ -13,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Sender used in {@link CommandManager#executeServerCommand(String)}.
+ * Sender used in {@link CommandManagerImpl#executeServerCommand(String)}.
  * <p>
  * Although this class implemented {@link CommandSender} and thus {@link Audience}, no
  * data can be sent to this sender because it's purpose is to process the data of
@@ -23,12 +22,6 @@ public class ServerSender implements CommandSender {
 
     private final Set<Permission> permissions = Collections.unmodifiableSet(new HashSet<>());
     private final TagHandler tagHandler = TagHandler.newHandler();
-
-    private final ServerProcess serverProcess;
-
-    public ServerSender(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
-    }
 
     @NotNull
     @Override
@@ -44,10 +37,5 @@ public class ServerSender implements CommandSender {
     @Override
     public @NotNull Identity identity() {
         return Identity.nil();
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

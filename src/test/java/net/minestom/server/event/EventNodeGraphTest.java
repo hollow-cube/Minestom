@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import org.junit.jupiter.api.Test;
 
@@ -12,16 +12,16 @@ public class EventNodeGraphTest {
 
     @Test
     public void single() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        EventNode<Event> node = EventNode.all(serverProcess,"main");
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        EventNode<Event> node = EventNode.all(serverFacade,"main");
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0, List.of()));
     }
 
     @Test
     public void singleChild() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        EventNode<Event> node = EventNode.all(serverProcess,"main");
-        node.addChild(EventNode.all(serverProcess,"child"));
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        EventNode<Event> node = EventNode.all(serverFacade,"main");
+        node.addChild(EventNode.all(serverFacade,"child"));
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                 List.of(new EventNodeImpl.Graph("child", "Event", 0, List.of())
                 )));
@@ -29,20 +29,20 @@ public class EventNodeGraphTest {
 
     @Test
     public void childrenPriority() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         {
-            EventNode<Event> node = EventNode.all(serverProcess,"main");
-            node.addChild(EventNode.all(serverProcess,"child1").setPriority(5));
-            node.addChild(EventNode.all(serverProcess,"child2").setPriority(10));
+            EventNode<Event> node = EventNode.all(serverFacade,"main");
+            node.addChild(EventNode.all(serverFacade,"child1").setPriority(5));
+            node.addChild(EventNode.all(serverFacade,"child2").setPriority(10));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())
                     )));
         }
         {
-            EventNode<Event> node = EventNode.all(serverProcess, "main");
-            node.addChild(EventNode.all(serverProcess,"child2").setPriority(10));
-            node.addChild(EventNode.all(serverProcess,"child1").setPriority(5));
+            EventNode<Event> node = EventNode.all(serverFacade, "main");
+            node.addChild(EventNode.all(serverFacade,"child2").setPriority(10));
+            node.addChild(EventNode.all(serverFacade,"child1").setPriority(5));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())

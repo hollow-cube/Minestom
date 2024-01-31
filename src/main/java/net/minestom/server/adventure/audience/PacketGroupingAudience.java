@@ -9,8 +9,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.TitlePart;
-import net.minestom.server.ServerObject;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
@@ -28,7 +27,7 @@ import java.util.Collection;
 /**
  * An audience implementation that sends grouped packets if possible.
  */
-public interface PacketGroupingAudience extends ForwardingAudience, ServerObject {
+public interface PacketGroupingAudience extends ForwardingAudience {
 
     /**
      * Creates a packet grouping audience that copies an iterable of players. The
@@ -38,11 +37,11 @@ public interface PacketGroupingAudience extends ForwardingAudience, ServerObject
      * @param players the players
      * @return the audience
      */
-    static @NotNull PacketGroupingAudience of(ServerProcess serverProcess, @NotNull Collection<Player> players) {
+    static @NotNull PacketGroupingAudience of(ServerSettings serverSettings, @NotNull Collection<Player> players) {
         return new PacketGroupingAudience() {
             @Override
-            public ServerProcess getServerProcess() {
-                return serverProcess;
+            public ServerSettings getServerSettings() {
+                return serverSettings;
             }
 
             @Override
@@ -51,6 +50,8 @@ public interface PacketGroupingAudience extends ForwardingAudience, ServerObject
             }
         };
     }
+
+    ServerSettings getServerSettings();
 
     /**
      * Gets an iterable of the players this audience contains.
@@ -65,12 +66,12 @@ public interface PacketGroupingAudience extends ForwardingAudience, ServerObject
      * @param packet the packet to broadcast
      */
     default void sendGroupedPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(getServerProcess().getServerSetting(), getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(getServerSettings(), getPlayers(), packet);
     }
 
     @Override
     default void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        Messenger.sendMessage(getServerProcess().getServerSetting(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
+        Messenger.sendMessage(getServerSettings(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
     }
 
     @Override
@@ -100,12 +101,16 @@ public interface PacketGroupingAudience extends ForwardingAudience, ServerObject
 
     @Override
     default void showBossBar(@NotNull BossBar bar) {
-        getServerProcess().getBossBarManager().addBossBar(this.getPlayers(), bar);
+        for (Player player : this.getPlayers()) {
+            player.showBossBar(bar);
+        }
     }
 
     @Override
     default void hideBossBar(@NotNull BossBar bar) {
-        getServerProcess().getBossBarManager().removeBossBar(this.getPlayers(), bar);
+        for (Player player : this.getPlayers()) {
+            player.hideBossBar(bar);
+        }
     }
 
     /**

@@ -8,7 +8,7 @@ public class PluginMessageListener {
 
     public static void listener(ClientPluginMessagePacket packet, Player player) {
         PlayerPluginMessageEvent pluginMessageEvent = new PlayerPluginMessageEvent(player, packet.channel(), packet.data());
-        player.getServerProcess().getGlobalEventHandler().call(pluginMessageEvent);
+        player.getGlobalEventHandler().call(pluginMessageEvent);
     }
 
 }

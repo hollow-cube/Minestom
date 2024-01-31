@@ -2,7 +2,6 @@ package net.minestom.server.adventure.bossbar;
 
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.Viewable;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.entity.Player;
@@ -16,16 +15,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * A holder of a boss bar. This class is not intended for public use, instead you should
- * use {@link BossBarManager} to manage boss bars for players.
+ * use {@link BossBarManagerImpl} to manage boss bars for players.
  */
 final class BossBarHolder implements Viewable {
     final UUID uuid = UUID.randomUUID();
     final Set<Player> players = new CopyOnWriteArraySet<>();
-    private final ServerProcess serverProcess;
     final BossBar bar;
 
-    BossBarHolder(ServerProcess serverProcess, @NotNull BossBar bar) {
-        this.serverProcess = serverProcess;
+    BossBarHolder(@NotNull BossBar bar) {
         this.bar = bar;
     }
 
@@ -74,10 +71,5 @@ final class BossBarHolder implements Viewable {
     @Override
     public @NotNull Set<Player> getViewers() {
         return Collections.unmodifiableSet(this.players);
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

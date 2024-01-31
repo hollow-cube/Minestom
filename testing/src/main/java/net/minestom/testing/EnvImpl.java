@@ -1,6 +1,6 @@
 package net.minestom.testing;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
@@ -15,15 +15,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 final class EnvImpl implements Env {
-    private final ServerProcess process;
+    private final ServerFacade process;
     private final List<FlexibleListenerImpl<?>> listeners = new CopyOnWriteArrayList<>();
 
     public EnvImpl() {
-        this.process = ServerProcess.of(ServerSettings.builder().build());
+        this.process = ServerFacade.of(ServerSettings.builder().build());
     }
 
     @Override
-    public @NotNull ServerProcess process() {
+    public @NotNull ServerFacade process() {
         return process;
     }
 

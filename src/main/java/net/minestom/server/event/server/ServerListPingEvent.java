@@ -1,8 +1,9 @@
 package net.minestom.server.event.server;
 
-import net.minestom.server.ServerProcess;
 import net.minestom.server.event.trait.CancellableEvent;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.player.PlayerConnection;
+import net.minestom.server.network.socket.Server;
 import net.minestom.server.ping.ResponseData;
 import net.minestom.server.ping.ServerListPingType;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +27,8 @@ public class ServerListPingEvent implements CancellableEvent {
      *
      * @param type the ping type to respond with
      */
-    public ServerListPingEvent(@NotNull ServerProcess serverProcess, @NotNull ServerListPingType type) {
-        this(serverProcess, null, type);
+    public ServerListPingEvent(@NotNull ConnectionManager connectionManager, Server server, @NotNull ServerListPingType type) {
+        this(connectionManager, server, null, type);
     }
 
     /**
@@ -36,8 +37,8 @@ public class ServerListPingEvent implements CancellableEvent {
      * @param connection the player connection, if the ping type is modern
      * @param type       the ping type to respond with
      */
-    public ServerListPingEvent(@NotNull ServerProcess serverProcess, @Nullable PlayerConnection connection, @NotNull ServerListPingType type) {
-        this.responseData = new ResponseData(serverProcess);
+    public ServerListPingEvent(@NotNull ConnectionManager connectionManager, Server server, @Nullable PlayerConnection connection, @NotNull ServerListPingType type) {
+        this.responseData = new ResponseData(connectionManager, server);
         this.connection = connection;
         this.type = type;
     }

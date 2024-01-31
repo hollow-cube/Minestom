@@ -10,7 +10,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.Viewable;
 import net.minestom.server.adventure.ComponentHolder;
@@ -82,16 +82,16 @@ public final class PacketUtils {
      * @param packet   the packet
      */
     @SuppressWarnings("OverrideOnly") // we need to access the audiences inside ForwardingAudience
-    public static void sendPacket(ServerProcess serverProcess, @NotNull Audience audience, @NotNull ServerPacket packet) {
+    public static void sendPacket(ServerFacade serverFacade, @NotNull Audience audience, @NotNull ServerPacket packet) {
         if (audience instanceof Player player) {
             player.sendPacket(packet);
         } else if (audience instanceof PacketGroupingAudience groupingAudience) {
-            PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), groupingAudience.getPlayers(), packet);
+            PacketUtils.sendGroupedPacket(serverFacade.getServerSettings(), groupingAudience.getPlayers(), packet);
         } else if (audience instanceof ForwardingAudience.Single singleAudience) {
-            PacketUtils.sendPacket(serverProcess, singleAudience.audience(), packet);
+            PacketUtils.sendPacket(serverFacade, singleAudience.audience(), packet);
         } else if (audience instanceof ForwardingAudience forwardingAudience) {
             for (Audience member : forwardingAudience.audiences()) {
-                PacketUtils.sendPacket(serverProcess, member, packet);
+                PacketUtils.sendPacket(serverFacade, member, packet);
             }
         }
     }
@@ -161,16 +161,12 @@ public final class PacketUtils {
         sendGroupedPacket(serverSettings, connectionManager.getOnlinePlayers(), packet);
     }
 
-    public static void broadcastPlayPacket(ServerProcess serverProcess, @NotNull ServerPacket packet) {
-        sendGroupedPacket(serverProcess.getServerSetting(), serverProcess.getConnectionManager().getOnlinePlayers(), packet);
-    }
-
     @ApiStatus.Experimental
     public static void prepareViewablePacket(ServerSettings serverSettings, @NotNull Viewable viewable, @NotNull ServerPacket serverPacket,
                                              @Nullable Entity entity) {
         if (entity != null && !entity.hasPredictableViewers()) {
             // Operation cannot be optimized
-            entity.sendPacketToViewers(serverPacket);
+            entity.sendPacketToViewers(serverSettings, serverPacket);
             return;
         }
         if (!VIEWABLE_PACKET) {

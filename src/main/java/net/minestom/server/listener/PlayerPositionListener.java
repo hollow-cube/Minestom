@@ -53,7 +53,7 @@ public class PlayerPositionListener {
         }
 
         PlayerMoveEvent playerMoveEvent = new PlayerMoveEvent(player, packetPosition, onGround);
-        player.getServerProcess().getGlobalEventHandler().call(playerMoveEvent);
+        player.getGlobalEventHandler().call(playerMoveEvent);
         if (!currentPosition.equals(player.getPosition())) {
             // Player has been teleported in the event
             return;

@@ -1,11 +1,13 @@
 package net.minestom.server.entity;
 
+import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.Tickable;
 import net.minestom.server.Viewable;
 import net.minestom.server.collision.*;
@@ -14,6 +16,7 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.EntityMeta;
 import net.minestom.server.entity.metadata.LivingEntityMeta;
+import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.EventNode;
@@ -21,10 +24,11 @@ import net.minestom.server.event.entity.*;
 import net.minestom.server.event.instance.AddEntityToInstanceEvent;
 import net.minestom.server.event.instance.RemoveEntityFromInstanceEvent;
 import net.minestom.server.event.trait.EntityEvent;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.instance.InstanceManagerImpl;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.block.BlockHandler;
@@ -44,6 +48,7 @@ import net.minestom.server.snapshot.Snapshotable;
 import net.minestom.server.tag.TagHandler;
 import net.minestom.server.tag.Taggable;
 import net.minestom.server.thread.Acquirable;
+import net.minestom.server.thread.ThreadDispatcher;
 import net.minestom.server.timer.Schedulable;
 import net.minestom.server.timer.Scheduler;
 import net.minestom.server.timer.TaskSchedule;
@@ -91,7 +96,12 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     private static final AtomicInteger LAST_ENTITY_ID = new AtomicInteger();
 
     private final CachedPacket destroyPacketCache;
-    private final ServerProcess serverProcess;
+    @Getter // FIXME bad shit
+    protected final ServerSettings serverSettings;
+    @Getter // FIXME bad shit
+    protected final EventNode<Event> globalEventHandler;
+    protected final ThreadDispatcher<Chunk> dispatcher;
+    protected final ExceptionHandler exceptionHandler;
 
     protected Instance instance;
     protected Chunk currentChunk;
@@ -179,8 +189,19 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     private final Acquirable<Entity> acquirable = Acquirable.of(this);
 
-    public Entity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this.serverProcess = serverProcess;
+    public Entity(ServerFacade serverFacade, @NotNull EntityType entityType) {
+        this(serverFacade, entityType, UUID.randomUUID());
+    }
+
+    public Entity(ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), entityType, uuid);
+    }
+
+    public Entity(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this.serverSettings = serverSettings;
+        this.globalEventHandler = globalEventHandler;
+        this.dispatcher = dispatcher;
+        this.exceptionHandler = exceptionHandler;
         this.id = generateId();
         this.entityType = entityType;
         this.uuid = uuid;
@@ -197,18 +218,10 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         this.gravityAcceleration = entityType.registry().acceleration();
         this.gravityDragPerTick = entityType.registry().drag();
+        
+        this.eventNode = globalEventHandler.map(this, EventFilter.ENTITY);
 
-        if (serverProcess != null) {
-            this.eventNode = serverProcess.getGlobalEventHandler().map(this, EventFilter.ENTITY);
-        } else {
-            // Local nodes require a server process
-            this.eventNode = null;
-        }
-        destroyPacketCache = new CachedPacket(serverProcess.getServerSetting(), () -> new DestroyEntitiesPacket(getEntityId()));
-    }
-
-    public Entity(@NotNull ServerProcess serverProcess, @NotNull EntityType entityType) {
-        this(serverProcess, entityType, UUID.randomUUID());
+        destroyPacketCache = new CachedPacket(serverSettings, () -> new DestroyEntitiesPacket(getEntityId()));
     }
 
     /**
@@ -562,7 +575,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             update(time);
 
             ticks++;
-            serverProcess.getGlobalEventHandler().call(new EntityTickEvent(this));
+            globalEventHandler.call(new EntityTickEvent(this));
 
             // remove expired effects
             effectTick(time);
@@ -582,7 +595,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         if (!hasVelocity && noGravity) {
             return;
         }
-        final float tps = serverProcess.getServerSetting().getTickPerSecond();
+        final float tps = serverSettings.getTickPerSecond();
         final Pos positionBeforeMove = getPosition();
         final Vec currentVelocity = getVelocity();
         final boolean wasOnGround = this.onGround;
@@ -620,7 +633,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                 );
                 if (this.ticks % VELOCITY_UPDATE_INTERVAL == 0) {
                     if (!isPlayer && !this.lastVelocityWasZero) {
-                        sendPacketToViewers(getVelocityPacket());
+                        sendPacketToViewers(serverSettings, getVelocityPacket());
                         this.lastVelocityWasZero = !hasVelocity;
                     }
                 }
@@ -653,7 +666,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         // Verify if velocity packet has to be sent
         if (this.ticks % VELOCITY_UPDATE_INTERVAL == 0) {
             if (!isPlayer && (hasVelocity || !lastVelocityWasZero)) {
-                sendPacketToViewers(getVelocityPacket());
+                sendPacketToViewers(serverSettings, getVelocityPacket());
                 this.lastVelocityWasZero = !hasVelocity;
             }
         }
@@ -681,7 +694,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                         z * drag
                 ))
                 // Convert from block/tick to block/sec
-                .mul(serverProcess.getServerSetting().getTickPerSecond())
+                .mul(serverSettings.getTickPerSecond())
                 // Prevent infinitely decreasing velocity
                 .apply(Vec.Operator.EPSILON);
     }
@@ -726,12 +739,12 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         effects.removeIf(timedPotion -> {
             long duration = timedPotion.getPotion().duration();
             if (duration == Potion.INFINITE_DURATION) return false;
-            final long potionTime = duration * serverProcess.getServerSetting().getTickMs();
+            final long potionTime = duration * serverSettings.getTickMs();
             // Remove if the potion should be expired
             if (time >= timedPotion.getStartingTime() + potionTime) {
                 // Send the packet that the potion should no longer be applied
                 timedPotion.getPotion().sendRemovePacket(this);
-                serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                globalEventHandler.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -846,7 +859,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     @ApiStatus.Internal
     protected void refreshCurrentChunk(Chunk currentChunk) {
         this.currentChunk = currentChunk;
-        serverProcess.dispatcher().updateElement(this, currentChunk);
+        dispatcher.updateElement(this, currentChunk);
     }
 
     /**
@@ -865,7 +878,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @param spawnPosition the spawn position for the entity.
      * @return a {@link CompletableFuture} called once the entity's instance has been set,
      * this is due to chunks needing to load
-     * @throws IllegalStateException if {@code instance} has not been registered in {@link InstanceManager}
+     * @throws IllegalStateException if {@code instance} has not been registered in {@link InstanceManagerImpl}
      */
     public CompletableFuture<Void> setInstance(@NotNull Instance instance, @NotNull Pos spawnPosition) {
         Check.stateCondition(!instance.isRegistered(),
@@ -875,7 +888,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             return teleport(spawnPosition); // Already in the instance, teleport to spawn point
         }
         AddEntityToInstanceEvent event = new AddEntityToInstanceEvent(instance, this);
-        serverProcess.getGlobalEventHandler().call(event);
+        globalEventHandler.call(event);
         if (event.isCancelled()) return null; // TODO what to return?
 
         if (previousInstance != null) removeFromInstance(previousInstance);
@@ -894,9 +907,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
                 }
                 instance.getEntityTracker().register(this, spawnPosition, trackingTarget, trackingUpdate);
                 spawn();
-                serverProcess.getGlobalEventHandler().call(new EntitySpawnEvent(this, instance));
+                globalEventHandler.call(new EntitySpawnEvent(this, instance));
             } catch (Exception e) {
-                serverProcess.getExceptionHandler().handleException(e);
+                exceptionHandler.handleException(e);
             }
         });
     }
@@ -912,14 +925,14 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @return a {@link CompletableFuture} called once the entity's instance has been set,
      * this is due to chunks needing to load
      * @throws NullPointerException  if {@code instance} is null
-     * @throws IllegalStateException if {@code instance} has not been registered in {@link InstanceManager}
+     * @throws IllegalStateException if {@code instance} has not been registered in {@link InstanceManagerImpl}
      */
     public CompletableFuture<Void> setInstance(@NotNull Instance instance) {
         return setInstance(instance, this.position);
     }
 
     private void removeFromInstance(Instance instance) {
-        serverProcess.getGlobalEventHandler().call(new RemoveEntityFromInstanceEvent(instance, this));
+        globalEventHandler.call(new RemoveEntityFromInstanceEvent(instance, this));
         instance.getEntityTracker().unregister(this, trackingTarget, trackingUpdate);
         this.viewEngine.forManuals(this::removeViewer);
     }
@@ -942,9 +955,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      */
     public void setVelocity(@NotNull Vec velocity) {
         EntityVelocityEvent entityVelocityEvent = new EntityVelocityEvent(this, velocity);
-        serverProcess.getGlobalEventHandler().callCancellable(entityVelocityEvent, () -> {
+        globalEventHandler.callCancellable(entityVelocityEvent, () -> {
             this.velocity = entityVelocityEvent.getVelocity();
-            sendPacketToViewersAndSelf(getVelocityPacket());
+            sendPacketToViewersAndSelf(serverSettings, getVelocityPacket());
         });
     }
 
@@ -1056,7 +1069,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
             entity.setInstance(currentInstance, position).join();
         this.passengers.add(entity);
         entity.vehicle = this;
-        sendPacketToViewersAndSelf(getPassengersPacket());
+        sendPacketToViewersAndSelf(serverSettings, getPassengersPacket());
         // Updates the position of the new passenger, and then teleports the passenger
         updatePassengerPosition(position, entity);
         entity.synchronizePosition(false);
@@ -1073,7 +1086,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         Check.stateCondition(instance == null, "You need to set an instance using Entity#setInstance");
         if (!passengers.remove(entity)) return;
         entity.vehicle = null;
-        sendPacketToViewersAndSelf(getPassengersPacket());
+        sendPacketToViewersAndSelf(serverSettings, getPassengersPacket());
         entity.synchronizePosition(false);
     }
 
@@ -1105,7 +1118,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @param status the status to trigger
      */
     public void triggerStatus(byte status) {
-        sendPacketToViewersAndSelf(new EntityStatusPacket(getEntityId(), status));
+        sendPacketToViewersAndSelf(serverSettings, new EntityStatusPacket(getEntityId(), status));
     }
 
     /**
@@ -1331,21 +1344,21 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
         final Chunk chunk = getChunk();
         if (distanceX > 8 || distanceY > 8 || distanceZ > 8) {
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
+            PacketUtils.prepareViewablePacket(serverSettings, chunk, new EntityTeleportPacket(getEntityId(), position, isOnGround()), this);
             this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         } else if (positionChange && viewChange) {
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverSettings, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
             // Fix head rotation
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverSettings, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
         } else if (positionChange) {
             // This is a confusing fix for a confusing issue. If rotation is only sent when the entity actually changes, then spawning an entity
             // on the ground causes the entity not to update its rotation correctly. It works fine if the entity is spawned in the air. Very weird.
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverSettings, chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, onGround), this);
         } else if (viewChange) {
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
-            PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(),chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
+            PacketUtils.prepareViewablePacket(serverSettings, chunk, new EntityHeadLookPacket(getEntityId(), position.yaw()), this);
+            PacketUtils.prepareViewablePacket(serverSettings,chunk, EntityPositionAndRotationPacket.getPacket(getEntityId(), position,
                     lastSyncedPosition, isOnGround()), this);
         }
         this.lastSyncedPosition = position;
@@ -1460,7 +1473,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         removeEffect(potion.effect());
         this.effects.add(new TimedPotion(potion, System.currentTimeMillis()));
         potion.sendAddPacket(this);
-        serverProcess.getGlobalEventHandler().call(new EntityPotionAddEvent(this, potion));
+        globalEventHandler.call(new EntityPotionAddEvent(this, potion));
     }
 
     /**
@@ -1472,7 +1485,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         this.effects.removeIf(timedPotion -> {
             if (timedPotion.getPotion().effect() == effect) {
                 timedPotion.getPotion().sendRemovePacket(this);
-                serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+                globalEventHandler.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
                 return true;
             }
             return false;
@@ -1515,7 +1528,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void clearEffects() {
         for (TimedPotion timedPotion : effects) {
             timedPotion.getPotion().sendRemovePacket(this);
-            serverProcess.getGlobalEventHandler().call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
+            globalEventHandler.call(new EntityPotionRemoveEvent(this, timedPotion.getPotion()));
         }
         this.effects.clear();
     }
@@ -1531,11 +1544,11 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     protected void remove(boolean permanent) {
         if (isRemoved()) return;
-        serverProcess.getGlobalEventHandler().call(new EntityDespawnEvent(this));
+        globalEventHandler.call(new EntityDespawnEvent(this));
         try {
             despawn();
         } catch (Throwable t) {
-            serverProcess.getExceptionHandler().handleException(t);
+            exceptionHandler.handleException(t);
         }
 
         // Remove passengers if any (also done with LivingEntity#kill)
@@ -1544,7 +1557,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
         final Entity vehicle = this.vehicle;
         if (vehicle != null) vehicle.removePassenger(this);
 
-        serverProcess.dispatcher().removeElement(this);
+        dispatcher.removeElement(this);
         this.removed = true;
         if (permanent) {
             Entity.ENTITY_BY_ID.remove(id);
@@ -1580,7 +1593,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
      * @param temporalUnit the unit of the delay
      */
     public void scheduleRemove(long delay, @NotNull TemporalUnit temporalUnit) {
-        if (temporalUnit.equals(TimeUnit.getServerTick(serverProcess.getServerSetting()))) {
+        if (temporalUnit.equals(TimeUnit.getServerTick(serverSettings))) {
             scheduleRemove(TaskSchedule.tick((int) delay));
         } else {
             scheduleRemove(Duration.of(delay, temporalUnit));
@@ -1601,7 +1614,7 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     }
 
     protected @NotNull Vec getVelocityForPacket() {
-        return this.velocity.mul(8000f / serverProcess.getServerSetting().getTickPerSecond());
+        return this.velocity.mul(8000f / serverSettings.getTickPerSecond());
     }
 
     protected @NotNull EntityVelocityPacket getVelocityPacket() {
@@ -1630,14 +1643,14 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     protected void synchronizePosition(boolean includeSelf) {
         final Pos posCache = this.position;
         final ServerPacket packet = new EntityTeleportPacket(getEntityId(), posCache, isOnGround());
-        PacketUtils.prepareViewablePacket(serverProcess.getServerSetting(), currentChunk, packet, this);
+        PacketUtils.prepareViewablePacket(serverSettings, currentChunk, packet, this);
         this.lastAbsoluteSynchronizationTime = System.currentTimeMillis();
         this.lastSyncedPosition = posCache;
     }
 
     private void synchronizeView() {
-        sendPacketToViewersAndSelf(new EntityHeadLookPacket(getEntityId(), position.yaw()));
-        sendPacketToViewersAndSelf(new EntityRotationPacket(getEntityId(), position.yaw(), position.pitch(), onGround));
+        sendPacketToViewersAndSelf(serverSettings, new EntityHeadLookPacket(getEntityId(), position.yaw()));
+        sendPacketToViewersAndSelf(serverSettings, new EntityRotationPacket(getEntityId(), position.yaw(), position.pitch(), onGround));
     }
 
     /**
@@ -1708,9 +1721,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     public void takeKnockback(float strength, final double x, final double z) {
         if (strength > 0) {
             //TODO check possible side effects of unnatural TPS (other than 20TPS)
-            strength *= serverProcess.getServerSetting().getTickPerSecond();
+            strength *= serverSettings.getTickPerSecond();
             final Vec velocityModifier = new Vec(x, z).normalize().mul(strength);
-            final double verticalLimit = .4d * serverProcess.getServerSetting().getTickPerSecond();
+            final double verticalLimit = .4d * serverSettings.getTickPerSecond();
 
             setVelocity(new Vec(velocity.x() / 2d - velocityModifier.x(),
                     onGround ? Math.min(verticalLimit, velocity.y() / 2d + strength) : velocity.y(),
@@ -1827,11 +1840,6 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     public boolean hasCollision() {
         return hasCollision;
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 
     public enum Pose {

@@ -1,5 +1,6 @@
 package net.minestom.server.command.builder.arguments;
 
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
@@ -11,12 +12,14 @@ import org.jetbrains.annotations.NotNull;
 public class ArgumentCommand extends Argument<CommandResult> {
 
     public static final int INVALID_COMMAND_ERROR = 1;
+    private final CommandManager commandManager;
 
     private boolean onlyCorrect;
     private String shortcut = "";
 
-    public ArgumentCommand(@NotNull String id) {
+    public ArgumentCommand(CommandManager commandManager, @NotNull String id) {
         super(id, true, true);
+        this.commandManager = commandManager;
     }
 
     @NotNull
@@ -25,7 +28,7 @@ public class ArgumentCommand extends Argument<CommandResult> {
         final String commandString = !shortcut.isEmpty() ?
                 shortcut + StringUtils.SPACE + input
                 : input;
-        CommandDispatcher dispatcher = sender.getServerProcess().getCommandManager().getDispatcher();
+        CommandDispatcher dispatcher = commandManager.getDispatcher();
         CommandResult result = dispatcher.parse(sender, commandString);
 
         if (onlyCorrect && result.getType() != CommandResult.Type.SUCCESS)

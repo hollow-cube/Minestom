@@ -1,7 +1,7 @@
 package net.minestom.demo;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.advancements.FrameType;
 import net.minestom.server.advancements.notifications.Notification;
 import net.minestom.server.advancements.notifications.NotificationCenter;
@@ -14,6 +14,7 @@ import net.minestom.server.entity.ItemEntity;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.Damage;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
+import net.minestom.server.entity.fakeplayer.FakePlayerOption;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
@@ -46,15 +47,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerInit {
 
-    private final ServerProcess serverProcess;
+    private final ServerFacade serverFacade;
 
-    public PlayerInit(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
-        InstanceManager instanceManager = serverProcess.getInstanceManager();
+    public PlayerInit(ServerFacade serverFacade) {
+        this.serverFacade = serverFacade;
+        InstanceManager instanceManager = serverFacade.getInstanceManager();
 
-        InstanceContainer instanceContainer = instanceManager.createInstanceContainer(serverProcess, DimensionType.OVERWORLD);
+        InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
         instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
-        instanceContainer.setChunkSupplier(LightingChunk::new);
+        instanceContainer.setChunkSupplier((instance, chunkX, chunkZ) -> new LightingChunk(serverFacade.getBiomeManager(), serverFacade.getServerSettings(), serverFacade.getSchedulerManager(), instance, chunkX, chunkZ));
 
 //        var i2 = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, null, NamespaceID.from("minestom:demo"));
 //        instanceManager.registerInstance(i2);
@@ -70,10 +71,10 @@ public class PlayerInit {
         //     System.out.println("load end");
         // });
 
-        inventory = new Inventory(serverProcess, InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
+        inventory = new Inventory(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
 
-        DEMO_NODE = EventNode.all(serverProcess, "demo")
+        DEMO_NODE = EventNode.all(serverFacade, "demo")
                 .addListener(EntityAttackEvent.class, event -> {
                     final Entity source = event.getEntity();
                     final Entity entity = event.getTarget();
@@ -103,13 +104,13 @@ public class PlayerInit {
                     ItemStack droppedItem = event.getItemStack();
 
                     Pos playerPos = player.getPosition();
-                    ItemEntity itemEntity = new ItemEntity(serverProcess, droppedItem);
+                    ItemEntity itemEntity = new ItemEntity(serverFacade, droppedItem);
                     itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
                     itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
                     Vec velocity = playerPos.direction().mul(6);
                     itemEntity.setVelocity(velocity);
 
-                    FakePlayer.initPlayer(serverProcess, UUID.randomUUID(), "fake123", fp -> {
+                    new FakePlayer(serverFacade, UUID.randomUUID(), "fake123", new FakePlayerOption(), fp -> {
                         System.out.println("fp = " + fp);
                     });
                 })
@@ -117,7 +118,7 @@ public class PlayerInit {
                 .addListener(AsyncPlayerConfigurationEvent.class, event -> {
                     final Player player = event.getPlayer();
 
-                    var instances = serverProcess.getInstanceManager().getInstances();
+                    var instances = serverFacade.getInstanceManager().getInstances();
                     Instance instance = instances.stream().skip(new Random().nextInt(instances.size())).findFirst().orElse(null);
                     event.setSpawningInstance(instance);
                     int x = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
@@ -198,7 +199,7 @@ public class PlayerInit {
     private final AtomicReference<TickMonitor> LAST_TICK = new AtomicReference<>();
 
     public void init() {
-        var eventHandler = serverProcess.getGlobalEventHandler();
+        var eventHandler = serverFacade.getGlobalEventHandler();
         eventHandler.addChild(DEMO_NODE);
 
         MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = true;
@@ -206,9 +207,9 @@ public class PlayerInit {
 
         eventHandler.addListener(ServerTickMonitorEvent.class, event -> LAST_TICK.set(event.getTickMonitor()));
 
-        BenchmarkManager benchmarkManager = serverProcess.getBenchmarkManager();
-        serverProcess.getSchedulerManager().buildTask(() -> {
-            if (serverProcess.getConnectionManager().getOnlinePlayerCount() != 0)
+        BenchmarkManager benchmarkManager = serverFacade.getBenchmarkManager();
+        serverFacade.getSchedulerManager().buildTask(() -> {
+            if (serverFacade.getConnectionManager().getOnlinePlayerCount() != 0)
                 return;
 
             long ramUsage = benchmarkManager.getUsedMemory();
@@ -220,8 +221,8 @@ public class PlayerInit {
                     .append(Component.text("TICK TIME: " + MathUtils.round(tickMonitor.getTickTime(), 2) + "ms"))
                     .append(Component.newline())
                     .append(Component.text("ACQ TIME: " + MathUtils.round(tickMonitor.getAcquisitionTime(), 2) + "ms"));
-            final Component footer = benchmarkManager.getCpuMonitoringMessage();
-            serverProcess.getAudiences().players().sendPlayerListHeaderAndFooter(header, footer);
-        }).repeat(10, TimeUnit.getServerTick(serverProcess.getServerSetting())); //.schedule();
+            final Component footer = BenchmarkManager.getCpuMonitoringMessage(benchmarkManager);
+            serverFacade.getAudienceManager().players().sendPlayerListHeaderAndFooter(header, footer);
+        }).repeat(10, TimeUnit.getServerTick(serverFacade.getServerSettings())); //.schedule();
     }
 }

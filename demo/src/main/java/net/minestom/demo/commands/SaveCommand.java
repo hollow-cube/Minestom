@@ -1,5 +1,6 @@
 package net.minestom.demo.commands;
 
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -13,18 +14,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class SaveCommand extends Command {
 
-    public SaveCommand() {
+    private final ServerFacade serverFacade;
+
+    public SaveCommand(ServerFacade serverFacade) {
         super("save");
+        this.serverFacade = serverFacade;
         addSyntax(this::execute);
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        for(var instance : commandSender.getServerProcess().getInstanceManager().getInstances()) {
+        for(var instance : serverFacade.getInstanceManager().getInstances()) {
             CompletableFuture<Void> instanceSave = instance.saveInstance().thenCompose(v -> instance.saveChunksToStorage());
             try {
                 instanceSave.get();
             } catch (InterruptedException | ExecutionException e) {
-                commandSender.getServerProcess().getExceptionHandler().handleException(e);
+                serverFacade.getExceptionHandler().handleException(e);
             }
         }
         commandSender.sendMessage("Saving done!");

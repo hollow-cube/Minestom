@@ -74,7 +74,7 @@ public enum ServerListPingType {
      * @see OpenToLAN
      */
     public static @NotNull String getOpenToLANPing(@NotNull ResponseData data) {
-        return String.format(LAN_PING_FORMAT, SECTION.serialize(data.getDescription()), data.getServerProcess().getServer().getPort());
+        return String.format(LAN_PING_FORMAT, SECTION.serialize(data.getDescription()), data.getServer().getPort());
     }
 
     /**

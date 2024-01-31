@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.minestom.demo.block.TestBlockHandler;
 import net.minestom.demo.block.placement.DripstonePlacementRule;
 import net.minestom.demo.commands.*;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
@@ -36,51 +36,51 @@ public class Main {
 
         ServerSettings serverSettings = ServerSettings.builder().compressionThreshold(0).build();
 
-        ServerProcess serverProcess = ServerProcess.of(serverSettings);
+        ServerFacade serverFacade = ServerFacade.of(serverSettings);
 
 
-        BlockManager blockManager = serverProcess.getBlockManager();
+        BlockManager blockManager = serverFacade.getBlockManager();
         blockManager.registerBlockPlacementRule(new DripstonePlacementRule());
         blockManager.registerHandler(TestBlockHandler.INSTANCE.getNamespaceId(), () -> TestBlockHandler.INSTANCE);
 
-        CommandManager commandManager = serverProcess.getCommandManager();
+        CommandManager commandManager = serverFacade.getCommandManager();
         commandManager.register(new TestCommand());
-        commandManager.register(new EntitySelectorCommand());
+        commandManager.register(new EntitySelectorCommand(serverFacade));
         commandManager.register(new HealthCommand());
         commandManager.register(new LegacyCommand());
-        commandManager.register(new DimensionCommand(serverProcess));
-        commandManager.register(new ShutdownCommand(serverProcess));
-        commandManager.register(new TeleportCommand());
-        commandManager.register(new PlayersCommand());
+        commandManager.register(new DimensionCommand(serverFacade));
+        commandManager.register(new ShutdownCommand(serverFacade));
+        commandManager.register(new TeleportCommand(serverFacade));
+        commandManager.register(new PlayersCommand(serverFacade));
         commandManager.register(new FindCommand());
         commandManager.register(new TitleCommand());
         commandManager.register(new BookCommand());
         commandManager.register(new ShootCommand());
-        commandManager.register(new HorseCommand());
+        commandManager.register(new HorseCommand(serverFacade));
         commandManager.register(new EchoCommand());
-        commandManager.register(new SummonCommand());
-        commandManager.register(new RemoveCommand());
-        commandManager.register(new GiveCommand());
+        commandManager.register(new SummonCommand(serverFacade));
+        commandManager.register(new RemoveCommand(serverFacade));
+        commandManager.register(new GiveCommand(serverFacade));
         commandManager.register(new SetBlockCommand());
-        commandManager.register(new AutoViewCommand());
-        commandManager.register(new SaveCommand());
-        commandManager.register(new GamemodeCommand());
-        commandManager.register(new ExecuteCommand());
+        commandManager.register(new AutoViewCommand(serverFacade));
+        commandManager.register(new SaveCommand(serverFacade));
+        commandManager.register(new GamemodeCommand(serverFacade));
+        commandManager.register(new ExecuteCommand(serverFacade));
         commandManager.register(new RedirectTestCommand());
-        commandManager.register(new DisplayCommand());
+        commandManager.register(new DisplayCommand(serverFacade));
         commandManager.register(new NotificationCommand());
         commandManager.register(new TestCommand2());
         commandManager.register(new ConfigCommand());
-        commandManager.register(new SidebarCommand(serverProcess));
+        commandManager.register(new SidebarCommand(serverFacade));
         commandManager.register(new SetEntityType());
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
-        serverProcess.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
+        serverFacade.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
 
-        serverProcess.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
+        serverFacade.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
 
-        serverProcess.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
+        serverFacade.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
             ResponseData responseData = event.getResponseData();
             responseData.addEntry(NamedAndIdentified.named("The first line is separated from the others"));
             responseData.addEntry(NamedAndIdentified.named("Could be a name, or a message"));
@@ -128,9 +128,9 @@ public class Main {
                 return true;
             }
         };
-        serverProcess.getRecipeManager().addRecipe(ironBlockRecipe);
+        serverFacade.getRecipeManager().addRecipe(ironBlockRecipe);
 
-        new PlayerInit(serverProcess).init();
+        new PlayerInit(serverFacade).init();
 
 //        VelocityProxy.enable("abcdef");
         //BungeeCordProxy.enable();
@@ -138,9 +138,9 @@ public class Main {
         //MojangAuth.init();
 
         // useful for testing - we don't need to worry about event calls so just set this to a long time
-        new OpenToLAN(serverProcess).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
+        new OpenToLAN(serverFacade.getConnectionManager(), serverFacade.getServer(), serverFacade.getSchedulerManager(), serverFacade.getGlobalEventHandler()).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
 
-        serverProcess.start("0.0.0.0", 25565);
+        serverFacade.getServerStarter().start("0.0.0.0", 25565);
 //        minecraftServer.start(java.net.UnixDomainSocketAddress.of("minestom-demo.sock"));
         //Runtime.getRuntime().addShutdownHook(new Thread(MinecraftServer::stopCleanly));
     }

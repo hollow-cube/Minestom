@@ -1,6 +1,6 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.Tickable;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +20,11 @@ public class ThreadDispatcherTest {
 
     @Test
     public void elementTick() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         final AtomicInteger counter = new AtomicInteger();
-        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.singleThread(serverProcess.getExceptionHandler());
+        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.singleThread(serverFacade.getExceptionHandler());
         assertEquals(1, dispatcher.threads().size());
-        assertThrows(Exception.class, () -> dispatcher.threads().add(new TickThread(serverProcess.getExceptionHandler(),1)));
+        assertThrows(Exception.class, () -> dispatcher.threads().add(new TickThread(serverFacade.getExceptionHandler(),1)));
 
         var partition = new Object();
         Tickable element = (time) -> counter.incrementAndGet();
@@ -49,11 +49,11 @@ public class ThreadDispatcherTest {
 
     @Test
     public void partitionTick() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // Partitions implementing Tickable should be ticked same as elements
         final AtomicInteger counter1 = new AtomicInteger();
         final AtomicInteger counter2 = new AtomicInteger();
-        ThreadDispatcher<Tickable> dispatcher = ThreadDispatcher.singleThread(serverProcess.getExceptionHandler());
+        ThreadDispatcher<Tickable> dispatcher = ThreadDispatcher.singleThread(serverFacade.getExceptionHandler());
         assertEquals(1, dispatcher.threads().size());
 
         Tickable partition = (time) -> counter1.incrementAndGet();
@@ -79,10 +79,10 @@ public class ThreadDispatcherTest {
 
     @Test
     public void uniqueThread() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // Ensure that partitions are properly dispatched across threads
         final int threadCount = 10;
-        ThreadDispatcher<Tickable> dispatcher = ThreadDispatcher.of(serverProcess.getExceptionHandler(), ThreadProvider.counter(), threadCount);
+        ThreadDispatcher<Tickable> dispatcher = ThreadDispatcher.of(serverFacade.getExceptionHandler(), ThreadProvider.counter(), threadCount);
         assertEquals(threadCount, dispatcher.threads().size());
 
         final AtomicInteger counter = new AtomicInteger();
@@ -109,7 +109,7 @@ public class ThreadDispatcherTest {
 
     @Test
     public void threadUpdate() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // Ensure that partitions threads are properly updated every tick
         // when RefreshType.ALWAYS is used
         interface Updater extends Tickable {
@@ -117,7 +117,7 @@ public class ThreadDispatcherTest {
         }
 
         final int threadCount = 10;
-        ThreadDispatcher<Updater> dispatcher = ThreadDispatcher.of(serverProcess.getExceptionHandler(), new ThreadProvider<>() {
+        ThreadDispatcher<Updater> dispatcher = ThreadDispatcher.of(serverFacade.getExceptionHandler(), new ThreadProvider<>() {
             @Override
             public int findThread(@NotNull Updater partition) {
                 return partition.getValue();

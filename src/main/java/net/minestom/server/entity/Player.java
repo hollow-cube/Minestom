@@ -2,6 +2,7 @@ package net.minestom.server.entity;
 
 import it.unimi.dsi.fastutil.longs.LongArrayPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
+import lombok.Getter;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.identity.Identified;
@@ -19,13 +20,14 @@ import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.TitlePart;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.advancements.AdvancementTab;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.adventure.Localizable;
+import net.minestom.server.adventure.bossbar.BossBarManager;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.condition.CommandCondition;
 import net.minestom.server.coordinate.Point;
@@ -37,15 +39,19 @@ import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.entity.metadata.LivingEntityMeta;
 import net.minestom.server.entity.metadata.PlayerMeta;
 import net.minestom.server.entity.vehicle.PlayerVehicleInformation;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryOpenEvent;
 import net.minestom.server.event.item.ItemDropEvent;
 import net.minestom.server.event.item.ItemUpdateStateEvent;
 import net.minestom.server.event.item.PickupExperienceEvent;
 import net.minestom.server.event.player.*;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
@@ -56,6 +62,7 @@ import net.minestom.server.message.ChatMessageType;
 import net.minestom.server.message.ChatPosition;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionManagerImpl;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.PlayerProvider;
 import net.minestom.server.network.packet.client.ClientPacket;
@@ -72,12 +79,14 @@ import net.minestom.server.recipe.Recipe;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.scoreboard.BelowNameTag;
 import net.minestom.server.scoreboard.Team;
+import net.minestom.server.scoreboard.TeamManager;
 import net.minestom.server.snapshot.EntitySnapshot;
 import net.minestom.server.snapshot.PlayerSnapshot;
 import net.minestom.server.snapshot.SnapshotImpl;
 import net.minestom.server.snapshot.SnapshotUpdater;
 import net.minestom.server.statistic.PlayerStatistic;
-import net.minestom.server.timer.Scheduler;
+import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.PropertyUtils;
@@ -114,7 +123,7 @@ import java.util.function.UnaryOperator;
  * Those are the major actors of the server,
  * they are not necessary backed by a {@link PlayerSocketConnection} as shown by {@link FakePlayer}.
  * <p>
- * You can easily create your own implementation of this and use it with {@link ConnectionManager#setPlayerProvider(PlayerProvider)}.
+ * You can easily create your own implementation of this and use it with {@link ConnectionManagerImpl#setPlayerProvider(PlayerProvider)}.
  */
 public class Player extends LivingEntity implements CommandSender, Localizable, HoverEventSource<ShowEntity>, Identified, NamedAndIdentified {
     private static final Logger logger = LoggerFactory.getLogger(Player.class);
@@ -131,7 +140,18 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     private long lastKeepAlive;
     private boolean answerKeepAlive;
+    @Getter // FIXME bad shit
 
+    protected final ConnectionManager connectionManager;
+    protected final TeamManager teamManager;
+    protected final RecipeManager recipeManager;
+    @Getter // FIXME bad shit
+    private final CommandManager commandManager;
+    private final BossBarManager bossBarManager;
+    private final SchedulerManager schedulerManager;
+    private final PacketListenerManager packetListenerManager;
+    @Getter // FIXME bad shit
+    private final BlockManager blockManager;
     private String username;
     private Component usernameComponent;
     protected final PlayerConnection playerConnection;
@@ -225,8 +245,31 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // The future is non-null when a resource pack is in-flight, and completed when all statuses have been received.
     private CompletableFuture<Void> resourcePackFuture = null;
 
-    public Player(@NotNull ServerProcess serverProcess, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
-        super(serverProcess, EntityType.PLAYER, uuid);
+    public Player(
+            ServerSettings serverSettings,
+            EventNode<Event> globalEventHandler,
+            ThreadDispatcher<Chunk> dispatcher,
+            ExceptionHandler exceptionHandler,
+            ConnectionManager connectionManager,
+            TeamManager teamManager,
+            RecipeManager recipeManager,
+            CommandManager commandManager,
+            BossBarManager bossBarManager,
+            SchedulerManager schedulerManager,
+            PacketListenerManager packetListenerManager,
+            BlockManager blockManager,
+            
+            @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection
+    ) {
+        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, EntityType.PLAYER, uuid);
+        this.connectionManager = connectionManager;
+        this.teamManager = teamManager;
+        this.recipeManager = recipeManager;
+        this.commandManager = commandManager;
+        this.bossBarManager = bossBarManager;
+        this.schedulerManager = schedulerManager;
+        this.packetListenerManager = packetListenerManager;
+        this.blockManager = blockManager;
         this.username = username;
         this.usernameComponent = Component.text(username);
         this.playerConnection = playerConnection;
@@ -234,7 +277,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         setRespawnPoint(Pos.ZERO);
 
         this.settings = new PlayerSettings();
-        this.inventory = new PlayerInventory(serverProcess, this);
+        this.inventory = new PlayerInventory(serverSettings, globalEventHandler, this);
 
         setCanPickupItem(true); // By default
 
@@ -261,9 +304,9 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         chunkRemover = (chunkX, chunkZ) -> {
             // Unload old chunks
             sendPacket(new UnloadChunkPacket(chunkX, chunkZ));
-            getServerProcess().getGlobalEventHandler().call(new PlayerChunkUnloadEvent(this, chunkX, chunkZ));
+            globalEventHandler.call(new PlayerChunkUnloadEvent(this, chunkX, chunkZ));
         };
-        experiencePickupCooldown = new Cooldown(Duration.of(10, TimeUnit.getServerTick(getServerProcess().getServerSetting())));
+        experiencePickupCooldown = new Cooldown(Duration.of(10, TimeUnit.getServerTick(serverSettings)));
     }
 
     @ApiStatus.Internal
@@ -291,13 +334,13 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         final JoinGamePacket joinGamePacket = new JoinGamePacket(
                 getEntityId(), this.hardcore, List.of(), 0,
-                getServerProcess().getServerSetting().getChunkViewDistance(), getServerProcess().getServerSetting().getChunkViewDistance(),
+                serverSettings.getChunkViewDistance(), serverSettings.getChunkViewDistance(),
                 false, true, false, dimensionType.toString(), spawnInstance.getDimensionName(),
                 0, gameMode, null, false, levelFlat, deathLocation, portalCooldown);
         sendPacket(joinGamePacket);
 
         // Difficulty
-        sendPacket(new ServerDifficultyPacket(getServerProcess().getServerSetting().getDifficulty(), true));
+        sendPacket(new ServerDifficultyPacket(serverSettings.getDifficulty(), true));
 
         sendPacket(new SpawnPositionPacket(respawnPoint, 0));
 
@@ -319,12 +362,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             }
         }
         PlayerSkinInitEvent skinInitEvent = new PlayerSkinInitEvent(this, profileSkin);
-        getServerProcess().getGlobalEventHandler().call(skinInitEvent);
+        globalEventHandler.call(skinInitEvent);
         this.skin = skinInitEvent.getSkin();
         // FIXME: when using Geyser, this line remove the skin of the client
-        PacketUtils.broadcastPlayPacket(getServerProcess(), getAddPlayerToList());
+        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, getAddPlayerToList());
 
-        var connectionManager = getServerProcess().getConnectionManager();
         for (var player : connectionManager.getOnlinePlayers()) {
             if (player != this) {
                 sendPacket(player.getAddPlayerToList());
@@ -335,7 +377,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         //Teams
-        for (Team team : getServerProcess().getTeamManager().getTeams()) {
+        for (Team team : teamManager.getTeams()) {
             sendPacket(team.createTeamsCreationPacket());
         }
 
@@ -344,7 +386,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Recipes start
         {
-            RecipeManager recipeManager = getServerProcess().getRecipeManager();
             sendPacket(recipeManager.getDeclareRecipesPacket());
 
             List<String> recipesIdentifier = new ArrayList<>();
@@ -388,7 +429,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Remove the player, then send them back to configuration
         remove(false);
 
-        var connectionManager = getServerProcess().getConnectionManager();
         connectionManager.transitionPlayToConfig(this);
 
     }
@@ -421,7 +461,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                     EntityTracker.Target.EXPERIENCE_ORBS, experienceOrb -> {
                         if (expandedBoundingBox.intersectEntity(loweredPosition, experienceOrb)) {
                             PickupExperienceEvent pickupExperienceEvent = new PickupExperienceEvent(this, experienceOrb);
-                            getServerProcess().getGlobalEventHandler().callCancellable(pickupExperienceEvent, () -> {
+                            globalEventHandler.callCancellable(pickupExperienceEvent, () -> {
                                 short experienceCount = pickupExperienceEvent.getExperienceCount(); // TODO give to player
                                 experienceOrb.remove();
                             });
@@ -446,7 +486,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
                 if (isFood) {
                     PlayerEatEvent playerEatEvent = new PlayerEatEvent(this, foodItem, eatingHand);
-                    getServerProcess().getGlobalEventHandler().call(playerEatEvent);
+                    globalEventHandler.call(playerEatEvent);
                 }
 
                 refreshEating(null);
@@ -456,7 +496,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         if (EXPERIMENT_PERFORM_POSE_UPDATES) updatePose();
 
         // Tick event
-        getServerProcess().getGlobalEventHandler().call(new PlayerTickEvent(this));
+        globalEventHandler.call(new PlayerTickEvent(this));
     }
 
     @Override
@@ -486,7 +526,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
             // Call player death event
             PlayerDeathEvent playerDeathEvent = new PlayerDeathEvent(this, deathText, chatMessage);
-            getServerProcess().getGlobalEventHandler().call(playerDeathEvent);
+            globalEventHandler.call(playerDeathEvent);
 
             deathText = playerDeathEvent.getDeathText();
             chatMessage = playerDeathEvent.getChatMessage();
@@ -498,7 +538,9 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
             // #buildDeathMessage can return null, check here
             if (chatMessage != null) {
-                getServerProcess().getAudiences().players().sendMessage(chatMessage);
+                for (Player player : connectionManager.getOnlinePlayers()) {
+                    player.sendMessage(chatMessage);
+                }
             }
 
             // Set death location
@@ -524,7 +566,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 0, gameMode, gameMode, false, levelFlat, deathLocation, portalCooldown, RespawnPacket.COPY_ALL));
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this);
-        getServerProcess().getGlobalEventHandler().call(respawnEvent);
+        globalEventHandler.call(respawnEvent);
         triggerStatus((byte) (24 + permissionLevel)); // Set permission level
         refreshIsDead(false);
         updatePose();
@@ -535,7 +577,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         ChunkUtils.forChunksInRange(respawnPosition, settings.getEffectiveViewDistance(), chunkAdder);
         chunksLoadedByClient = new Vec(respawnPosition.chunkX(), respawnPosition.chunkZ());
         // Client also needs all entities resent to them, since those are unloaded as well
-        this.instance.getEntityTracker().nearbyEntitiesByChunkRange(respawnPosition, Math.min(getServerProcess().getServerSetting().getChunkViewDistance(), settings.getViewDistance()),
+        this.instance.getEntityTracker().nearbyEntitiesByChunkRange(respawnPosition, Math.min(serverSettings.getChunkViewDistance(), settings.getViewDistance()),
                 EntityTracker.Target.ENTITIES, entity -> {
                     // Skip refreshing self with a new viewer
                     if (!entity.getUuid().equals(uuid) && entity.isViewer(this)) {
@@ -550,7 +592,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     private void refreshClientStateAfterRespawn() {
         sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
-        sendPacket(new ServerDifficultyPacket(getServerProcess().getServerSetting().getDifficulty(), false));
+        sendPacket(new ServerDifficultyPacket(serverSettings.getDifficulty(), false));
         sendPacket(new UpdateHealthPacket(this.getHealth(), food, foodSaturation));
         sendPacket(new SetExperiencePacket(exp, level, 0));
         triggerStatus((byte) (24 + permissionLevel)); // Set permission level
@@ -563,7 +605,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * again, and any changes will be visible to the player.
      */
     public void refreshCommands() {
-        sendPacket(getServerProcess().getCommandManager().createDeclareCommandsPacket(this));
+        sendPacket(commandManager.createDeclareCommandsPacket(this));
     }
 
     @Override
@@ -577,14 +619,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         if (permanent) {
             this.packets.clear();
-            getServerProcess().getGlobalEventHandler().call(new PlayerDisconnectEvent(this));
+            globalEventHandler.call(new PlayerDisconnectEvent(this));
         }
 
         super.remove(permanent);
 
         final Inventory currentInventory = getOpenInventory();
         if (currentInventory != null) currentInventory.removeViewer(this);
-        getServerProcess().getBossBarManager().removeAllBossBars(this);
+        bossBarManager.removeAllBossBars(this);
         // Advancement tabs cache
         {
             Set<AdvancementTab> advancementTabs = AdvancementTab.getTabs(this);
@@ -598,9 +640,9 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         final int chunkX = position.chunkX();
         final int chunkZ = position.chunkZ();
         // Clear all viewable chunks
-        ChunkUtils.forChunksInRange(chunkX, chunkZ, getServerProcess().getServerSetting().getChunkViewDistance(), chunkRemover);
+        ChunkUtils.forChunksInRange(chunkX, chunkZ, serverSettings.getChunkViewDistance(), chunkRemover);
         // Remove from the tab-list
-        PacketUtils.broadcastPlayPacket(getServerProcess(), getRemovePlayerToList());
+        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, getRemovePlayerToList());
 
         // Prevent the player from being stuck in loading screen, or just unable to interact with the server
         // This should be considered as a bug, since the player will ultimately time out anyway.
@@ -617,9 +659,9 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     @Override
-    public void sendPacketToViewersAndSelf(@NotNull SendablePacket packet) {
+    public void sendPacketToViewersAndSelf(ServerSettings serverSettings, @NotNull SendablePacket packet) {
         sendPacket(packet);
-        super.sendPacketToViewersAndSelf(packet);
+        super.sendPacketToViewersAndSelf(serverSettings, packet);
     }
 
     /**
@@ -650,7 +692,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Ensure that surrounding chunks are loaded
         List<CompletableFuture<Chunk>> futures = new ArrayList<>();
-        ChunkUtils.forChunksInRange(spawnPosition, getServerProcess().getServerSetting().getChunkViewDistance(), (chunkX, chunkZ) -> {
+        ChunkUtils.forChunksInRange(spawnPosition, serverSettings.getChunkViewDistance(), (chunkX, chunkZ) -> {
             final CompletableFuture<Chunk> future = instance.loadOptionalChunk(chunkX, chunkZ);
             if (!future.isDone()) futures.add(future);
         });
@@ -663,7 +705,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // One or more chunks need to be loaded
         final Thread runThread = Thread.currentThread();
         CountDownLatch latch = new CountDownLatch(1);
-        Scheduler scheduler = getServerProcess().getSchedulerManager();
         CompletableFuture<Void> future = new CompletableFuture<>() {
             @Override
             public Void join() {
@@ -674,7 +715,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    scheduler.process();
+                    schedulerManager.process();
                     assert isDone();
                 }
                 return super.join();
@@ -683,7 +724,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                 .thenRun(() -> {
-                    scheduler.scheduleNextProcess(() -> {
+                    schedulerManager.scheduleNextProcess(() -> {
                         runnable.accept(instance);
                         future.complete(null);
                     });
@@ -723,7 +764,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         if (!firstSpawn && !dimensionChange) {
             // Player instance changed, clear current viewable collections
             if (updateChunks)
-                ChunkUtils.forChunksInRange(spawnPosition, getServerProcess().getServerSetting().getChunkViewDistance(), chunkRemover);
+                ChunkUtils.forChunksInRange(spawnPosition, serverSettings.getChunkViewDistance(), chunkRemover);
         }
 
         if (dimensionChange) sendDimension(instance.getDimensionType(), instance.getDimensionName());
@@ -738,7 +779,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new UpdateViewPositionPacket(chunkX, chunkZ));
 
             // Load the nearby chunks and queue them to be sent to them
-            ChunkUtils.forChunksInRange(spawnPosition, getServerProcess().getServerSetting().getChunkViewDistance(), chunkAdder);
+            ChunkUtils.forChunksInRange(spawnPosition, serverSettings.getChunkViewDistance(), chunkAdder);
         }
 
         synchronizePosition(true); // So the player doesn't get stuck
@@ -757,7 +798,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
         }
 
-        getServerProcess().getGlobalEventHandler().call(new PlayerSpawnEvent(this, instance, firstSpawn));
+        globalEventHandler.call(new PlayerSpawnEvent(this, instance, firstSpawn));
     }
 
     @ApiStatus.Internal
@@ -805,7 +846,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 if (chunk == null || !chunk.isLoaded()) continue;
 
                 sendPacket(chunk.getFullDataPacket());
-                getServerProcess().getGlobalEventHandler().call(new PlayerChunkLoadEvent(this, chunkX, chunkZ));
+                globalEventHandler.call(new PlayerChunkLoadEvent(this, chunkX, chunkZ));
 
                 pendingChunkCount -= 1f;
                 batchSize += 1;
@@ -979,12 +1020,12 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     @Override
     public void showBossBar(@NotNull BossBar bar) {
-        getServerProcess().getBossBarManager().addBossBar(this, bar);
+        bossBarManager.addBossBar(this, bar);
     }
 
     @Override
     public void hideBossBar(@NotNull BossBar bar) {
-        getServerProcess().getBossBarManager().removeBossBar(this, bar);
+        bossBarManager.removeBossBar(this, bar);
     }
 
     @Override
@@ -1156,7 +1197,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public void setDisplayName(@Nullable Component displayName) {
         this.displayName = displayName;
-        PacketUtils.broadcastPlayPacket(getServerProcess(), new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
+        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
     }
 
     /**
@@ -1198,11 +1239,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         {
             // Remove player
-            PacketUtils.broadcastPlayPacket(getServerProcess(), removePlayerPacket);
-            sendPacketToViewers(destroyEntitiesPacket);
+            PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, removePlayerPacket);
+            sendPacketToViewers(serverSettings, destroyEntitiesPacket);
 
             // Show player again
-            PacketUtils.broadcastPlayPacket(getServerProcess(), addPlayerPacket);
+            PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, addPlayerPacket);
             getViewers().forEach(player -> showPlayer(player.getPlayerConnection()));
         }
 
@@ -1279,7 +1320,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public boolean dropItem(@NotNull ItemStack item) {
         if (item.isAir()) return false;
         ItemDropEvent itemDropEvent = new ItemDropEvent(this, item);
-        getServerProcess().getGlobalEventHandler().call(itemDropEvent);
+        globalEventHandler.call(itemDropEvent);
         return !itemDropEvent.isCancelled();
     }
 
@@ -1408,13 +1449,13 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * and send data to his new viewers.
      */
     protected void refreshAfterTeleport() {
-        sendPacketsToViewers(getEntityType().registry().spawnType().getSpawnPacket(this));
+        sendPacketsToViewers(serverSettings, getEntityType().registry().spawnType().getSpawnPacket(this));
 
         // Update for viewers
-        sendPacketToViewersAndSelf(getVelocityPacket());
-        sendPacketToViewersAndSelf(getMetadataPacket());
-        sendPacketToViewersAndSelf(getPropertiesPacket());
-        sendPacketToViewersAndSelf(getEquipmentsPacket());
+        sendPacketToViewersAndSelf(serverSettings, getVelocityPacket());
+        sendPacketToViewersAndSelf(serverSettings, getMetadataPacket());
+        sendPacketToViewersAndSelf(serverSettings, getPropertiesPacket());
+        sendPacketToViewersAndSelf(serverSettings, getEquipmentsPacket());
 
         getInventory().update();
     }
@@ -1568,7 +1609,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public boolean setGameMode(@NotNull GameMode gameMode) {
         PlayerGameModeChangeEvent playerGameModeChangeEvent = new PlayerGameModeChangeEvent(this, gameMode);
-        getServerProcess().getGlobalEventHandler().call(playerGameModeChangeEvent);
+        globalEventHandler.call(playerGameModeChangeEvent);
         if (playerGameModeChangeEvent.isCancelled()) {
             // Abort
             return false;
@@ -1580,7 +1621,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Condition to prevent sending the packets before spawning the player
         if (isActive()) {
             sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.CHANGE_GAMEMODE, gameMode.id()));
-            PacketUtils.broadcastPlayPacket(getServerProcess(), new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
+            PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
         }
 
         // The client updates their abilities based on the GameMode as follows
@@ -1716,7 +1757,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public boolean openInventory(@NotNull Inventory inventory) {
         InventoryOpenEvent inventoryOpenEvent = new InventoryOpenEvent(inventory, this);
 
-        getServerProcess().getGlobalEventHandler().callCancellable(inventoryOpenEvent, () -> {
+        globalEventHandler.callCancellable(inventoryOpenEvent, () -> {
             Inventory openInventory = getOpenInventory();
             if (openInventory != null) {
                 openInventory.removeViewer(this);
@@ -2068,9 +2109,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             kick(Component.text("Too Many Packets", NamedTextColor.RED));
             return;
         }
-        final PacketListenerManager manager = getServerProcess().getPacketListenerManager();
         // This method is NOT thread-safe
-        this.packets.drain(packet -> manager.processClientPacket(packet, playerConnection), PACKET_PER_TICK);
+        this.packets.drain(packet -> packetListenerManager.processClientPacket(packet, playerConnection), PACKET_PER_TICK);
     }
 
     /**
@@ -2081,7 +2121,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public void refreshLatency(int latency) {
         this.latency = latency;
         if (getPlayerConnection().getConnectionState() == ConnectionState.PLAY) {
-            PacketUtils.broadcastPlayPacket(getServerProcess(), new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
+            PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
         }
     }
 
@@ -2089,7 +2129,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.onGround = onGround;
         if (this.onGround && this.isFlyingWithElytra()) {
             this.setFlyingWithElytra(false);
-            getServerProcess().getGlobalEventHandler().call(new PlayerStopFlyingWithElytraEvent(this));
+            globalEventHandler.call(new PlayerStopFlyingWithElytraEvent(this));
         }
     }
 
@@ -2163,7 +2203,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             return null;
 
         ItemUpdateStateEvent itemUpdateStateEvent = new ItemUpdateStateEvent(this, hand, updatedItem);
-        getServerProcess().getGlobalEventHandler().call(itemUpdateStateEvent);
+        globalEventHandler.call(itemUpdateStateEvent);
 
         return itemUpdateStateEvent;
     }
@@ -2362,7 +2402,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             final Vec old = chunksLoadedByClient;
             sendPacket(new UpdateViewPositionPacket(newX, newZ));
             ChunkUtils.forDifferingChunksInRange(newX, newZ, (int) old.x(), (int) old.z(),
-                    getServerProcess().getServerSetting().getChunkViewDistance(), chunkAdder, chunkRemover);
+                    serverSettings.getChunkViewDistance(), chunkAdder, chunkRemover);
             this.chunksLoadedByClient = new Vec(newX, newZ);
         }
     }
@@ -2430,7 +2470,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         public int getEffectiveViewDistance() {
-            return Math.min(getViewDistance(), getServerProcess().getServerSetting().getChunkViewDistance());
+            return Math.min(getViewDistance(), serverSettings.getChunkViewDistance());
         }
 
         /**

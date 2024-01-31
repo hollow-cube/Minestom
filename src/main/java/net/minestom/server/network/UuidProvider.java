@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Used when you want to provide your own {@link UUID} object for players instead of using the default one.
  * <p>
- * Sets with {@link ConnectionManager#setUuidProvider(UuidProvider)}.
+ * Sets with {@link ConnectionManagerImpl#setUuidProvider(UuidProvider)}.
  */
 @FunctionalInterface
 public interface UuidProvider {

@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -9,13 +10,16 @@ import java.util.List;
 
 public class PlayersCommand extends Command {
 
-    public PlayersCommand() {
+    private final ServerFacade serverFacade;
+
+    public PlayersCommand(ServerFacade serverFacade) {
         super("players");
+        this.serverFacade = serverFacade;
         setDefaultExecutor(this::usage);
     }
 
     private void usage(CommandSender sender, CommandContext context) {
-        final var players = List.copyOf(sender.getServerProcess().getConnectionManager().getOnlinePlayers());
+        final var players = List.copyOf(serverFacade.getConnectionManager().getOnlinePlayers());
         final int playerCount = players.size();
         sender.sendMessage(Component.text("Total players: " + playerCount));
 

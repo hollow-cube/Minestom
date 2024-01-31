@@ -1,6 +1,6 @@
 package net.minestom.server.instance.palette;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -17,16 +17,15 @@ public class PaletteTest {
 
     @Test
     public void singlePlacement() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.blocks(serverProcess);
+        var palette = Palette.blocks();
         palette.set(0, 0, 1, 1);
         assertEquals(1, palette.get(0, 0, 1));
     }
 
     @Test
     public void placement() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             final int dimension = palette.dimension();
             assertEquals(0, palette.get(0, 0, 0), "Default value should be 0");
@@ -61,9 +60,9 @@ public class PaletteTest {
 
     @Test
     public void placementHighValue() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         final int value = 250_000;
-        for (Palette palette : testPalettes(serverProcess)) {
+        for (Palette palette : testPalettes(serverFacade)) {
             palette.set(0, 0, 1, value);
             assertEquals(value, palette.get(0, 0, 1));
         }
@@ -71,8 +70,8 @@ public class PaletteTest {
 
     @Test
     public void negPlacement() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             assertThrows(IllegalArgumentException.class, () -> palette.set(-1, 0, 0, 64));
             assertThrows(IllegalArgumentException.class, () -> palette.set(0, -1, 0, 64));
@@ -86,8 +85,7 @@ public class PaletteTest {
 
     @Test
     public void resize() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        Palette palette = Palette.newPalette(serverProcess,16, 5, 2);
+        Palette palette = Palette.newPalette(16, 5, 2);
         palette.set(0, 0, 0, 1);
         assertEquals(2, palette.bitsPerEntry());
         palette.set(0, 0, 1, 2);
@@ -106,8 +104,8 @@ public class PaletteTest {
 
     @Test
     public void fill() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             assertEquals(0, palette.count());
             palette.set(0, 0, 0, 5);
@@ -138,8 +136,8 @@ public class PaletteTest {
 
     @Test
     public void bulk() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             final int dimension = palette.dimension();
             // Place
@@ -164,8 +162,8 @@ public class PaletteTest {
 
     @Test
     public void bulkAll() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             // Fill all entries
             palette.setAll((x, y, z) -> x + y + z + 1);
@@ -183,8 +181,8 @@ public class PaletteTest {
 
     @Test
     public void bulkAllOrder() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             AtomicInteger count = new AtomicInteger();
 
@@ -222,8 +220,8 @@ public class PaletteTest {
 
     @Test
     public void setAllConstant() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             palette.setAll((x, y, z) -> 1);
             palette.getAll((x, y, z, value) -> assertEquals(1, value));
@@ -232,8 +230,8 @@ public class PaletteTest {
 
     @Test
     public void getAllPresent() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             palette.getAllPresent((x, y, z, value) -> fail("The palette should be empty"));
             palette.set(0, 0, 1, 1);
@@ -248,8 +246,8 @@ public class PaletteTest {
 
     @Test
     public void replaceAll() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             palette.setAll((x, y, z) -> x + y + z + 1);
             palette.replaceAll((x, y, z, value) -> {
@@ -262,8 +260,8 @@ public class PaletteTest {
 
     @Test
     public void replace() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palettes = testPalettes(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palettes = testPalettes(serverFacade);
         for (Palette palette : palettes) {
             palette.set(0, 0, 0, 1);
             palette.replace(0, 0, 0, operand -> {
@@ -276,8 +274,8 @@ public class PaletteTest {
 
     @Test
     public void replaceLoop() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = Palette.newPalette(serverProcess,2, 15, 4);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = Palette.newPalette(2, 15, 4);
         palette.setAll((x, y, z) -> x + y + z);
         final int dimension = palette.dimension();
         for (int x = 0; x < dimension; x++) {
@@ -291,22 +289,22 @@ public class PaletteTest {
 
     @Test
     public void dimension() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,-4, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,0, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,1, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,2, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,3, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,4, 5, 3));
-        assertThrows(Exception.class, () -> Palette.newPalette(serverProcess,6, 5, 3));
-        assertDoesNotThrow(() -> Palette.newPalette(serverProcess,16, 5, 3));
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        assertThrows(Exception.class, () -> Palette.newPalette(-4, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(0, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(1, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(2, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(3, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(4, 5, 3));
+        assertThrows(Exception.class, () -> Palette.newPalette(6, 5, 3));
+        assertDoesNotThrow(() -> Palette.newPalette(16, 5, 3));
     }
 
-    private static List<Palette> testPalettes(ServerProcess serverProcess) {
+    private static List<Palette> testPalettes(ServerFacade serverFacade) {
         return List.of(
-                Palette.newPalette(serverProcess,2, 5, 3),
-                Palette.newPalette(serverProcess,4, 5, 3),
-                Palette.newPalette(serverProcess,8, 5, 3),
-                Palette.newPalette(serverProcess,16, 5, 3));
+                Palette.newPalette(2, 5, 3),
+                Palette.newPalette(4, 5, 3),
+                Palette.newPalette(8, 5, 3),
+                Palette.newPalette(16, 5, 3));
     }
 }

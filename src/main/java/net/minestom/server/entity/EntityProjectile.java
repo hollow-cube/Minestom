@@ -1,24 +1,29 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.event.entity.projectile.ProjectileUncollideEvent;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.thread.ThreadDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,8 +35,12 @@ public class EntityProjectile extends Entity {
 
     private final Entity shooter;
 
-    public EntityProjectile(@NotNull ServerProcess serverProcess, @Nullable Entity shooter, @NotNull EntityType entityType) {
-        super(serverProcess, entityType);
+    public EntityProjectile(@NotNull Entity shooter, @NotNull EntityType entityType) {
+        this(shooter.serverSettings, shooter.globalEventHandler, shooter.dispatcher, shooter.exceptionHandler, shooter, entityType);
+    }
+
+    public EntityProjectile(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @Nullable Entity shooter, @NotNull EntityType entityType) {
+        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, entityType, UUID.randomUUID());
         this.shooter = shooter;
         setup();
     }
@@ -50,7 +59,7 @@ public class EntityProjectile extends Entity {
 
     public void shoot(Point to, double power, double spread) {
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, to, power, spread);
-        getServerProcess().getGlobalEventHandler().call(shootEvent);
+        globalEventHandler.call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;
@@ -97,7 +106,7 @@ public class EntityProjectile extends Entity {
             }
             super.onGround = true;
             this.velocity = Vec.ZERO;
-            sendPacketToViewersAndSelf(getVelocityPacket());
+            sendPacketToViewersAndSelf(serverSettings, getVelocityPacket());
             setNoGravity(true);
         } else {
             if (!super.onGround) {
@@ -105,7 +114,7 @@ public class EntityProjectile extends Entity {
             }
             super.onGround = false;
             setNoGravity(false);
-            getServerProcess().getGlobalEventHandler().call(new ProjectileUncollideEvent(this));
+            globalEventHandler.call(new ProjectileUncollideEvent(this));
         }
     }
 
@@ -147,7 +156,7 @@ public class EntityProjectile extends Entity {
             }
             if (block.isSolid()) {
                 final ProjectileCollideWithBlockEvent event = new ProjectileCollideWithBlockEvent(this, pos, block);
-                getServerProcess().getGlobalEventHandler().call(event);
+                globalEventHandler.call(event);
                 if (!event.isCancelled()) {
                     teleport(pos);
                     return true;
@@ -175,7 +184,7 @@ public class EntityProjectile extends Entity {
             if (victimOptional.isPresent()) {
                 final LivingEntity target = victimOptional.get();
                 final ProjectileCollideWithEntityEvent event = new ProjectileCollideWithEntityEvent(this, pos, target);
-                getServerProcess().getGlobalEventHandler().call(event);
+                globalEventHandler.call(event);
                 if (!event.isCancelled()) {
                     return super.onGround;
                 }

@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.tag.TagReadable;
@@ -24,7 +24,7 @@ import java.util.function.Predicate;
  *
  * @param <T> The event type accepted by this node
  */
-public sealed interface EventNode<T extends Event> permits EventNodeImpl {
+public interface EventNode<T extends Event> {
 
     /**
      * Creates an event node which accepts any event type with no filtering.
@@ -33,9 +33,9 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return An event node with no filtering
      */
     @Contract(value = "_, _ -> new", pure = true)
-    static @NotNull EventNode<Event> all(@NotNull ServerProcess serverProcess,
+    static @NotNull EventNode<Event> all(@NotNull ServerFacade serverFacade,
                                          @NotNull String name) {
-        return type(serverProcess, name, EventFilter.ALL);
+        return type(serverFacade, name, EventFilter.ALL);
     }
 
     /**
@@ -53,10 +53,10 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with just an event type filter
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerProcess serverProcess,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerFacade serverFacade,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter) {
-        return create(serverProcess, name, filter, null);
+        return create(serverFacade, name, filter, null);
     }
 
     /**
@@ -79,11 +79,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull ServerProcess serverProcess,
+    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull ServerFacade serverFacade,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<E> predicate) {
-        return create(serverProcess, name, filter, (e, h) -> predicate.test(e));
+        return create(serverFacade, name, filter, (e, h) -> predicate.test(e));
     }
 
     /**
@@ -108,11 +108,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerProcess serverProcess,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerFacade serverFacade,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter,
                                                            @NotNull BiPredicate<E, V> predicate) {
-        return create(serverProcess, name, filter, predicate);
+        return create(serverFacade, name, filter, predicate);
     }
 
     /**
@@ -134,11 +134,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull ServerProcess serverProcess,
+    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull ServerFacade serverFacade,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<V> predicate) {
-        return create(serverProcess, name, filter, (e, h) -> predicate.test(h));
+        return create(serverFacade, name, filter, (e, h) -> predicate.test(h));
     }
 
     /**
@@ -154,11 +154,11 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event> @NotNull EventNode<E> tag(@NotNull ServerProcess serverProcess,
+    static <E extends Event> @NotNull EventNode<E> tag(@NotNull ServerFacade serverFacade,
                                                        @NotNull String name,
                                                        @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                        @NotNull Tag<?> tag) {
-        return create(serverProcess, name, filter, (e, h) -> h.hasTag(tag));
+        return create(serverFacade, name, filter, (e, h) -> h.hasTag(tag));
     }
 
     /**
@@ -173,20 +173,20 @@ public sealed interface EventNode<T extends Event> permits EventNodeImpl {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull ServerProcess serverProcess,
+    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull ServerFacade serverFacade,
                                                           @NotNull String name,
                                                           @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                           @NotNull Tag<V> tag,
                                                           @NotNull Predicate<@Nullable V> consumer) {
-        return create(serverProcess, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
+        return create(serverFacade, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
     }
 
-    private static <E extends Event, V> EventNode<E> create(@NotNull ServerProcess serverProcess,
+    private static <E extends Event, V> EventNode<E> create(@NotNull ServerFacade serverFacade,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @Nullable BiPredicate<E, V> predicate) {
         //noinspection unchecked
-        return new EventNodeImpl<>(serverProcess.getExceptionHandler(), name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
+        return new EventNodeImpl<>(serverFacade.getExceptionHandler(), name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
     }
 
     /**

@@ -1,6 +1,6 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.utils.async.AsyncUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +36,8 @@ public class AcquirableCollection<E> implements Collection<Acquirable<E>> {
         }
     }
 
-    public void acquireAsync(ServerProcess serverProcess, @NotNull Consumer<E> consumer) {
-        AsyncUtils.runAsync(serverProcess, () -> acquireSync(consumer));
+    public void acquireAsync(ExceptionHandler exceptionHandler, @NotNull Consumer<E> consumer) {
+        AsyncUtils.runAsync(exceptionHandler, () -> acquireSync(consumer));
     }
 
     public @NotNull Stream<E> unwrap() {

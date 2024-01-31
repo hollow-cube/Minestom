@@ -1,6 +1,5 @@
 package net.minestom.server.instance.palette;
 
-import net.minestom.server.ServerProcess;
 import net.minestom.server.network.NetworkBuffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,16 +11,16 @@ import java.util.function.IntUnaryOperator;
  * 0 is the default value.
  */
 public interface Palette extends NetworkBuffer.Writer {
-    static Palette blocks(ServerProcess serverProcess) {
-        return newPalette(serverProcess, 16, 8, 4);
+    static Palette blocks() {
+        return newPalette( 16, 8, 4);
     }
 
-    static Palette biomes(ServerProcess serverProcess) {
-        return newPalette(serverProcess, 4, 3, 1);
+    static Palette biomes() {
+        return newPalette( 4, 3, 1);
     }
 
-    static Palette newPalette(ServerProcess serverProcess, int dimension, int maxBitsPerEntry, int bitsPerEntry) {
-        return new AdaptivePalette(serverProcess, (byte) dimension, (byte) maxBitsPerEntry, (byte) bitsPerEntry);
+    static Palette newPalette(int dimension, int maxBitsPerEntry, int bitsPerEntry) {
+        return new AdaptivePalette((byte) dimension, (byte) maxBitsPerEntry, (byte) bitsPerEntry);
     }
 
     int get(int x, int y, int z);

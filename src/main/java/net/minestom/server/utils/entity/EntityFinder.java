@@ -2,6 +2,7 @@ package net.minestom.server.utils.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanMaps;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+import lombok.RequiredArgsConstructor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -10,6 +11,8 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.math.IntRange;
 import net.minestom.server.utils.validate.Check;
@@ -25,7 +28,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * Represents a query which can be call to find one or multiple entities.
  * It is based on the target selectors used in commands.
  */
+@RequiredArgsConstructor
 public class EntityFinder {
+    private final InstanceManager instanceManager;
+    private final ConnectionManager connectionManager;
 
     private TargetSelector targetSelector;
 
@@ -127,7 +133,7 @@ public class EntityFinder {
     public @NotNull List<@NotNull Entity> find(@Nullable Instance instance, @Nullable Entity self) {
         if (targetSelector == TargetSelector.MINESTOM_USERNAME) {
             Check.notNull(constantName, "The player name should not be null when searching for it");
-            final Player player = instance.getServerProcess().getConnectionManager().getOnlinePlayerByUsername(constantName);
+            final Player player = connectionManager.getOnlinePlayerByUsername(constantName);
             return player != null ? List.of(player) : List.of();
         } else if (targetSelector == TargetSelector.MINESTOM_UUID) {
             Check.notNull(constantUuid, "The UUID should not be null when searching for it");
@@ -303,10 +309,10 @@ public class EntityFinder {
     private static class ToggleableMap<T> extends Object2BooleanOpenHashMap<T> {
     }
 
-    private static @NotNull List<@NotNull Entity> findTarget(@Nullable Instance instance,
+    private @NotNull List<@NotNull Entity> findTarget(@Nullable Instance instance,
                                                              @NotNull TargetSelector targetSelector,
                                                              @NotNull Point startPosition, @Nullable Entity self) {
-        final var players = instance != null ? instance.getPlayers() : instance.getServerProcess().getConnectionManager().getOnlinePlayers();
+        final var players = instance != null ? instance.getPlayers() : connectionManager.getOnlinePlayers();
         if (targetSelector == TargetSelector.NEAREST_PLAYER) {
             return players.stream()
                     .min(Comparator.comparingDouble(p -> p.getPosition().distanceSquared(startPosition)))
@@ -322,7 +328,7 @@ public class EntityFinder {
                 return List.copyOf(instance.getEntities());
             }
             // Get entities from every instance
-            var instances = instance.getServerProcess().getInstanceManager().getInstances();
+            var instances = instanceManager.getInstances();
             List<Entity> entities = new ArrayList<>();
             for (Instance inst : instances) {
                 entities.addAll(inst.getEntities());

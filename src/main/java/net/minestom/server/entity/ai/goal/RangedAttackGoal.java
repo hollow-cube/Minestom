@@ -63,7 +63,7 @@ public class RangedAttackGoal extends GoalSelector {
         this.comeClose = comeClose;
         this.power = power;
         this.spread = spread;
-        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getServerSetting())));
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerSettings())));
         Check.argCondition(desirableRange > attackRange, "Desirable range can not exceed attack range!");
     }
 
@@ -85,7 +85,7 @@ public class RangedAttackGoal extends GoalSelector {
 
     private ProjectileGenerator getProjectileGeneratorOrDefault() {
         if (projectileGenerator == null) {
-            setProjectileGenerator(shooter -> new EntityProjectile(shooter.getServerProcess(), shooter, EntityType.ARROW));
+            setProjectileGenerator(shooter -> new EntityProjectile(shooter, EntityType.ARROW));
         }
         return projectileGenerator;
     }

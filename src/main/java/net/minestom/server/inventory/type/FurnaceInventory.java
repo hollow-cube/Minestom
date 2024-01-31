@@ -1,7 +1,9 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryProperty;
 import net.minestom.server.inventory.InventoryType;
@@ -14,12 +16,12 @@ public class FurnaceInventory extends Inventory {
     private short progressArrow;
     private short maximumProgress;
 
-    public FurnaceInventory(ServerProcess serverProcess, @NotNull Component title) {
-        super(serverProcess, InventoryType.FURNACE, title);
+    public FurnaceInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull Component title) {
+        super(globalEventHandler, serverSettings, InventoryType.FURNACE, title);
     }
 
-    public FurnaceInventory(ServerProcess serverProcess, @NotNull String title) {
-        super(serverProcess, InventoryType.FURNACE, title);
+    public FurnaceInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull String title) {
+        super(globalEventHandler, serverSettings, InventoryType.FURNACE, title);
     }
 
     /**

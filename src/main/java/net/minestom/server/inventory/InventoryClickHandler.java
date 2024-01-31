@@ -1,7 +1,8 @@
 package net.minestom.server.inventory;
 
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryClickEvent;
 import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.item.ItemStack;
@@ -76,7 +77,7 @@ public sealed interface InventoryClickHandler permits AbstractInventory {
      */
     boolean doubleClick(@NotNull Player player, int slot);
 
-    default void callClickEvent(@NotNull GlobalEventHandler globalEventHandler, @NotNull Player player, Inventory inventory, int slot,
+    default void callClickEvent(@NotNull EventNode<Event> globalEventHandler, @NotNull Player player, Inventory inventory, int slot,
                                 @NotNull ClickType clickType, @NotNull ItemStack clicked, @NotNull ItemStack cursor) {
         globalEventHandler.call(new InventoryClickEvent(inventory, player, slot, clickType, clicked, cursor));
     }

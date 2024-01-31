@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
-non-sealed class EventNodeImpl<T extends Event> implements EventNode<T> {
+class EventNodeImpl<T extends Event> implements EventNode<T> {
     private static final boolean ALLOW_MULTIPLE_PARENTS = Boolean.getBoolean("minestom.event.multiple-parents");
 
     static final Object GLOBAL_CHILD_LOCK = new Object();

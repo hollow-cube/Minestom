@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
@@ -27,7 +27,7 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.process().getServerSetting().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSettings().getEntityViewDistance();
 
         final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
@@ -59,7 +59,7 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = env.process().getServerSetting().getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSettings().getEntityViewDistance();
 
         final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
@@ -129,8 +129,8 @@ public class EntityTrackerIntegrationTest {
         assertEquals(1, viewable.getViewers().size());
     }
 
-    private Player createTestPlayer(ServerProcess serverProcess) {
-        return new Player(serverProcess, UUID.randomUUID(), "TestPlayer", new PlayerConnection(serverProcess) {
+    private Player createTestPlayer(ServerFacade serverFacade) {
+        return new Player(serverFacade, UUID.randomUUID(), "TestPlayer", new PlayerConnection(serverFacade) {
             @Override
             public void sendPacket(@NotNull SendablePacket packet) {
                 // nothing

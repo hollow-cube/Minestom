@@ -204,7 +204,7 @@ public final class Metadata {
                     this.notNotifiedChanges.put(index, entry);
                 }
             } else {
-                entity.sendPacketToViewersAndSelf(new EntityMetaDataPacket(entity.getEntityId(), Map.of(index, entry)));
+                entity.sendPacketToViewersAndSelf(entity.serverSettings, new EntityMetaDataPacket(entity.getEntityId(), Map.of(index, entry)));
             }
         }
     }
@@ -225,7 +225,7 @@ public final class Metadata {
             entries = Map.copyOf(awaitingChanges);
             awaitingChanges.clear();
         }
-        entity.sendPacketToViewersAndSelf(new EntityMetaDataPacket(entity.getEntityId(), entries));
+        entity.sendPacketToViewersAndSelf(entity.serverSettings, new EntityMetaDataPacket(entity.getEntityId(), entries));
     }
 
     public @NotNull Map<Integer, Entry<?>> getEntries() {

@@ -1,6 +1,6 @@
 package net.minestom.server.instance.palette;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.network.NetworkBuffer;
 import org.junit.jupiter.api.Test;
@@ -14,24 +14,24 @@ public class PaletteOptimizationTest {
 
     @Test
     public void empty() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = createPalette(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = createPalette(serverFacade);
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
     @Test
     public void single() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = createPalette(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = createPalette(serverFacade);
         palette.set(0, 0, 0, 1);
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
     @Test
     public void random() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         var random = new Random(12345);
-        var palette = createPalette(serverProcess);
+        var palette = createPalette(serverFacade);
         palette.setAll((x, y, z) -> random.nextInt(256));
         paletteEquals(palette.palette, palette.optimizedPalette());
         palette.setAll((x, y, z) -> random.nextInt(2));
@@ -40,8 +40,8 @@ public class PaletteOptimizationTest {
 
     @Test
     public void manualFill() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var palette = createPalette(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var palette = createPalette(serverFacade);
         palette.setAll((x, y, z) -> 1);
         paletteEquals(palette.palette, palette.optimizedPalette());
         palette.setAll((x, y, z) -> 2);
@@ -50,8 +50,8 @@ public class PaletteOptimizationTest {
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
-    AdaptivePalette createPalette(ServerProcess serverProcess) {
-        return (AdaptivePalette) Palette.blocks(serverProcess);
+    AdaptivePalette createPalette(ServerFacade serverFacade) {
+        return (AdaptivePalette) Palette.blocks(serverFacade);
     }
 
     void paletteEquals(Palette palette, Palette optimized) {

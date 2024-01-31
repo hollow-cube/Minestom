@@ -1,9 +1,9 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
-import net.minestom.server.listener.manager.PacketListenerManager;
-import net.minestom.server.network.PacketProcessor;
+import net.minestom.server.listener.manager.PacketListenerManagerImpl;
+import net.minestom.server.network.PacketProcessorImpl;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -18,12 +18,12 @@ public class ServerAddressTest {
 
     @Test
     public void inetAddressTest() throws IOException {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         InetSocketAddress address = new InetSocketAddress("localhost", 25565);
-        var server = new Server(serverProcess, new PacketProcessor(new PacketListenerManager(serverProcess)));
+        var server = new ServerImpl(serverFacade, new PacketProcessorImpl(new PacketListenerManagerImpl(serverFacade)));
         server.init(address);
         assertSame(address, server.socketAddress());
         assertEquals(address.getHostString(), server.getAddress());
@@ -35,12 +35,12 @@ public class ServerAddressTest {
 
     @Test
     public void inetAddressDynamicTest() throws IOException {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         InetSocketAddress address = new InetSocketAddress("localhost", 0);
-        var server = new Server(serverProcess, new PacketProcessor(new PacketListenerManager(serverProcess)));
+        var server = new ServerImpl(serverFacade, new PacketProcessorImpl(new PacketListenerManagerImpl(serverFacade)));
         server.init(address);
         assertSame(address, server.socketAddress());
         assertEquals(address.getHostString(), server.getAddress());
@@ -52,12 +52,12 @@ public class ServerAddressTest {
 
     @Test
     public void unixAddressTest() throws IOException {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
         UnixDomainSocketAddress address = UnixDomainSocketAddress.of("minestom.sock");
-        var server = new Server(serverProcess, new PacketProcessor(new PacketListenerManager(serverProcess)));
+        var server = new ServerImpl(serverFacade, new PacketProcessorImpl(new PacketListenerManagerImpl(serverFacade)));
         server.init(address);
         assertTrue(Files.exists(address.getPath()));
         assertSame(address, server.socketAddress());
@@ -71,8 +71,8 @@ public class ServerAddressTest {
 
     @Test
     public void noAddressTest() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var server = new Server(serverProcess, new PacketProcessor(new PacketListenerManager(serverProcess)));
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var server = new ServerImpl(serverFacade, new PacketProcessorImpl(new PacketListenerManagerImpl(serverFacade)));
         assertDoesNotThrow(server::stop);
     }
 }

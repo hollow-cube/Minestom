@@ -1,5 +1,7 @@
 package net.minestom.server.command.builder.parser;
 
+import net.minestom.server.ServerSettings;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.arguments.*;
 import net.minestom.server.command.builder.arguments.minecraft.*;
@@ -13,6 +15,8 @@ import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeBl
 import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeVec2;
 import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeVec3;
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.utils.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -27,46 +31,48 @@ import java.util.function.Function;
 
 public class ArgumentParser {
 
-    private static final Map<String, Function<String, Argument<?>>> ARGUMENT_FUNCTION_MAP = new ConcurrentHashMap<>();
+    record ArgumentMapKey(String id, CommandManager commandManager, ServerSettings serverSettings, InstanceManager instanceManager, ConnectionManager connectionManager) {}
+
+    private static final Map<String, Function<ArgumentMapKey, Argument<?>>> ARGUMENT_FUNCTION_MAP = new ConcurrentHashMap<>();
 
     static {
-        ARGUMENT_FUNCTION_MAP.put("literal", ArgumentLiteral::new);
-        ARGUMENT_FUNCTION_MAP.put("boolean", ArgumentBoolean::new);
-        ARGUMENT_FUNCTION_MAP.put("integer", ArgumentInteger::new);
-        ARGUMENT_FUNCTION_MAP.put("double", ArgumentDouble::new);
-        ARGUMENT_FUNCTION_MAP.put("float", ArgumentFloat::new);
-        ARGUMENT_FUNCTION_MAP.put("string", ArgumentString::new);
-        ARGUMENT_FUNCTION_MAP.put("word", ArgumentWord::new);
-        ARGUMENT_FUNCTION_MAP.put("stringarray", ArgumentStringArray::new);
-        ARGUMENT_FUNCTION_MAP.put("command", ArgumentCommand::new);
+        ARGUMENT_FUNCTION_MAP.put("literal", key -> new ArgumentLiteral(key.id));
+        ARGUMENT_FUNCTION_MAP.put("boolean", key -> new ArgumentBoolean(key.id));
+        ARGUMENT_FUNCTION_MAP.put("integer", key -> new ArgumentInteger(key.id));
+        ARGUMENT_FUNCTION_MAP.put("double", key -> new ArgumentDouble(key.id));
+        ARGUMENT_FUNCTION_MAP.put("float", key -> new ArgumentFloat(key.id));
+        ARGUMENT_FUNCTION_MAP.put("string", key -> new ArgumentString(key.id));
+        ARGUMENT_FUNCTION_MAP.put("word", key -> new ArgumentWord(key.id));
+        ARGUMENT_FUNCTION_MAP.put("stringarray", key -> new ArgumentStringArray(key.id));
+        ARGUMENT_FUNCTION_MAP.put("command", key -> new ArgumentCommand(key.commandManager, key.id));
         // TODO enum
-        ARGUMENT_FUNCTION_MAP.put("color", ArgumentColor::new);
-        ARGUMENT_FUNCTION_MAP.put("time", ArgumentTime::new);
-        ARGUMENT_FUNCTION_MAP.put("enchantment", ArgumentEnchantment::new);
-        ARGUMENT_FUNCTION_MAP.put("particle", ArgumentParticle::new);
-        ARGUMENT_FUNCTION_MAP.put("resourcelocation", ArgumentResourceLocation::new);
-        ARGUMENT_FUNCTION_MAP.put("entitytype", ArgumentEntityType::new);
-        ARGUMENT_FUNCTION_MAP.put("blockstate", ArgumentBlockState::new);
-        ARGUMENT_FUNCTION_MAP.put("intrange", ArgumentIntRange::new);
-        ARGUMENT_FUNCTION_MAP.put("floatrange", ArgumentFloatRange::new);
+        ARGUMENT_FUNCTION_MAP.put("color", key -> new ArgumentColor(key.id));
+        ARGUMENT_FUNCTION_MAP.put("time", key -> new ArgumentTime(key.id, key.serverSettings));
+        ARGUMENT_FUNCTION_MAP.put("enchantment", key -> new ArgumentEnchantment(key.id));
+        ARGUMENT_FUNCTION_MAP.put("particle", key -> new ArgumentParticle(key.id));
+        ARGUMENT_FUNCTION_MAP.put("resourcelocation", key -> new ArgumentResourceLocation(key.id));
+        ARGUMENT_FUNCTION_MAP.put("entitytype", key -> new ArgumentEntityType(key.id));
+        ARGUMENT_FUNCTION_MAP.put("blockstate", key -> new ArgumentBlockState(key.id));
+        ARGUMENT_FUNCTION_MAP.put("intrange", key -> new ArgumentIntRange(key.id));
+        ARGUMENT_FUNCTION_MAP.put("floatrange", key -> new ArgumentFloatRange(key.id));
 
-        ARGUMENT_FUNCTION_MAP.put("entity", s -> new ArgumentEntity(s).singleEntity(true));
-        ARGUMENT_FUNCTION_MAP.put("entities", ArgumentEntity::new);
-        ARGUMENT_FUNCTION_MAP.put("player", s -> new ArgumentEntity(s).singleEntity(true).onlyPlayers(true));
-        ARGUMENT_FUNCTION_MAP.put("players", s -> new ArgumentEntity(s).onlyPlayers(true));
+        ARGUMENT_FUNCTION_MAP.put("entity", key -> new ArgumentEntity(key.id, key.instanceManager, key.connectionManager).singleEntity(true));
+        ARGUMENT_FUNCTION_MAP.put("entities", key -> new ArgumentEntity(key.id, key.instanceManager, key.connectionManager));
+        ARGUMENT_FUNCTION_MAP.put("player", key -> new ArgumentEntity(key.id, key.instanceManager, key.connectionManager).singleEntity(true).onlyPlayers(true));
+        ARGUMENT_FUNCTION_MAP.put("players", key -> new ArgumentEntity(key.id, key.instanceManager, key.connectionManager).onlyPlayers(true));
 
-        ARGUMENT_FUNCTION_MAP.put("itemstack", ArgumentItemStack::new);
-        ARGUMENT_FUNCTION_MAP.put("component", ArgumentComponent::new);
-        ARGUMENT_FUNCTION_MAP.put("uuid", ArgumentUUID::new);
-        ARGUMENT_FUNCTION_MAP.put("nbt", ArgumentNbtTag::new);
-        ARGUMENT_FUNCTION_MAP.put("nbtcompound", ArgumentNbtCompoundTag::new);
-        ARGUMENT_FUNCTION_MAP.put("relativeblockposition", ArgumentRelativeBlockPosition::new);
-        ARGUMENT_FUNCTION_MAP.put("relativevec3", ArgumentRelativeVec3::new);
-        ARGUMENT_FUNCTION_MAP.put("relativevec2", ArgumentRelativeVec2::new);
+        ARGUMENT_FUNCTION_MAP.put("itemstack", key -> new ArgumentItemStack(key.id));
+        ARGUMENT_FUNCTION_MAP.put("component", key -> new ArgumentComponent(key.id));
+        ARGUMENT_FUNCTION_MAP.put("uuid", key -> new ArgumentUUID(key.id));
+        ARGUMENT_FUNCTION_MAP.put("nbt", key -> new ArgumentNbtTag(key.id));
+        ARGUMENT_FUNCTION_MAP.put("nbtcompound", key -> new ArgumentNbtCompoundTag(key.id));
+        ARGUMENT_FUNCTION_MAP.put("relativeblockposition", key -> new ArgumentRelativeBlockPosition(key.id));
+        ARGUMENT_FUNCTION_MAP.put("relativevec3", key -> new ArgumentRelativeVec3(key.id));
+        ARGUMENT_FUNCTION_MAP.put("relativevec2", key -> new ArgumentRelativeVec2(key.id));
     }
 
     @ApiStatus.Experimental
-    public static @NotNull Argument<?>[] generate(@NotNull String format) {
+    public static @NotNull Argument<?>[] generate(@NotNull String format, CommandManager commandManager, ServerSettings serverSettings, InstanceManager instanceManager, ConnectionManager connectionManager) {
         List<Argument<?>> result = new ArrayList<>();
 
         // 0 = no state
@@ -74,7 +80,7 @@ public class ArgumentParser {
         int state = 0;
         // function to create an argument from its identifier
         // not null during state 1
-        Function<String, Argument<?>> argumentFunction = null;
+        Function<ArgumentMapKey, Argument<?>> argumentFunction = null;
 
         StringBuilder builder = new StringBuilder();
 
@@ -114,7 +120,7 @@ public class ArgumentParser {
                 if (c == '>') {
                     final String param = builder.toString();
                     // TODO argument options
-                    Argument<?> argument = argumentFunction.apply(param);
+                    Argument<?> argument = argumentFunction.apply(new ArgumentMapKey(param, commandManager, serverSettings, instanceManager, connectionManager));
                     result.add(argument);
 
                     builder = new StringBuilder();

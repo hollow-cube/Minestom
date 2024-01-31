@@ -51,7 +51,7 @@ public class BlockPlacementListener {
         // Interact at block
         // FIXME: onUseOnBlock
         PlayerBlockInteractEvent playerBlockInteractEvent = new PlayerBlockInteractEvent(player, hand, interactedBlock, blockPosition, cursorPosition, blockFace);
-        player.getServerProcess().getGlobalEventHandler().call(playerBlockInteractEvent);
+        player.getGlobalEventHandler().call(playerBlockInteractEvent);
         boolean blockUse = playerBlockInteractEvent.isBlockingItemUse();
         if (!playerBlockInteractEvent.isCancelled()) {
             final var handler = interactedBlock.handler();
@@ -70,7 +70,7 @@ public class BlockPlacementListener {
         if (!useMaterial.isBlock()) {
             // Player didn't try to place a block but interacted with one
             PlayerUseItemOnBlockEvent event = new PlayerUseItemOnBlockEvent(player, hand, usedItem, blockPosition, cursorPosition, blockFace);
-            player.getServerProcess().getGlobalEventHandler().call(event);
+            player.getGlobalEventHandler().call(event);
             // Ack the block change. This is required to reset the client prediction to the server state.
             player.sendPacket(new AcknowledgeBlockChangePacket(packet.sequence()));
             return;
@@ -90,7 +90,7 @@ public class BlockPlacementListener {
         // Get the newly placed block position
         //todo it feels like it should be possible to have better replacement rules than this, feels pretty scuffed.
         Point placementPosition = blockPosition;
-        var interactedPlacementRule = player.getServerProcess().getBlockManager().getBlockPlacementRule(interactedBlock);
+        var interactedPlacementRule = player.getBlockManager().getBlockPlacementRule(interactedBlock);
         if (!interactedBlock.isAir() && (interactedPlacementRule == null || !interactedPlacementRule.isSelfReplaceable(
                 new BlockPlacementRule.Replacement(interactedBlock, blockFace, cursorPosition, useMaterial)))) {
             // If the block is not replaceable, try to place next to it.
@@ -100,7 +100,7 @@ public class BlockPlacementListener {
             placementPosition = blockPosition.add(offsetX, offsetY, offsetZ);
 
             var placementBlock = instance.getBlock(placementPosition);
-            var placementRule = player.getServerProcess().getBlockManager().getBlockPlacementRule(placementBlock);
+            var placementRule = player.getBlockManager().getBlockPlacementRule(placementBlock);
             if (!placementBlock.registry().isReplaceable() && !(placementRule != null && placementRule.isSelfReplaceable(
                     new BlockPlacementRule.Replacement(placementBlock, blockFace, cursorPosition, useMaterial)))) {
                 // If the block is still not replaceable, cancel the placement
@@ -149,7 +149,7 @@ public class BlockPlacementListener {
         // BlockPlaceEvent check
         PlayerBlockPlaceEvent playerBlockPlaceEvent = new PlayerBlockPlaceEvent(player, placedBlock, blockFace, placementPosition, packet.hand());
         playerBlockPlaceEvent.consumeBlock(player.getGameMode() != GameMode.CREATIVE);
-        player.getServerProcess().getGlobalEventHandler().call(playerBlockPlaceEvent);
+        player.getGlobalEventHandler().call(playerBlockPlaceEvent);
         if (playerBlockPlaceEvent.isCancelled()) {
             refresh(player, chunk);
             return;

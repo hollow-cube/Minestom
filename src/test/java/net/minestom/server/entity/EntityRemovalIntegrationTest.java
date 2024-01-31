@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.entity.EntityTickEvent;
 import net.minestom.server.network.packet.server.play.DestroyEntitiesPacket;
@@ -48,7 +48,7 @@ public class EntityRemovalIntegrationTest {
     @Test
     public void tickTimedRemoval(Env env) throws InterruptedException {
         var instance = env.createFlatInstance();
-        var entity = new TestEntity(env.process(), 2, TimeUnit.getServerTick(env.process().getServerSetting()));
+        var entity = new TestEntity(env.process(), 2, TimeUnit.getServerTick(env.process().getServerSettings()));
         entity.setInstance(instance, new Pos(0, 40, 0)).join();
 
         assertFalse(entity.isRemoved());
@@ -98,8 +98,8 @@ public class EntityRemovalIntegrationTest {
     }
 
     static final class TestEntity extends Entity {
-        public TestEntity(ServerProcess serverProcess, long delay, TemporalUnit unit) {
-            super(serverProcess, EntityType.ZOMBIE);
+        public TestEntity(ServerFacade serverFacade, long delay, TemporalUnit unit) {
+            super(serverFacade, EntityType.ZOMBIE);
             scheduleRemove(delay, unit);
         }
     }

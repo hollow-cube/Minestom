@@ -20,10 +20,10 @@ public class UseEntityListener {
         if (type instanceof ClientInteractEntityPacket.Attack) {
             if (entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) // Can't attack dead entities
                 return;
-            player.getServerProcess().getGlobalEventHandler().call(new EntityAttackEvent(player, entity));
+            player.getGlobalEventHandler().call(new EntityAttackEvent(player, entity));
         } else if (type instanceof ClientInteractEntityPacket.InteractAt interactAt) {
             Point interactPosition = new Vec(interactAt.targetX(), interactAt.targetY(), interactAt.targetZ());
-            player.getServerProcess().getGlobalEventHandler().call(new PlayerEntityInteractEvent(player, entity, interactAt.hand(), interactPosition));
+            player.getGlobalEventHandler().call(new PlayerEntityInteractEvent(player, entity, interactAt.hand(), interactPosition));
         }
     }
 }

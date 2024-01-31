@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -11,8 +12,11 @@ import net.minestom.server.utils.location.RelativeVec;
 
 public class TeleportCommand extends Command {
 
-    public TeleportCommand() {
+    private final ServerFacade serverFacade;
+
+    public TeleportCommand(ServerFacade serverFacade) {
         super("tp");
+        this.serverFacade = serverFacade;
 
         setDefaultExecutor((source, context) -> source.sendMessage(Component.text("Usage: /tp x y z")));
 
@@ -25,7 +29,7 @@ public class TeleportCommand extends Command {
 
     private void onPlayerTeleport(CommandSender sender, CommandContext context) {
         final String playerName = context.get("player");
-        Player pl = sender.getServerProcess().getConnectionManager().getOnlinePlayerByUsername(playerName);
+        Player pl = serverFacade.getConnectionManager().getOnlinePlayerByUsername(playerName);
         if (sender instanceof Player player) {
             player.teleport(pl.getPosition());
         }

@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import org.jetbrains.annotations.NotNull;
@@ -145,8 +145,8 @@ public class CommandParseTest {
     }
 
     private static CommandParser.Result parseCommand(Graph graph, String input) {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        return CommandParser.parser().parse(new ServerSender(serverProcess), graph, input);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        return CommandParser.parser().parse(new ServerSender(serverFacade), graph, input);
     }
 
     @NotNull

@@ -114,7 +114,7 @@ public record Potion(@NotNull PotionEffect effect, byte amplifier,
      * @param entity the entity to add the effect to
      */
     public void sendAddPacket(@NotNull Entity entity) {
-        entity.sendPacketToViewersAndSelf(new EntityEffectPacket(entity.getEntityId(), this, null));
+        entity.sendPacketToViewersAndSelf(entity.getServerSettings(), new EntityEffectPacket(entity.getEntityId(), this, null));
     }
 
     /**
@@ -125,7 +125,7 @@ public record Potion(@NotNull PotionEffect effect, byte amplifier,
      * @param entity the entity to remove the effect from
      */
     public void sendRemovePacket(@NotNull Entity entity) {
-        entity.sendPacketToViewersAndSelf(new RemoveEntityEffectPacket(entity.getEntityId(), effect));
+        entity.sendPacketToViewersAndSelf(entity.getServerSettings(), new RemoveEntityEffectPacket(entity.getEntityId(), effect));
     }
 
     @Override

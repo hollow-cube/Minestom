@@ -1,13 +1,15 @@
 package net.minestom.server.ping;
 
 import com.google.gson.JsonObject;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
 import net.minestom.server.ServerConsts;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
+import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.socket.Server;
 import net.minestom.server.utils.identity.NamedAndIdentified;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,8 +24,8 @@ public class ResponseData {
     private static final Component DEFAULT_DESCRIPTION = Component.text("Minestom Server");
 
     private final List<NamedAndIdentified> entries;
-    @NotNull
-    private final ServerProcess serverProcess;
+    @Getter
+    private final Server server;
 
     private String version;
     private int protocol;
@@ -36,12 +38,12 @@ public class ResponseData {
     /**
      * Constructs a new {@link ResponseData}.
      */
-    public ResponseData(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
+    public ResponseData(ConnectionManager connectionManager, Server server) {
+        this.server = server;
         this.entries = new ArrayList<>();
         this.version = ServerConsts.VERSION_NAME;
         this.protocol = ServerConsts.PROTOCOL_VERSION;
-        this.online = serverProcess.getConnectionManager().getOnlinePlayerCount();
+        this.online = connectionManager.getOnlinePlayerCount();
         this.maxPlayer = this.online + 1;
         this.description = DEFAULT_DESCRIPTION;
         this.favicon = "";
@@ -315,10 +317,6 @@ public class ResponseData {
      */
     public boolean arePlayersHidden() {
         return playersHidden;
-    }
-
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 
     /**

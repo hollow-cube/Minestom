@@ -1,6 +1,5 @@
 package net.minestom.server.snapshot;
 
-import net.minestom.server.ServerProcess;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
@@ -18,7 +17,7 @@ public sealed interface ServerSnapshot extends Snapshot permits SnapshotImpl.Ser
     @UnknownNullability EntitySnapshot entity(int id);
 
     @ApiStatus.Experimental
-    static ServerSnapshot update(ServerProcess serverProcess) {
+    static ServerSnapshot update(Snapshotable serverProcess) {
         return SnapshotUpdater.update(serverProcess);
     }
 }

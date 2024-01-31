@@ -1,7 +1,7 @@
 package net.minestom.server.extras.query.response;
 
 import net.minestom.server.ServerConsts;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,13 +27,13 @@ public enum QueryKey {
     static QueryKey[] VALUES = QueryKey.values();
 
     private final String key;
-    private final Function<ServerProcess, String> value;
+    private final Function<ServerFacade, String> value;
 
-    QueryKey(@NotNull Function<ServerProcess, String> value) {
+    QueryKey(@NotNull Function<ServerFacade, String> value) {
         this(null, value);
     }
 
-    QueryKey(@Nullable String key, @NotNull Function<ServerProcess, String> value) {
+    QueryKey(@Nullable String key, @NotNull Function<ServerFacade, String> value) {
         this.key = Objects.requireNonNullElse(key, this.name().toLowerCase(Locale.ROOT).replace('_', ' '));
         this.value = value;
     }
@@ -52,7 +52,7 @@ public enum QueryKey {
      *
      * @return the value
      */
-    public @NotNull String getValue(ServerProcess serverProcess) {
-        return this.value.apply(serverProcess);
+    public @NotNull String getValue(ServerFacade serverFacade) {
+        return this.value.apply(serverFacade);
     }
 }

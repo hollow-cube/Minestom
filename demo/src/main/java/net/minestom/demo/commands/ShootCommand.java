@@ -39,13 +39,13 @@ public class ShootCommand extends Command {
         EntityProjectile projectile;
         switch (mode) {
             case "default":
-                projectile = new EntityProjectile(player.getServerProcess(), player, EntityType.ARROW);
+                projectile = new EntityProjectile(player, EntityType.ARROW);
                 break;
             case "spectral":
-                projectile = new EntityProjectile(player.getServerProcess(), player, EntityType.SPECTRAL_ARROW);
+                projectile = new EntityProjectile(player, EntityType.SPECTRAL_ARROW);
                 break;
             case "colored":
-                projectile = new EntityProjectile(player.getServerProcess(), player, EntityType.ARROW);
+                projectile = new EntityProjectile(player, EntityType.ARROW);
                 var meta = (ArrowMeta) projectile.getEntityMeta();
                 meta.setColor(ThreadLocalRandom.current().nextInt());
                 break;

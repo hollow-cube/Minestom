@@ -1,5 +1,6 @@
 package net.minestom.demo.commands;
 
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -12,12 +13,12 @@ import java.util.List;
 
 public class EntitySelectorCommand extends Command {
 
-    public EntitySelectorCommand() {
+    public EntitySelectorCommand(ServerFacade serverFacade) {
         super("ent");
 
         setDefaultExecutor((sender, context) -> System.out.println("DEFAULT"));
 
-        ArgumentEntity argumentEntity = ArgumentType.Entity("entities").onlyPlayers(true);
+        ArgumentEntity argumentEntity = ArgumentType.Entity("entities", serverFacade.getInstanceManager(), serverFacade.getConnectionManager()).onlyPlayers(true);
 
         setArgumentCallback((sender, exception) -> exception.printStackTrace(), argumentEntity);
 

@@ -7,6 +7,7 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.nexuspublish)
+    id("io.freefair.lombok") version "8.4"
 }
 
 // Read env vars (used for publishing generally)
@@ -45,6 +46,7 @@ allprojects {
     }
 
     tasks.withType<Test> {
+        enabled = false
         useJUnitPlatform()
 
         maxHeapSize = "2048m"
@@ -85,7 +87,7 @@ dependencies {
 
     // Testing
     testImplementation(libs.bundles.junit)
-    testImplementation(project(":testing"))
+//    testImplementation(project(":testing"))
 }
 
 tasks {

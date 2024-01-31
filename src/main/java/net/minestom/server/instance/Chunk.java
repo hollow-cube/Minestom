@@ -1,6 +1,5 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.ServerProcess;
 import net.minestom.server.Tickable;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
@@ -315,10 +314,5 @@ public abstract class Chunk implements Block.Getter, Block.Setter, Biome.Getter,
      */
     protected void unload() {
         this.loaded = false;
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return instance.getServerProcess();
     }
 }

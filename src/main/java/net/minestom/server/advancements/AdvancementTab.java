@@ -1,6 +1,6 @@
 package net.minestom.server.advancements;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.Viewable;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.AdvancementsPacket;
@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Represents a tab which can be shared between multiple players. Created using {@link AdvancementManager#createTab(String, AdvancementRoot)}.
+ * Represents a tab which can be shared between multiple players. Created using {@link AdvancementManagerImpl#createTab(String, AdvancementRoot)}.
  * <p>
  * Each tab requires a root advancement and all succeeding advancements need to have a parent in the tab.
  * You can create a new advancement using {@link #createAdvancement(String, Advancement, Advancement)}.
@@ -26,7 +26,7 @@ public class AdvancementTab implements Viewable {
 
     private final Set<Player> viewers = new HashSet<>();
 
-    private final ServerProcess serverProcess;
+    private final ServerSettings serverSettings;
     private final AdvancementRoot root;
 
     // Advancement -> its parent
@@ -36,8 +36,8 @@ public class AdvancementTab implements Viewable {
     // will never change (since the root identifier is always the same)
     protected final AdvancementsPacket removePacket;
 
-    protected AdvancementTab(ServerProcess serverProcess, @NotNull String rootIdentifier, @NotNull AdvancementRoot root) {
-        this.serverProcess = serverProcess;
+    protected AdvancementTab(ServerSettings serverSettings, @NotNull String rootIdentifier, @NotNull AdvancementRoot root) {
+        this.serverSettings = serverSettings;
         this.root = root;
         cacheAdvancement(rootIdentifier, root, null);
         this.removePacket = new AdvancementsPacket(false, List.of(), List.of(rootIdentifier), List.of());
@@ -77,7 +77,7 @@ public class AdvancementTab implements Viewable {
                 "You tried to set a parent which doesn't exist or isn't registered");
         cacheAdvancement(identifier, advancement, parent);
         if (!getViewers().isEmpty()) {
-            sendPacketToViewers(advancement.getUpdatePacket());
+            sendPacketToViewers(serverSettings, advancement.getUpdatePacket());
         }
 
     }
@@ -166,10 +166,5 @@ public class AdvancementTab implements Viewable {
         if (tabs.isEmpty()) {
             PLAYER_TAB_MAP.remove(uuid);
         }
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

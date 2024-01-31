@@ -1,7 +1,11 @@
 package net.minestom.server.extras.lan;
 
-import net.minestom.server.ServerProcess;
+import lombok.RequiredArgsConstructor;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.server.ServerListPingEvent;
+import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.socket.Server;
+import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.timer.Task;
 import net.minestom.server.utils.time.Cooldown;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +31,7 @@ import static net.minestom.server.ping.ServerListPingType.OPEN_TO_LAN;
  *
  * @see <a href="https://wiki.vg/Server_List_Ping#Ping_via_LAN_.28Open_to_LAN_in_Singleplayer.29">wiki.vg</a>
  */
+@RequiredArgsConstructor
 public class OpenToLAN {
     private final InetSocketAddress PING_ADDRESS = new InetSocketAddress("224.0.2.60", 4445);
 
@@ -37,11 +42,10 @@ public class OpenToLAN {
     private volatile DatagramPacket packet = null;
     private volatile Task task = null;
 
-    private final ServerProcess serverProcess;
-
-    public OpenToLAN(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
-    }
+    private final ConnectionManager connectionManager;
+    private final Server server;
+    private final SchedulerManager schedulerManager;
+    private final GlobalEventHandler globalEventHandler;
 
     /**
      * Opens the server to LAN with the default config.
@@ -70,7 +74,7 @@ public class OpenToLAN {
         }
 
         eventCooldown = new Cooldown(config.delayBetweenEvent);
-        task = serverProcess.getSchedulerManager().buildTask(this::ping)
+        task = schedulerManager.buildTask(this::ping)
                 .repeat(config.delayBetweenPings)
                 .schedule();
         return true;
@@ -104,10 +108,10 @@ public class OpenToLAN {
      * Performs the ping.
      */
     private void ping() {
-        if (!serverProcess.getServer().isOpen()) return;
+        if (!server.isOpen()) return;
         if (packet == null || eventCooldown.isReady(System.currentTimeMillis())) {
-            final ServerListPingEvent event = new ServerListPingEvent(serverProcess, OPEN_TO_LAN);
-            serverProcess.getGlobalEventHandler().call(event);
+            final ServerListPingEvent event = new ServerListPingEvent(connectionManager, server, OPEN_TO_LAN);
+            globalEventHandler.call(event);
 
             final byte[] data = OPEN_TO_LAN.getPingResponse(event.getResponseData()).getBytes(StandardCharsets.UTF_8);
             packet = new DatagramPacket(data, data.length, PING_ADDRESS);

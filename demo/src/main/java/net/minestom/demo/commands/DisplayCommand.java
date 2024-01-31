@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -19,11 +20,15 @@ import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.temporal.TemporalUnit;
+import java.util.UUID;
 
 public class DisplayCommand extends Command {
 
-    public DisplayCommand() {
+    private final ServerFacade serverFacade;
+
+    public DisplayCommand(ServerFacade serverFacade) {
         super("display");
+        this.serverFacade = serverFacade;
 
         var follow = ArgumentType.Literal("follow");
 
@@ -40,7 +45,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getServerProcess(), EntityType.ITEM_DISPLAY);
+        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.ITEM_DISPLAY, UUID.randomUUID());
         var meta = (ItemDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setItemStack(ItemStack.of(Material.STICK));
@@ -55,7 +60,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getServerProcess(), EntityType.BLOCK_DISPLAY);
+        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.BLOCK_DISPLAY, UUID.randomUUID());
         var meta = (BlockDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBlockState(Block.ORANGE_CANDLE_CAKE.stateId());
@@ -70,7 +75,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(sender.getServerProcess(), EntityType.TEXT_DISPLAY);
+        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.TEXT_DISPLAY, UUID.randomUUID());
         var meta = (TextDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
@@ -85,8 +90,8 @@ public class DisplayCommand extends Command {
     private void startSmoothFollow(@NotNull Entity entity, @NotNull Player player) {
 //        entity.setCustomName(Component.text("MY CUSTOM NAME"));
 //        entity.setCustomNameVisible(true);
-        TemporalUnit serverTick = TimeUnit.getServerTick(entity.getServerProcess().getServerSetting());
-        entity.getServerProcess().getSchedulerManager().buildTask(() -> {
+        TemporalUnit serverTick = TimeUnit.getServerTick(serverFacade.getServerSettings());
+        serverFacade.getSchedulerManager().buildTask(() -> {
             var meta = (AbstractDisplayMeta) entity.getEntityMeta();
             meta.setNotifyAboutChanges(false);
             meta.setTransformationInterpolationStartDelta(1);

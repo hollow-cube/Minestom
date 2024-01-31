@@ -1,6 +1,6 @@
 package net.minestom.testing;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
@@ -15,7 +15,7 @@ import java.util.function.BooleanSupplier;
 
 public interface Env {
 
-    @NotNull ServerProcess process();
+    @NotNull ServerFacade process();
 
     @NotNull TestConnection createConnection();
 
@@ -24,11 +24,11 @@ public interface Env {
     <E extends Event> @NotNull FlexibleListener<E> listen(@NotNull Class<E> eventType);
 
     default void tick() {
-        process().ticker().tick(System.nanoTime());
+        process().getTicker().tick(System.nanoTime());
     }
 
     default boolean tickWhile(BooleanSupplier condition, Duration timeout) {
-        var ticker = process().ticker();
+        var ticker = process().getTicker();
         final long start = System.nanoTime();
         while (condition.getAsBoolean()) {
             final long tick = System.nanoTime();

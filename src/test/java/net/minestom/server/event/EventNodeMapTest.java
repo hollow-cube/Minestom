@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
@@ -18,9 +18,9 @@ public class EventNodeMapTest {
 
     @Test
     public void uniqueMapping() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all(serverProcess,"main");
+        var node = EventNode.all(serverFacade,"main");
         var itemNode1 = node.map(item, EventFilter.ITEM);
         var itemNode2 = node.map(item, EventFilter.ITEM);
         assertNotNull(itemNode1);
@@ -34,9 +34,9 @@ public class EventNodeMapTest {
 
     @Test
     public void lazyRegistration() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all(serverProcess,"main");
+        var node = (EventNodeImpl<Event>) EventNode.all(serverFacade,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertFalse(node.registeredMappedNode.containsKey(item));
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
@@ -46,9 +46,9 @@ public class EventNodeMapTest {
 
     @Test
     public void secondMap() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all(serverProcess,"main");
+        var node = (EventNodeImpl<Event>) EventNode.all(serverFacade,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertSame(itemNode, itemNode.map(item, EventFilter.ITEM));
         assertThrows(Exception.class, () -> itemNode.map(ItemStack.AIR, EventFilter.ITEM));
@@ -56,9 +56,9 @@ public class EventNodeMapTest {
 
     @Test
     public void map() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all(serverProcess, "main");
+        var node = EventNode.all(serverFacade, "main");
 
         AtomicBoolean result = new AtomicBoolean(false);
         var itemNode = node.map(item, EventFilter.ITEM);
@@ -82,9 +82,9 @@ public class EventNodeMapTest {
 
     @Test
     public void entityLocal() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var node = serverProcess.getGlobalEventHandler();
-        var entity = new Entity(serverProcess, EntityType.ZOMBIE);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var node = serverFacade.getGlobalEventHandler();
+        var entity = new Entity(serverFacade, EntityType.ZOMBIE);
 
         AtomicBoolean result = new AtomicBoolean(false);
         var listener = EventListener.of(EventNodeTest.EntityTestEvent.class, event -> result.set(true));
@@ -108,10 +108,10 @@ public class EventNodeMapTest {
 
     @Test
     public void ownerGC() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         // Ensure that the mapped object gets GCed
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all(serverProcess,"main");
+        var node = EventNode.all(serverFacade,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
         });

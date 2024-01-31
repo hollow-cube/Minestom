@@ -1,13 +1,13 @@
 package net.minestom.server.network.player;
 
 import net.minestom.server.ServerConsts;
-import net.minestom.server.ServerObject;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.crypto.PlayerPublicKey;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.server.SendablePacket;
+import net.minestom.server.network.socket.Server;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,15 +20,17 @@ import java.util.List;
  * A PlayerConnection is an object needed for all created {@link Player}.
  * It can be extended to create a new kind of player (NPC for instance).
  */
-public abstract class PlayerConnection implements ServerObject {
-    private final ServerProcess serverProcess;
+public abstract class PlayerConnection {
+    private final Server server;
+    private final ConnectionManager connectionManager;
     private Player player;
     private volatile ConnectionState connectionState;
     private PlayerPublicKey playerPublicKey;
     volatile boolean online;
 
-    public PlayerConnection(ServerProcess serverProcess) {
-        this.serverProcess = serverProcess;
+    public PlayerConnection(Server server, ConnectionManager connectionManager) {
+        this.server = server;
+        this.connectionManager = connectionManager;
         this.online = true;
         this.connectionState = ConnectionState.HANDSHAKE;
     }
@@ -87,7 +89,7 @@ public abstract class PlayerConnection implements ServerObject {
      * @return the server address used
      */
     public @Nullable String getServerAddress() {
-        return serverProcess.getServer().getAddress();
+        return server.getAddress();
     }
 
 
@@ -99,7 +101,7 @@ public abstract class PlayerConnection implements ServerObject {
      * @return the server port used
      */
     public int getServerPort() {
-        return serverProcess.getServer().getPort();
+        return server.getPort();
     }
 
     /**
@@ -107,7 +109,7 @@ public abstract class PlayerConnection implements ServerObject {
      */
     public void disconnect() {
         this.online = false;
-        serverProcess.getConnectionManager().removePlayer(this);
+        connectionManager.removePlayer(this);
         final Player player = getPlayer();
         if (player != null && !player.isRemoved()) {
             player.scheduleNextTick(Entity::remove);
@@ -170,10 +172,5 @@ public abstract class PlayerConnection implements ServerObject {
                 "connectionState=" + connectionState +
                 ", identifier=" + getIdentifier() +
                 '}';
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

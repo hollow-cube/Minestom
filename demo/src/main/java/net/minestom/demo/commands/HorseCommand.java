@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -13,13 +14,17 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.animal.HorseMeta;
 
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HorseCommand extends Command {
 
-    public HorseCommand() {
+    private final ServerFacade serverFacade;
+
+    public HorseCommand(ServerFacade serverFacade) {
         super("horse");
+        this.serverFacade = serverFacade;
         setCondition(Conditions::playerOnly);
         setDefaultExecutor(this::defaultExecutor);
         var babyArg = ArgumentType.Boolean("baby");
@@ -59,7 +64,7 @@ public class HorseCommand extends Command {
         boolean baby = context.get("baby");
         HorseMeta.Marking marking = context.get("marking");
         HorseMeta.Color color = context.get("color");
-        var horse = new EntityCreature(sender.getServerProcess(), EntityType.HORSE);
+        var horse = new EntityCreature(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.HORSE, UUID.randomUUID());
         var meta = (HorseMeta) horse.getEntityMeta();
         meta.setBaby(baby);
         meta.setVariant(new HorseMeta.Variant(marking, color));

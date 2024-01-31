@@ -1,6 +1,6 @@
 package net.minestom.server.entity.fakeplayer;
 
-import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionManagerImpl;
 
 /**
  * Represents any options for a {@link FakePlayer}.
@@ -13,7 +13,7 @@ public class FakePlayerOption {
     /**
      * Gets if the player is registered internally as a Player.
      *
-     * @return true if the player is registered in {@link ConnectionManager}, false otherwise
+     * @return true if the player is registered in {@link ConnectionManagerImpl}, false otherwise
      */
     public boolean isRegistered() {
         return registered;

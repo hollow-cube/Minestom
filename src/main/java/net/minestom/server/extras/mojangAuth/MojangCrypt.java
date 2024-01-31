@@ -83,7 +83,7 @@ public final class MojangCrypt {
         return null;
     }
 
-    public Cipher getCipher(int mode, Key key) {
+    public static Cipher getCipher(int mode, Key key) {
         try {
             Cipher cipher3 = Cipher.getInstance("AES/CFB8/NoPadding");
             cipher3.init(mode, key, new IvParameterSpec(key.getEncoded()));

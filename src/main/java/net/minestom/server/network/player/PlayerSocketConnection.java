@@ -1,17 +1,22 @@
 package net.minestom.server.network.player;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.ListenerHandle;
 import net.minestom.server.event.player.PlayerPacketOutEvent;
+import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.extras.mojangAuth.MojangCrypt;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.PacketProcessor;
 import net.minestom.server.network.packet.client.ClientPacket;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
 import net.minestom.server.network.packet.server.*;
 import net.minestom.server.network.packet.server.login.SetCompressionPacket;
+import net.minestom.server.network.socket.Server;
 import net.minestom.server.network.socket.Worker;
 import net.minestom.server.utils.ObjectPool;
 import net.minestom.server.utils.PacketUtils;
@@ -47,6 +52,8 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final static Logger LOGGER = LoggerFactory.getLogger(PlayerSocketConnection.class);
     private static final ObjectPool<BinaryBuffer> POOL = ObjectPool.BUFFER_POOL;
 
+    private final ExceptionHandler exceptionHandler;
+    private final ServerSettings serverSettings;
     private final Worker worker;
     private final MessagePassingQueue<Runnable> workerQueue;
     private final SocketChannel channel;
@@ -75,13 +82,15 @@ public class PlayerSocketConnection extends PlayerConnection {
 
     private final ListenerHandle<PlayerPacketOutEvent> outgoing;
 
-    public PlayerSocketConnection(@NotNull ServerProcess serverProcess, @NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
-        super(serverProcess);
+    public PlayerSocketConnection(Server server, ConnectionManager connectionManager, EventNode<Event> globalEventHandler, ExceptionHandler exceptionHandler, ServerSettings serverSettings, @NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
+        super(server, connectionManager);
+        this.exceptionHandler = exceptionHandler;
+        this.serverSettings = serverSettings;
         this.worker = worker;
         this.workerQueue = worker.queue();
         this.channel = channel;
         this.remoteAddress = remoteAddress;
-        this.outgoing = serverProcess.getGlobalEventHandler().getHandle(PlayerPacketOutEvent.class);
+        this.outgoing = globalEventHandler.getHandle(PlayerPacketOutEvent.class);
     }
 
     public void processPackets(BinaryBuffer readBuffer, PacketProcessor packetProcessor) {
@@ -93,7 +102,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                 try {
                     encryptionContext.decrypt().update(input, input.duplicate());
                 } catch (ShortBufferException e) {
-                    getServerProcess().getExceptionHandler().handleException(e);
+                    exceptionHandler.handleException(e);
                     return;
                 }
             }
@@ -109,7 +118,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                             packet = packetProcessor.process(this, id, payload);
                         } catch (Exception e) {
                             // Error while reading the packet
-                            getServerProcess().getExceptionHandler().handleException(e);
+                            exceptionHandler.handleException(e);
                         } finally {
                             if (payload.position() != payload.limit()) {
                                 LOGGER.warn("WARNING: Packet ({}) 0x{} not fully read ({}) {}", getConnectionState(), Integer.toHexString(id), payload, packet);
@@ -117,7 +126,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                         }
                     });
         } catch (DataFormatException e) {
-            getServerProcess().getExceptionHandler().handleException(e);
+            exceptionHandler.handleException(e);
             disconnect();
         }
     }
@@ -138,8 +147,7 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void setEncryptionKey(@NotNull SecretKey secretKey) {
         Check.stateCondition(encryptionContext != null, "Encryption is already enabled!");
-        MojangCrypt mojangCrypt = getServerProcess().getMojangAuth().getMojangCrypt();
-        this.encryptionContext = new EncryptionContext(mojangCrypt.getCipher(1, secretKey), mojangCrypt.getCipher(2, secretKey));
+        this.encryptionContext = new EncryptionContext(MojangCrypt.getCipher(1, secretKey), MojangCrypt.getCipher(2, secretKey));
     }
 
     /**
@@ -149,7 +157,7 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void startCompression() {
         Check.stateCondition(compressed, "Compression is already enabled!");
-        final int threshold = getServerProcess().getServerSetting().getCompressionThreshold();
+        final int threshold = serverSettings.getCompressionThreshold();
         Check.stateCondition(threshold == 0, "Compression cannot be enabled because the threshold is equal to 0");
         sendPacket(new SetCompressionPacket(threshold));
         this.compressed = true;
@@ -370,7 +378,7 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(getServerProcess().getServerSetting(), getConnectionState(), hold.get(), serverPacket, compressed);
+            var buffer = PacketUtils.createFramedPacket(serverSettings, getConnectionState(), hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
         }
     }
@@ -385,7 +393,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                     length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
                     writeBufferSync0(output, 0, length);
                 } catch (ShortBufferException e) {
-                    getServerProcess().getExceptionHandler().handleException(e);
+                    exceptionHandler.handleException(e);
                 }
                 return;
             }

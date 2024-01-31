@@ -2,7 +2,6 @@ package net.minestom.server.instance.palette;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +18,6 @@ import static net.minestom.server.network.NetworkBuffer.*;
 final class FlexiblePalette implements SpecializedPalette, Cloneable {
     private static final ThreadLocal<int[]> WRITE_CACHE = ThreadLocal.withInitial(() -> new int[4096]);
 
-    private final ServerProcess serverProcess;
     // Specific to this palette type
     private final AdaptivePalette adaptivePalette;
     private byte bitsPerEntry;
@@ -31,8 +29,7 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
     // value = palette index
     private Int2IntOpenHashMap valueToPaletteMap;
 
-    FlexiblePalette(ServerProcess serverProcess, AdaptivePalette adaptivePalette, byte bitsPerEntry) {
-        this.serverProcess = serverProcess;
+    FlexiblePalette(AdaptivePalette adaptivePalette, byte bitsPerEntry) {
         this.adaptivePalette = adaptivePalette;
 
         this.bitsPerEntry = bitsPerEntry;
@@ -47,8 +44,8 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
         this.values = new long[(maxSize() + valuesPerLong - 1) / valuesPerLong];
     }
 
-    FlexiblePalette(ServerProcess serverProcess, AdaptivePalette adaptivePalette) {
-        this(serverProcess, adaptivePalette, adaptivePalette.defaultBitsPerEntry);
+    FlexiblePalette(AdaptivePalette adaptivePalette) {
+        this(adaptivePalette, adaptivePalette.defaultBitsPerEntry);
     }
 
     @Override
@@ -205,7 +202,6 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
             palette.count = count;
             return palette;
         } catch (CloneNotSupportedException e) {
-            serverProcess.getExceptionHandler().handleException(e);
             throw new IllegalStateException("Weird thing happened");
         }
     }
@@ -270,7 +266,7 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
 
     void resize(byte newBitsPerEntry) {
         newBitsPerEntry = newBitsPerEntry > maxBitsPerEntry() ? 15 : newBitsPerEntry;
-        FlexiblePalette palette = new FlexiblePalette(serverProcess, adaptivePalette, newBitsPerEntry);
+        FlexiblePalette palette = new FlexiblePalette(adaptivePalette, newBitsPerEntry);
         palette.paletteToValueList = paletteToValueList;
         palette.valueToPaletteMap = valueToPaletteMap;
         getAll(palette::set);

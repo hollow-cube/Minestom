@@ -2,12 +2,16 @@ package net.minestom.server.command.builder;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.arguments.ArgumentLiteral;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.arguments.ArgumentWord;
 import net.minestom.server.command.builder.condition.CommandCondition;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.utils.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -219,8 +226,8 @@ public class Command {
      * @return the newly created {@link CommandSyntax syntaxes}.
      */
     @ApiStatus.Experimental
-    public @NotNull Collection<CommandSyntax> addSyntax(@NotNull CommandExecutor executor, @NotNull String format) {
-        return addSyntax(executor, ArgumentType.generate(format));
+    public @NotNull Collection<CommandSyntax> addSyntax(@NotNull CommandExecutor executor, CommandManager commandManager, ServerSettings serverSettings, InstanceManager instanceManager, ConnectionManager connectionManager, @NotNull String format) {
+        return addSyntax(executor, ArgumentType.generate(format, commandManager, serverSettings, instanceManager, connectionManager));
     }
 
     /**

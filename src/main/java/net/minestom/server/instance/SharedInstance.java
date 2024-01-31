@@ -1,8 +1,10 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.block.BlockHandler;
@@ -22,8 +24,8 @@ import java.util.concurrent.CompletableFuture;
 public class SharedInstance extends Instance {
     private final InstanceContainer instanceContainer;
 
-    public SharedInstance(ServerProcess serverProcess, @NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
-        super(serverProcess, uniqueId, instanceContainer.getDimensionType());
+    public SharedInstance(ServerSettings serverSettings, EventNode<Event> globalEventHandler, @NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
+        super(serverSettings, globalEventHandler, uniqueId, instanceContainer.getDimensionType());
         this.instanceContainer = instanceContainer;
     }
 

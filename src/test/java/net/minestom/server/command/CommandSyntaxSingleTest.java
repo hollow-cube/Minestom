@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -148,10 +148,10 @@ public class CommandSyntaxSingleTest {
     }
 
     private static void assertSyntax(List<Argument<?>> args, String input, ExpectedExecution expectedExecution, Map<String, Object> expectedValues) {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
         final String commandName = "name";
 
-        var manager = new CommandManager(serverProcess);
+        var manager = new CommandManagerImpl(serverFacade);
         var command = new Command(commandName);
         manager.register(command);
 

@@ -1,6 +1,6 @@
 package net.minestom.server.extras.query.event;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.extras.query.response.BasicQueryResponse;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +17,7 @@ public class BasicQueryEvent extends QueryEvent<BasicQueryResponse> {
      * @param sessionID the session ID
      * @param sender the sender
      */
-    public BasicQueryEvent(ServerProcess serverProcess, @NotNull SocketAddress sender, int sessionID) {
-        super(sender, sessionID, new BasicQueryResponse(serverProcess));
+    public BasicQueryEvent(ServerFacade serverFacade, @NotNull SocketAddress sender, int sessionID) {
+        super(sender, sessionID, new BasicQueryResponse(serverFacade));
     }
 }

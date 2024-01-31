@@ -1,7 +1,8 @@
 package net.minestom.server.scoreboard;
 
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ScoreboardObjectivePacket;
 import org.jetbrains.annotations.NotNull;
@@ -22,21 +23,22 @@ public class BelowNameTag implements Scoreboard {
 
     private final Set<Player> viewers = new CopyOnWriteArraySet<>();
     private final Set<Player> unmodifiableViewers = Collections.unmodifiableSet(viewers);
-    private final ServerProcess serverProcess;
     private final String objectiveName;
 
     private final ScoreboardObjectivePacket scoreboardObjectivePacket;
+    @Getter
+    private final ServerSettings serverSettings;
 
     /**
      * Creates a new below name scoreboard.
      *
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
-     * @deprecated Use {@link #BelowNameTag(ServerProcess, String, Component)}
+     * @deprecated Use {@link #BelowNameTag(ServerSettings, String, Component)}
      */
     @Deprecated
-    public BelowNameTag(ServerProcess serverProcess, String name, String value) {
-        this(serverProcess, name, Component.text(value));
+    public BelowNameTag(ServerSettings serverSettings, String name, String value) {
+        this(serverSettings, name, Component.text(value));
     }
 
     /**
@@ -45,8 +47,8 @@ public class BelowNameTag implements Scoreboard {
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
      */
-    public BelowNameTag(ServerProcess serverProcess, String name, Component value) {
-        this.serverProcess = serverProcess;
+    public BelowNameTag(ServerSettings serverSettings, String name, Component value) {
+        this.serverSettings = serverSettings;
         this.objectiveName = BELOW_NAME_TAG_PREFIX + name;
         this.scoreboardObjectivePacket = this.getCreationObjectivePacket(value, ScoreboardObjectivePacket.Type.INTEGER);
     }
@@ -81,10 +83,5 @@ public class BelowNameTag implements Scoreboard {
     @Override
     public Set<Player> getViewers() {
         return unmodifiableViewers;
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

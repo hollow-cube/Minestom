@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandResult;
@@ -16,8 +16,8 @@ public class CommandManagerTest {
 
     @Test
     public void testCommandRegistration() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var manager = new CommandManager(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(serverFacade);
 
         var command = new Command("name1", "name2");
 
@@ -36,8 +36,8 @@ public class CommandManagerTest {
 
     @Test
     public void testUnknownCommandCallback() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var manager = new CommandManager(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(serverFacade);
 
         AtomicBoolean check = new AtomicBoolean(false);
         manager.setUnknownCommandCallback((sender, command) -> check.set(true));
@@ -53,8 +53,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxABFirst() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var manager = new CommandManager(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(serverFacade);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);
@@ -82,8 +82,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxAFirst() {
-        ServerProcess serverProcess = ServerProcess.of(ServerSettings.builder().build());
-        var manager = new CommandManager(serverProcess);
+        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(serverFacade);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);

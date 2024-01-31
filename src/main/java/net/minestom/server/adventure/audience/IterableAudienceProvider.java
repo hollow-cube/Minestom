@@ -2,10 +2,10 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -19,12 +19,12 @@ import java.util.stream.StreamSupport;
  * A provider of iterable audiences.
  */
 class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Audience>> {
+    private final ConnectionManager connectionManager;
     private final List<ConsoleSender> console;
     private final AudienceRegistry registry = new AudienceRegistry(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new);
-    private final ServerProcess serverProcess;
 
-    protected IterableAudienceProvider(ServerProcess serverProcess, CommandManager commandManager) {
-        this.serverProcess = serverProcess;
+    protected IterableAudienceProvider(ConnectionManager connectionManager, CommandManager commandManager) {
+        this.connectionManager = connectionManager;
         this.console = List.of(commandManager.getConsoleSender());
     }
 
@@ -39,12 +39,12 @@ class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Au
 
     @Override
     public @NotNull Iterable<? extends Audience> players() {
-        return serverProcess.getConnectionManager().getOnlinePlayers();
+        return connectionManager.getOnlinePlayers();
     }
 
     @Override
     public @NotNull Iterable<? extends Audience> players(@NotNull Predicate<Player> filter) {
-        return serverProcess.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
+        return connectionManager.getOnlinePlayers().stream().filter(filter).toList();
     }
 
     @Override

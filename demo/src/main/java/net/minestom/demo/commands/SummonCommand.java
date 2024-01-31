@@ -1,6 +1,6 @@
 package net.minestom.demo.commands;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -19,9 +19,11 @@ public class SummonCommand extends Command {
     private final ArgumentEntityType entity;
     private final Argument<RelativeVec> pos;
     private final Argument<EntityClass> entityClass;
+    private final ServerFacade serverFacade;
 
-    public SummonCommand() {
+    public SummonCommand(ServerFacade serverFacade) {
         super("summon");
+        this.serverFacade = serverFacade;
         setCondition(Conditions::playerOnly);
 
         entity = ArgumentType.EntityType("entity type");
@@ -38,7 +40,7 @@ public class SummonCommand extends Command {
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        final Entity entity = commandContext.get(entityClass).instantiate(commandSender.getServerProcess(), commandContext.get(this.entity));
+        final Entity entity = commandContext.get(entityClass).instantiate(serverFacade, commandContext.get(this.entity));
         //noinspection ConstantConditions - One couldn't possibly execute a command without being in an instance
         entity.setInstance(((Player) commandSender).getInstance(), commandContext.get(pos).fromSender(commandSender));
     }
@@ -54,12 +56,12 @@ public class SummonCommand extends Command {
             this.factory = factory;
         }
 
-        public Entity instantiate(ServerProcess serverProcess, EntityType type) {
-            return factory.newInstance(serverProcess, type);
+        public Entity instantiate(ServerFacade serverFacade, EntityType type) {
+            return factory.newInstance(serverFacade, type);
         }
     }
 
     interface EntityFactory {
-        Entity newInstance(ServerProcess serverProcess, EntityType type);
+        Entity newInstance(ServerFacade serverFacade, EntityType type);
     }
 }

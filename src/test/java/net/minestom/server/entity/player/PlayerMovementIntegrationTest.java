@@ -63,7 +63,7 @@ public class PlayerMovementIntegrationTest {
     @Test
     public void chunkUpdateDebounceTest(Env env) {
         final Instance flatInstance = env.createFlatInstance();
-        final int viewDiameter = env.process().getServerSetting().getChunkViewDistance() * 2 + 1;
+        final int viewDiameter = env.process().getServerSettings().getChunkViewDistance() * 2 + 1;
         // Preload all possible chunks to avoid issues due to async loading
         Set<CompletableFuture<Chunk>> chunks = new HashSet<>();
         ChunkUtils.forChunksInRange(0, 0, viewDiameter+2, (x, z) -> chunks.add(flatInstance.loadChunk(x, z)));

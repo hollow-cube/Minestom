@@ -1,10 +1,10 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import lombok.Getter;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
-import net.minestom.server.ServerObject;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.Tickable;
 import net.minestom.server.adventure.audience.PacketGroupingAudience;
 import net.minestom.server.coordinate.Point;
@@ -13,6 +13,7 @@ import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.ExperienceOrb;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PFInstanceSpace;
+import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.EventNode;
@@ -25,13 +26,14 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.network.packet.server.play.BlockActionPacket;
 import net.minestom.server.network.packet.server.play.TimeUpdatePacket;
-import net.minestom.server.snapshot.*;
+import net.minestom.server.snapshot.InstanceSnapshot;
+import net.minestom.server.snapshot.SnapshotUpdater;
+import net.minestom.server.snapshot.Snapshotable;
 import net.minestom.server.tag.TagHandler;
 import net.minestom.server.tag.Taggable;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ThreadDispatcherImpl;
 import net.minestom.server.timer.Schedulable;
 import net.minestom.server.timer.Scheduler;
-import net.minestom.server.utils.ArrayUtils;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.chunk.ChunkCache;
@@ -49,7 +51,6 @@ import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -60,13 +61,15 @@ import java.util.stream.Collectors;
  * chunk implementation has to be defined, see {@link InstanceContainer}.
  * <p>
  * WARNING: when making your own implementation registering the instance manually is required
- * with {@link InstanceManager#registerInstance(Instance)}, and
- * you need to be sure to signal the {@link ThreadDispatcher} of every partition/element changes.
+ * with {@link InstanceManagerImpl#registerInstance(Instance)}, and
+ * you need to be sure to signal the {@link ThreadDispatcherImpl} of every partition/element changes.
  */
 public abstract class Instance implements Block.Getter, Block.Setter,
-        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience, ServerObject {
+        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
 
-    private final ServerProcess serverProcess;
+    @Getter // FIXME bad shit
+    private final ServerSettings serverSettings;
+    private final EventNode<Event> globalEventHandler;
     private boolean registered;
 
     private final DimensionType dimensionType;
@@ -113,8 +116,8 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull ServerProcess serverProcess, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(serverProcess, uniqueId, dimensionType, dimensionType.getName());
+    public Instance(@NotNull ServerSettings serverSettings, EventNode<Event> globalEventHandler, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(serverSettings, globalEventHandler, uniqueId, dimensionType, dimensionType.getName());
     }
 
     /**
@@ -123,10 +126,11 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull ServerProcess serverProcess, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+    public Instance(@NotNull ServerSettings serverSettings, EventNode<Event> globalEventHandler, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+        this.globalEventHandler = globalEventHandler;
         Check.argCondition(!dimensionType.isRegistered(),
                 "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
-        this.serverProcess = serverProcess;
+        this.serverSettings = serverSettings;
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName.asString();
@@ -137,13 +141,8 @@ public abstract class Instance implements Block.Getter, Block.Setter,
                 .withDynamic(Identity.UUID, this::getUniqueId)
                 .build();
 
-        if (serverProcess != null) {
-            this.eventNode = serverProcess.getGlobalEventHandler().map(this, EventFilter.INSTANCE);
-        } else {
-            // Local nodes require a server process
-            this.eventNode = null;
-        }
-        entityTracker = new EntityTrackerImpl(serverProcess);
+        this.eventNode = globalEventHandler.map(this, EventFilter.INSTANCE);
+        entityTracker = new EntityTrackerImpl(serverSettings);
     }
 
     /**
@@ -377,7 +376,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public abstract boolean isInVoid(@NotNull Point point);
 
     /**
-     * Gets if the instance has been registered in {@link InstanceManager}.
+     * Gets if the instance has been registered in {@link InstanceManagerImpl}.
      *
      * @return true if the instance has been registered
      */
@@ -388,7 +387,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     /**
      * Changes the registered field.
      * <p>
-     * WARNING: should only be used by {@link InstanceManager}.
+     * WARNING: should only be used by {@link InstanceManagerImpl}.
      *
      * @param registered true to mark the instance as registered
      */
@@ -449,7 +448,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      */
     public void setTime(long time) {
         this.time = time;
-        PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), getPlayers(), createTimePacket());
+        PacketUtils.sendGroupedPacket(serverSettings, getPlayers(), createTimePacket());
     }
 
     /**
@@ -609,7 +608,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         final Block block = getBlock(blockPosition);
         final Chunk chunk = getChunkAt(blockPosition);
         Check.notNull(chunk, "The chunk at {0} is not loaded!", blockPosition);
-        chunk.sendPacketToViewers(new BlockActionPacket(blockPosition, actionId, actionParam, block));
+        chunk.sendPacketToViewers(serverSettings, new BlockActionPacket(blockPosition, actionId, actionParam, block));
     }
 
     /**
@@ -664,7 +663,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             this.time += timeRate;
             // time needs to be sent to players
             if (timeUpdate != null && !Cooldown.hasCooldown(time, lastTimeUpdate, timeUpdate)) {
-                PacketUtils.sendGroupedPacket(serverProcess.getServerSetting(), getPlayers(), createTimePacket());
+                PacketUtils.sendGroupedPacket(serverSettings, getPlayers(), createTimePacket());
                 this.lastTimeUpdate = time;
             }
 
@@ -672,7 +671,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         // Tick event
         {
             // Process tick events
-            serverProcess.getGlobalEventHandler().call(new InstanceTickEvent(this, time, lastTickAge));
+            globalEventHandler.call(new InstanceTickEvent(this, time, lastTickAge));
             // Set last tick age
             this.lastTickAge = time;
         }
@@ -697,11 +696,12 @@ public abstract class Instance implements Block.Getter, Block.Setter,
 
     @Override
     public @NotNull InstanceSnapshot updateSnapshot(@NotNull SnapshotUpdater updater) {
-        final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
-        final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
-        return new SnapshotImpl.Instance(updater.reference(serverProcess),
-                getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
-                tagHandler.readableCopy());
+        throw new RuntimeException("Not implemented"); // FIXME
+//        final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
+//        final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
+//        return new SnapshotImpl.Instance(updater.reference(serverProcess),
+//                getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
+//                tagHandler.readableCopy());
     }
 
     /**
@@ -769,10 +769,5 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     @Override
     public @NotNull Pointers pointers() {
         return this.pointers;
-    }
-
-    @Override
-    public ServerProcess getServerProcess() {
-        return serverProcess;
     }
 }

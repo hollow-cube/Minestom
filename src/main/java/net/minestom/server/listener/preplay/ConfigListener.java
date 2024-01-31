@@ -7,6 +7,6 @@ import org.jetbrains.annotations.NotNull;
 public final class ConfigListener {
 
     public static void finishConfigListener(@NotNull ClientFinishConfigurationPacket packet, @NotNull Player player) {
-        player.getServerProcess().getConnectionManager().transitionConfigToPlay(player);
+        player.getConnectionManager().transitionConfigToPlay(player);
     }
 }

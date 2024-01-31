@@ -2,10 +2,13 @@ package net.minestom.server.command.builder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import net.minestom.server.ServerProcess;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandParser;
 import net.minestom.server.command.CommandSender;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
+import net.minestom.server.exception.ExceptionHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +29,8 @@ public class CommandDispatcher {
         this.manager = manager;
     }
 
-    public CommandDispatcher(ServerProcess serverProcess) {
-        this(new CommandManager(serverProcess));
+    public CommandDispatcher(ExceptionHandler exceptionHandler, EventNode<Event> globalEventHandler) {
+        this(new CommandManagerImpl(exceptionHandler, globalEventHandler));
     }
 
     /**

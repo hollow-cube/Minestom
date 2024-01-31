@@ -1,11 +1,17 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityItemMergeEvent;
+import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.StackingRule;
+import net.minestom.server.thread.ThreadDispatcher;
 import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.temporal.TemporalUnit;
+import java.util.UUID;
 
 /**
  * Represents an item on the ground.
@@ -38,11 +45,15 @@ public class ItemEntity extends Entity {
     private long spawnTime;
     private long pickupDelay;
 
-    public ItemEntity(@NotNull ServerProcess serverProcess, @NotNull ItemStack itemStack) {
-        super(serverProcess, EntityType.ITEM);
+    public ItemEntity(ServerFacade serverFacade, @NotNull ItemStack itemStack) {
+        this(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), itemStack);
+    }
+
+    public ItemEntity(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @NotNull ItemStack itemStack) {
+        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, EntityType.ITEM, UUID.randomUUID());
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
-        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverProcess.getServerSetting()));
+        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverSettings));
     }
 
     /**
@@ -86,7 +97,7 @@ public class ItemEntity extends Entity {
                         if (!stackingRule.canApply(itemStack, totalAmount)) return;
                         final ItemStack result = stackingRule.apply(itemStack, totalAmount);
                         EntityItemMergeEvent entityItemMergeEvent = new EntityItemMergeEvent(this, itemEntity, result);
-                        getServerProcess().getGlobalEventHandler().callCancellable(entityItemMergeEvent, () -> {
+                        globalEventHandler.callCancellable(entityItemMergeEvent, () -> {
                             setItemStack(entityItemMergeEvent.getResult());
                             itemEntity.remove();
                         });

@@ -2,6 +2,7 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.collision.Shape;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -13,10 +14,12 @@ import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.play.data.LightData;
 import net.minestom.server.timer.ExecutionType;
+import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.chunk.ChunkUtils;
+import net.minestom.server.world.biomes.BiomeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,9 +38,11 @@ public class LightingChunk extends DynamicChunk {
     private static final int LIGHTING_CHUNKS_SEND_DELAY = Integer.getInteger("minestom.lighting.chunks-send-delay", 100);
 
     private static final ExecutorService pool = Executors.newWorkStealingPool();
+    private final ServerSettings serverSettings;
 
     private int[] heightmap;
-    final CachedPacket lightCache = new CachedPacket(getServerProcess().getServerSetting(), this::createLightPacket);
+    final CachedPacket lightCache;
+    private final SchedulerManager schedulerManager;
     boolean sendNeighbours = true;
     boolean chunkLoaded = false;
 
@@ -76,8 +81,11 @@ public class LightingChunk extends DynamicChunk {
             Block.LAVA.namespace()
     );
 
-    public LightingChunk(@NotNull Instance instance, int chunkX, int chunkZ) {
-        super(instance, chunkX, chunkZ);
+    public LightingChunk(BiomeManager biomeManager, ServerSettings serverSettings, SchedulerManager schedulerManager, @NotNull Instance instance, int chunkX, int chunkZ) {
+        super(biomeManager, instance, chunkX, chunkZ);
+        this.serverSettings = serverSettings;
+        this.lightCache = new CachedPacket(serverSettings, this::createLightPacket);
+        this.schedulerManager = schedulerManager;
     }
 
     private boolean checkSkyOcclusion(Block block) {
@@ -128,7 +136,7 @@ public class LightingChunk extends DynamicChunk {
 
     public void sendLighting() {
         if (!isLoaded()) return;
-        sendPacketToViewers(lightCache);
+        sendPacketToViewers(serverSettings, lightCache);
     }
 
     @Override
@@ -256,7 +264,7 @@ public class LightingChunk extends DynamicChunk {
             return;
         }
 
-        sendingTask = chunk.getServerProcess().getSchedulerManager().scheduleTask(() -> {
+        sendingTask = chunk.schedulerManager.scheduleTask(() -> {
             queueLock.lock();
             var copy = new ArrayList<>(sendQueue);
             sendQueue.clear();
@@ -428,7 +436,7 @@ public class LightingChunk extends DynamicChunk {
 
     @Override
     public @NotNull Chunk copy(@NotNull Instance instance, int chunkX, int chunkZ) {
-        LightingChunk lightingChunk = new LightingChunk(instance, chunkX, chunkZ);
+        LightingChunk lightingChunk = new LightingChunk(biomeManager, serverSettings, schedulerManager, instance, chunkX, chunkZ);
         lightingChunk.sections = sections.stream().map(Section::clone).toList();
         lightingChunk.entries.putAll(entries);
         return lightingChunk;

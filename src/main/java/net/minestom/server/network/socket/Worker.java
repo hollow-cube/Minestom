@@ -1,6 +1,10 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
+import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.thread.MinestomThread;
 import net.minestom.server.utils.ObjectPool;
@@ -25,13 +29,20 @@ public final class Worker extends MinestomThread {
 
     final Selector selector;
     private final Map<SocketChannel, PlayerSocketConnection> connectionMap = new ConcurrentHashMap<>();
-    private final ServerProcess serverProcess;
+
+    private final ConnectionManager connectionManager;
+    private final EventNode<Event> globalEventHandler;
+    private final ExceptionHandler exceptionHandler;
+    private final ServerSettings serverSettings;
     private final Server server;
     private final MpscUnboundedXaddArrayQueue<Runnable> queue = new MpscUnboundedXaddArrayQueue<>(1024);
 
-    Worker(ServerProcess serverProcess, Server server) {
+    Worker(Server server, ConnectionManager connectionManager, EventNode<Event> globalEventHandler, ExceptionHandler exceptionHandler, ServerSettings serverSettings) {
         super("Ms-worker-" + COUNTER.getAndIncrement());
-        this.serverProcess = serverProcess;
+        this.connectionManager = connectionManager;
+        this.globalEventHandler = globalEventHandler;
+        this.exceptionHandler = exceptionHandler;
+        this.serverSettings = serverSettings;
         this.server = server;
         try {
             this.selector = Selector.open();
@@ -51,7 +62,7 @@ public final class Worker extends MinestomThread {
                 try {
                     this.queue.drain(Runnable::run);
                 } catch (Exception e) {
-                    serverProcess.getExceptionHandler().handleException(e);
+                    exceptionHandler.handleException(e);
                 }
                 // Flush all connections if needed
                 for (PlayerSocketConnection connection : connectionMap.values()) {
@@ -88,12 +99,12 @@ public final class Worker extends MinestomThread {
                         // TODO print exception? (should ignore disconnection)
                         connection.disconnect();
                     } catch (Throwable t) {
-                        serverProcess.getExceptionHandler().handleException(t);
+                        exceptionHandler.handleException(t);
                         connection.disconnect();
                     }
                 });
             } catch (Exception e) {
-                serverProcess.getExceptionHandler().handleException(e);
+                exceptionHandler.handleException(e);
             }
         }
     }
@@ -113,14 +124,15 @@ public final class Worker extends MinestomThread {
     }
 
     void receiveConnection(SocketChannel channel) throws IOException {
-        this.connectionMap.put(channel, new PlayerSocketConnection(serverProcess, this, channel, channel.getRemoteAddress()));
+        this.connectionMap.put(channel, new PlayerSocketConnection(server, connectionManager, globalEventHandler, exceptionHandler, serverSettings, this, channel, channel.getRemoteAddress()));
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
         if (channel.getLocalAddress() instanceof InetSocketAddress) {
             Socket socket = channel.socket();
-            socket.setSendBufferSize(Server.SOCKET_SEND_BUFFER_SIZE);
-            socket.setReceiveBufferSize(Server.SOCKET_RECEIVE_BUFFER_SIZE);
-            socket.setTcpNoDelay(Server.NO_DELAY);
+
+            socket.setSendBufferSize(serverSettings.getSendBufferSize());
+            socket.setReceiveBufferSize(serverSettings.getReceiveBufferSize());
+            socket.setTcpNoDelay(serverSettings.isTcpNoDelay());
             socket.setSoTimeout(30 * 1000); // 30 seconds
         }
     }

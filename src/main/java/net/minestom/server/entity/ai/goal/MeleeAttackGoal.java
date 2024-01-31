@@ -47,7 +47,7 @@ public class MeleeAttackGoal extends GoalSelector {
         super(entityCreature);
         this.range = range;
         this.delay = delay;
-        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerProcess().getServerSetting())));
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerSettings())));
     }
 
     public @NotNull Cooldown getCooldown() {
