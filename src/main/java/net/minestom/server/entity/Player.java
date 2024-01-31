@@ -26,10 +26,10 @@ import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.advancements.AdvancementTab;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.adventure.Localizable;
-import net.minestom.server.adventure.bossbar.BossBarManager;
+import net.minestom.server.adventure.bossbar.BossBarManagerProvider;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.collision.BoundingBox;
-import net.minestom.server.command.CommandManager;
+import net.minestom.server.command.CommandManagerProvider;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.condition.CommandCondition;
 import net.minestom.server.coordinate.Point;
@@ -52,24 +52,27 @@ import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.instance.block.BlockManagerProvider;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.item.metadata.WrittenBookMeta;
-import net.minestom.server.listener.manager.PacketListenerManager;
+import net.minestom.server.listener.manager.PacketListenerManagerProvider;
 import net.minestom.server.message.ChatMessageType;
 import net.minestom.server.message.ChatPosition;
 import net.minestom.server.message.Messenger;
-import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.ConnectionManagerImpl;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.PlayerProvider;
 import net.minestom.server.network.packet.client.ClientPacket;
 import net.minestom.server.network.packet.server.SendablePacket;
 import net.minestom.server.network.packet.server.ServerPacket;
-import net.minestom.server.network.packet.server.common.*;
+import net.minestom.server.network.packet.server.common.DisconnectPacket;
+import net.minestom.server.network.packet.server.common.PluginMessagePacket;
+import net.minestom.server.network.packet.server.common.ResourcePackPopPacket;
+import net.minestom.server.network.packet.server.common.ResourcePackPushPacket;
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket;
 import net.minestom.server.network.packet.server.play.*;
 import net.minestom.server.network.packet.server.play.data.DeathLocation;
@@ -77,17 +80,17 @@ import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.recipe.Recipe;
-import net.minestom.server.recipe.RecipeManager;
+import net.minestom.server.recipe.RecipeManagerProvider;
 import net.minestom.server.scoreboard.BelowNameTag;
 import net.minestom.server.scoreboard.Team;
-import net.minestom.server.scoreboard.TeamManager;
+import net.minestom.server.scoreboard.TeamManagerProvider;
 import net.minestom.server.snapshot.EntitySnapshot;
 import net.minestom.server.snapshot.PlayerSnapshot;
 import net.minestom.server.snapshot.SnapshotImpl;
 import net.minestom.server.snapshot.SnapshotUpdater;
 import net.minestom.server.statistic.PlayerStatistic;
 import net.minestom.server.thread.ChunkDispatcherProvider;
-import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.PropertyUtils;
@@ -139,30 +142,36 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     public static final boolean EXPERIMENT_PERFORM_POSE_UPDATES = Boolean.getBoolean("minestom.experiment.pose-updates");
 
+    @Getter
     private long lastKeepAlive;
     private boolean answerKeepAlive;
     @Getter // FIXME bad shit
 
-    protected final ConnectionManager connectionManager;
-    protected final TeamManager teamManager;
-    protected final RecipeManager recipeManager;
+    protected final ConnectionManagerProvider connectionManagerProvider;
+    protected final TeamManagerProvider teamManagerProvider;
+    protected final RecipeManagerProvider recipeManagerProvider;
     @Getter // FIXME bad shit
-    private final CommandManager commandManager;
-    private final BossBarManager bossBarManager;
-    private final SchedulerManager schedulerManager;
-    private final PacketListenerManager packetListenerManager;
+    private final CommandManagerProvider commandManagerProvider;
+    private final BossBarManagerProvider bossBarManagerProvider;
+    private final SchedulerManagerProvider schedulerManagerProvider;
+    private final PacketListenerManagerProvider packetListenerManagerProvider;
     @Getter // FIXME bad shit
-    private final BlockManager blockManager;
+    private final BlockManagerProvider blockManagerProvider;
     private String username;
     private Component usernameComponent;
+    @Getter
     protected final PlayerConnection playerConnection;
 
+    @Getter
     private int latency;
     private Component displayName;
+    @Getter
     private PlayerSkin skin;
 
     private Instance pendingInstance = null;
+    @Getter
     private DimensionType dimensionType;
+    @Getter
     private GameMode gameMode;
     private DeathLocation deathLocation;
 
@@ -185,20 +194,27 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     final IntegerBiConsumer chunkRemover;
 
     private final AtomicInteger teleportId = new AtomicInteger();
-    private int receivedTeleportId;
+    @lombok.Setter
+    @Getter
+    private int lastReceivedTeleportId;
 
     private final MessagePassingQueue<ClientPacket> packets = new MpscUnboundedXaddArrayQueue<>(32);
     private final boolean levelFlat;
+    @Getter
     private final PlayerSettings settings;
     private float exp;
     private int level;
+    @Getter
+    @lombok.Setter
     private int portalCooldown = 0;
 
+    @Getter
     protected PlayerInventory inventory;
     private Inventory openInventory;
     // Used internally to allow the closing of inventory within the inventory listener
     private boolean didCloseInventory;
 
+    @Getter
     private byte heldSlot;
 
     private Pos respawnPoint;
@@ -219,6 +235,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     private BelowNameTag belowNameTag;
 
+    @Getter
     private int permissionLevel;
 
     private boolean reducedDebugScreenInformation;
@@ -247,7 +264,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     private CompletableFuture<Void> resourcePackFuture = null;
 
     public Player(ServerFacade serverFacade, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, serverFacade.getConnectionManager(), serverFacade.getTeamManager(), serverFacade.getRecipeManager(), serverFacade.getCommandManager(), serverFacade.getBossBarManager(), serverFacade.getSchedulerManager(), serverFacade.getPacketListenerManager(), serverFacade.getBlockManager(), uuid, username, playerConnection);
+        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, uuid, username, playerConnection);
     }
 
     public Player(
@@ -257,28 +274,28 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             ChunkDispatcherProvider chunkDispatcherProvider,
             ExceptionHandlerProvider exceptionHandlerProvider,
 
-            ConnectionManager connectionManager,
-            TeamManager teamManager,
-            RecipeManager recipeManager,
-            CommandManager commandManager,
-            BossBarManager bossBarManager,
-            SchedulerManager schedulerManager,
-            PacketListenerManager packetListenerManager,
-            BlockManager blockManager,
+            ConnectionManagerProvider connectionManagerProvider,
+            TeamManagerProvider teamManagerProvider,
+            RecipeManagerProvider recipeManagerProvider,
+            CommandManagerProvider commandManagerProvider,
+            BossBarManagerProvider bossBarManagerProvider,
+            SchedulerManagerProvider schedulerManagerProvider,
+            PacketListenerManagerProvider packetListenerManagerProvider,
+            BlockManagerProvider blockManagerProvider,
 
             @NotNull UUID uuid,
             @NotNull String username,
             @NotNull PlayerConnection playerConnection
     ) {
         super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.PLAYER, uuid);
-        this.connectionManager = connectionManager;
-        this.teamManager = teamManager;
-        this.recipeManager = recipeManager;
-        this.commandManager = commandManager;
-        this.bossBarManager = bossBarManager;
-        this.schedulerManager = schedulerManager;
-        this.packetListenerManager = packetListenerManager;
-        this.blockManager = blockManager;
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.teamManagerProvider = teamManagerProvider;
+        this.recipeManagerProvider = recipeManagerProvider;
+        this.commandManagerProvider = commandManagerProvider;
+        this.bossBarManagerProvider = bossBarManagerProvider;
+        this.schedulerManagerProvider = schedulerManagerProvider;
+        this.packetListenerManagerProvider = packetListenerManagerProvider;
+        this.blockManagerProvider = blockManagerProvider;
         this.username = username;
         this.usernameComponent = Component.text(username);
         this.playerConnection = playerConnection;
@@ -286,7 +303,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         setRespawnPoint(Pos.ZERO);
 
         this.settings = new PlayerSettings();
-        this.inventory = new PlayerInventory(serverSettingsProvider.getServerSettings(), globalEventHandler, this);
+        this.inventory = new PlayerInventory(serverSettings, globalEventHandler, this);
 
         setCanPickupItem(true); // By default
 
@@ -315,7 +332,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new UnloadChunkPacket(chunkX, chunkZ));
             globalEventHandler.call(new PlayerChunkUnloadEvent(this, chunkX, chunkZ));
         };
-        experiencePickupCooldown = new Cooldown(Duration.of(10, TimeUnit.getServerTick(serverSettingsProvider.getServerSettings())));
+        experiencePickupCooldown = new Cooldown(Duration.of(10, TimeUnit.getServerTick(serverSettings)));
     }
 
     @ApiStatus.Internal
@@ -374,9 +391,9 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         globalEventHandler.call(skinInitEvent);
         this.skin = skinInitEvent.getSkin();
         // FIXME: when using Geyser, this line remove the skin of the client
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, getAddPlayerToList());
+        PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, getAddPlayerToList());
 
-        for (var player : connectionManager.getOnlinePlayers()) {
+        for (var player : connectionManagerProvider.getConnectionManager().getOnlinePlayers()) {
             if (player != this) {
                 sendPacket(player.getAddPlayerToList());
                 if (player.displayName != null) {
@@ -386,7 +403,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         }
 
         //Teams
-        for (Team team : teamManager.getTeams()) {
+        for (Team team : teamManagerProvider.getTeamManager().getTeams()) {
             sendPacket(team.createTeamsCreationPacket());
         }
 
@@ -395,10 +412,10 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         // Recipes start
         {
-            sendPacket(recipeManager.getDeclareRecipesPacket());
+            sendPacket(recipeManagerProvider.getRecipeManager().getDeclareRecipesPacket());
 
             List<String> recipesIdentifier = new ArrayList<>();
-            for (Recipe recipe : recipeManager.getRecipes()) {
+            for (Recipe recipe : recipeManagerProvider.getRecipeManager().getRecipes()) {
                 if (!recipe.shouldShow(this))
                     continue;
                 recipesIdentifier.add(recipe.getRecipeId());
@@ -438,7 +455,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Remove the player, then send them back to configuration
         remove(false);
 
-        connectionManager.transitionPlayToConfig(this);
+        connectionManagerProvider.getConnectionManager().transitionPlayToConfig(this);
 
     }
 
@@ -547,7 +564,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
             // #buildDeathMessage can return null, check here
             if (chatMessage != null) {
-                for (Player player : connectionManager.getOnlinePlayers()) {
+                for (Player player : connectionManagerProvider.getConnectionManager().getOnlinePlayers()) {
                     player.sendMessage(chatMessage);
                 }
             }
@@ -614,7 +631,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * again, and any changes will be visible to the player.
      */
     public void refreshCommands() {
-        sendPacket(commandManager.createDeclareCommandsPacket(this));
+        sendPacket(commandManagerProvider.getCommandManager().createDeclareCommandsPacket(this));
     }
 
     @Override
@@ -635,7 +652,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         final Inventory currentInventory = getOpenInventory();
         if (currentInventory != null) currentInventory.removeViewer(this);
-        bossBarManager.removeAllBossBars(this);
+        bossBarManagerProvider.getBossBarManager().removeAllBossBars(this);
         // Advancement tabs cache
         {
             Set<AdvancementTab> advancementTabs = AdvancementTab.getTabs(this);
@@ -651,7 +668,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Clear all viewable chunks
         ChunkUtils.forChunksInRange(chunkX, chunkZ, serverSettingsProvider.getServerSettings().getChunkViewDistance(), chunkRemover);
         // Remove from the tab-list
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, getRemovePlayerToList());
+        PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, getRemovePlayerToList());
 
         // Prevent the player from being stuck in loading screen, or just unable to interact with the server
         // This should be considered as a bug, since the player will ultimately time out anyway.
@@ -724,7 +741,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    schedulerManager.process();
+                    schedulerManagerProvider.getSchedulerManager().process();
                     assert isDone();
                 }
                 return super.join();
@@ -733,7 +750,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                 .thenRun(() -> {
-                    schedulerManager.scheduleNextProcess(() -> {
+                    schedulerManagerProvider.getSchedulerManager().scheduleNextProcess(() -> {
                         runnable.accept(instance);
                         future.complete(null);
                     });
@@ -1029,12 +1046,12 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     @Override
     public void showBossBar(@NotNull BossBar bar) {
-        bossBarManager.addBossBar(this, bar);
+        bossBarManagerProvider.getBossBarManager().addBossBar(this, bar);
     }
 
     @Override
     public void hideBossBar(@NotNull BossBar bar) {
-        bossBarManager.removeBossBar(this, bar);
+        bossBarManagerProvider.getBossBarManager().removeBossBar(this, bar);
     }
 
     @Override
@@ -1206,17 +1223,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public void setDisplayName(@Nullable Component displayName) {
         this.displayName = displayName;
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
-    }
-
-    /**
-     * Gets the player skin.
-     *
-     * @return the player skin object,
-     * null means that the player has his {@link #getUuid()} default skin
-     */
-    public @Nullable PlayerSkin getSkin() {
-        return skin;
+        PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, infoEntry()));
     }
 
     /**
@@ -1248,11 +1255,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
         {
             // Remove player
-            PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, removePlayerPacket);
+            PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, removePlayerPacket);
             sendPacketToViewers(serverSettingsProvider, destroyEntitiesPacket);
 
             // Show player again
-            PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, addPlayerPacket);
+            PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, addPlayerPacket);
             getViewers().forEach(player -> showPlayer(player.getPlayerConnection()));
         }
 
@@ -1521,25 +1528,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         sendPacket(new SetExperiencePacket(exp, level, 0));
     }
 
-    public int getPortalCooldown() {
-        return portalCooldown;
-    }
-
-    public void setPortalCooldown(int portalCooldown) {
-        this.portalCooldown = portalCooldown;
-    }
-
-    /**
-     * Gets the player connection.
-     * <p>
-     * Used to send packets and get stuff related to the connection.
-     *
-     * @return the player connection
-     */
-    public @NotNull PlayerConnection getPlayerConnection() {
-        return playerConnection;
-    }
-
     /**
      * Shortcut for {@link PlayerConnection#sendPacket(SendablePacket)}.
      *
@@ -1570,47 +1558,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     /**
-     * Gets the player settings.
-     *
-     * @return the player settings
-     */
-    public @NotNull PlayerSettings getSettings() {
-        return settings;
-    }
-
-    /**
-     * Gets the player dimension.
-     *
-     * @return the player current dimension
-     */
-    public DimensionType getDimensionType() {
-        return dimensionType;
-    }
-
-    public @NotNull PlayerInventory getInventory() {
-        return inventory;
-    }
-
-    /**
-     * Used to get the player latency,
-     * computed by seeing how long it takes the client to answer the {@link KeepAlivePacket} packet.
-     *
-     * @return the player latency
-     */
-    public int getLatency() {
-        return latency;
-    }
-
-    /**
-     * Gets the player {@link GameMode}.
-     *
-     * @return the player current gamemode
-     */
-    public GameMode getGameMode() {
-        return gameMode;
-    }
-
-    /**
      * Changes the player {@link GameMode}
      *
      * @param gameMode the new player GameMode
@@ -1630,7 +1577,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         // Condition to prevent sending the packets before spawning the player
         if (isActive()) {
             sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.CHANGE_GAMEMODE, gameMode.id()));
-            PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
+            PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, infoEntry()));
         }
 
         // The client updates their abilities based on the GameMode as follows
@@ -1722,15 +1669,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         Check.argCondition(!MathUtils.isBetween(slot, 0, 8), "Slot has to be between 0 and 8");
         refreshHeldSlot(slot);
         sendPacket(new HeldItemChangePacket(slot));
-    }
-
-    /**
-     * Gets the player held slot (0-8).
-     *
-     * @return the current held slot for the player
-     */
-    public byte getHeldSlot() {
-        return heldSlot;
     }
 
     /**
@@ -1860,14 +1798,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         return teleportId.get();
     }
 
-    public int getLastReceivedTeleportId() {
-        return receivedTeleportId;
-    }
-
-    public void refreshReceivedTeleportId(int receivedTeleportId) {
-        this.receivedTeleportId = receivedTeleportId;
-    }
-
     /**
      * @see Entity#synchronizePosition(boolean)
      */
@@ -1878,15 +1808,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new PlayerPositionAndLookPacket(position, (byte) 0x00, getNextTeleportId()));
         }
         super.synchronizePosition(includeSelf);
-    }
-
-    /**
-     * Gets the player permission level.
-     *
-     * @return the player permission level
-     */
-    public int getPermissionLevel() {
-        return permissionLevel;
     }
 
     /**
@@ -2119,7 +2040,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             return;
         }
         // This method is NOT thread-safe
-        this.packets.drain(packet -> packetListenerManager.processClientPacket(packet, playerConnection), PACKET_PER_TICK);
+        this.packets.drain(packet -> packetListenerManagerProvider.getPacketListenerManager().processClientPacket(packet, playerConnection), PACKET_PER_TICK);
     }
 
     /**
@@ -2130,7 +2051,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public void refreshLatency(int latency) {
         this.latency = latency;
         if (getPlayerConnection().getConnectionState() == ConnectionState.PLAY) {
-            PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
+            PacketUtils.broadcastPlayPacket(connectionManagerProvider.getConnectionManager(), serverSettingsProvider, new PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY, infoEntry()));
         }
     }
 
@@ -2230,15 +2151,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     public void refreshVehicleSteer(float sideways, float forward, boolean jump, boolean unmount) {
         this.vehicleInformation.refresh(sideways, forward, jump, unmount);
-    }
-
-    /**
-     * Gets the last sent keep alive id.
-     *
-     * @return the last keep alive id sent to the player
-     */
-    public long getLastKeepAlive() {
-        return lastKeepAlive;
     }
 
     @Override

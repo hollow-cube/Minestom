@@ -6,10 +6,9 @@ import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
 import net.minestom.server.command.builder.ParsedCommand;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.player.PlayerCommandEvent;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.network.packet.server.play.DeclareCommandsPacket;
 import net.minestom.server.utils.callback.CommandCallback;
 import net.minestom.server.utils.validate.Check;
@@ -23,8 +22,8 @@ import java.util.concurrent.Callable;
 @RequiredArgsConstructor
 public final class CommandManagerImpl implements CommandManager {
 
-    private final ExceptionHandler exceptionHandler;
-    private final EventNode<Event> globalEventHandler;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
 
     private static final boolean ASYNC_VIRTUAL = Boolean.getBoolean("minestom.command.async-virtual");
 
@@ -73,7 +72,7 @@ public final class CommandManagerImpl implements CommandManager {
             // Command event
             if (sender instanceof Player player) {
                 PlayerCommandEvent playerCommandEvent = new PlayerCommandEvent(player, command);
-                globalEventHandler.call(playerCommandEvent);
+                globalEventHandlerProvider.getGlobalEventHandler().call(playerCommandEvent);
                 if (playerCommandEvent.isCancelled())
                     return CommandResult.of(CommandResult.Type.CANCELLED, command);
                 command = playerCommandEvent.getCommand();
@@ -106,7 +105,7 @@ public final class CommandManagerImpl implements CommandManager {
                     try {
                         callable.call();
                     } catch (Exception e) {
-                        exceptionHandler.handleException(e);
+                        exceptionHandlerProvider.getExceptionHandler().handleException(e);
                     }
                 });
                 return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
@@ -114,7 +113,7 @@ public final class CommandManagerImpl implements CommandManager {
                 return callable.call();
             }
         } catch (Exception e) {
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
             return CommandResult.of(CommandResult.Type.UNKNOWN, rawCommand);
         }
     }

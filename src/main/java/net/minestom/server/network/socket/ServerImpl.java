@@ -1,11 +1,12 @@
 package net.minestom.server.network.socket;
 
+import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.event.GlobalEventHandlerProvider;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.PacketProcessor;
+import net.minestom.server.network.PacketProcessorProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,12 +22,12 @@ import java.util.List;
 
 public final class ServerImpl implements Server {
 
+    private final ServerSettings serverSettings;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final PacketProcessorProvider packetProcessorProvider;
     private volatile boolean stop;
 
     private final Selector selector;
-    private final ServerSettings serverSettings;
-    private final ExceptionHandler exceptionHandler;
-    private final PacketProcessor packetProcessor;
     private final List<Worker> workers;
     private int index;
 
@@ -35,12 +36,16 @@ public final class ServerImpl implements Server {
     private String address;
     private int port;
 
-    public ServerImpl(ConnectionManager connectionManager, EventNode<Event> globalEventHandler, ExceptionHandler exceptionHandler, ServerSettings serverSettings, PacketProcessor packetProcessor) {
+    public ServerImpl(ServerSettings serverSettings, ServerFacade serverFacade) {
+        this(serverSettings, serverFacade, serverFacade, serverFacade, serverFacade);
+    }
+
+    public ServerImpl(ServerSettings serverSettings, ConnectionManagerProvider connectionManagerProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, PacketProcessorProvider packetProcessorProvider) {
         this.serverSettings = serverSettings;
-        this.exceptionHandler = exceptionHandler;
-        this.packetProcessor = packetProcessor;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.packetProcessorProvider = packetProcessorProvider;
         Worker[] workers = new Worker[serverSettings.getWorkers()];
-        Arrays.setAll(workers, value -> new Worker(this, connectionManager, globalEventHandler, exceptionHandler, serverSettings));
+        Arrays.setAll(workers, value -> new Worker(this, connectionManagerProvider, globalEventHandlerProvider, exceptionHandlerProvider, () -> serverSettings));
         this.workers = List.of(workers);
         try {
             this.selector = Selector.open();
@@ -97,7 +102,7 @@ public final class ServerImpl implements Server {
                         }
                     });
                 } catch (IOException e) {
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
             }
         }, "Ms-entrypoint").start();
@@ -125,7 +130,7 @@ public final class ServerImpl implements Server {
                 Files.deleteIfExists(unixDomainSocketAddress.getPath());
             }
         } catch (IOException e) {
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
         }
         this.selector.wakeup();
         this.workers.forEach(worker -> worker.selector.wakeup());
@@ -134,7 +139,7 @@ public final class ServerImpl implements Server {
     @Override
     @ApiStatus.Internal
     public @NotNull PacketProcessor packetProcessor() {
-        return packetProcessor;
+        return packetProcessorProvider.getPacketProcessor();
     }
 
     @Override

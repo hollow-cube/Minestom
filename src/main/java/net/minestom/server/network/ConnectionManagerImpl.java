@@ -2,21 +2,20 @@ package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerSettings;
-import net.minestom.server.adventure.bossbar.BossBarManager;
-import net.minestom.server.command.CommandManager;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettingsProvider;
+import net.minestom.server.adventure.bossbar.BossBarManagerProvider;
+import net.minestom.server.command.CommandManagerProvider;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.gamedata.tags.TagManager;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.listener.manager.PacketListenerManager;
+import net.minestom.server.instance.block.BlockManagerProvider;
+import net.minestom.server.listener.manager.PacketListenerManagerProvider;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.common.KeepAlivePacket;
@@ -28,16 +27,16 @@ import net.minestom.server.network.packet.server.login.LoginSuccessPacket;
 import net.minestom.server.network.packet.server.play.StartConfigurationPacket;
 import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
-import net.minestom.server.recipe.RecipeManager;
-import net.minestom.server.scoreboard.TeamManager;
+import net.minestom.server.recipe.RecipeManagerProvider;
+import net.minestom.server.scoreboard.TeamManagerProvider;
 import net.minestom.server.thread.ChunkDispatcherProvider;
-import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.StringUtils;
 import net.minestom.server.utils.async.AsyncUtils;
 import net.minestom.server.utils.debug.DebugUtils;
 import net.minestom.server.utils.validate.Check;
-import net.minestom.server.world.DimensionTypeManager;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.DimensionTypeManagerProvider;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jetbrains.annotations.ApiStatus;
@@ -81,10 +80,10 @@ public final class ConnectionManagerImpl implements ConnectionManager {
     private final Set<Player> unmodifiableConfigurationPlayers = Collections.unmodifiableSet(configurationPlayers);
     private final Set<Player> unmodifiablePlayPlayers = Collections.unmodifiableSet(playPlayers);
     private final ExceptionHandlerProvider exceptionHandlerProvider;
-    private final ServerSettings serverSettings;
-    private final BiomeManager biomeManager;
-    private final DimensionTypeManager dimensionTypeManager;
-    private final EventNode<Event> globalEventHandler;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final BiomeManagerProvider biomeManagerProvider;
+    private final DimensionTypeManagerProvider dimensionTypeManagerProvider;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
 
 
     // The uuid provider once a player login
@@ -93,29 +92,33 @@ public final class ConnectionManagerImpl implements ConnectionManager {
     private final PlayerProvider defaultPlayerProvider;
     private volatile PlayerProvider playerProvider;
 
+    public ConnectionManagerImpl(TagManager tagManager, ServerFacade serverFacade) {
+        this(tagManager, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    }
+
     public ConnectionManagerImpl(
-            ServerSettings serverSettings,
-            GlobalEventHandler globalEventHandler,
+            TagManager tagManager,
+            ServerSettingsProvider serverSettingsProvider,
+            GlobalEventHandlerProvider globalEventHandlerProvider,
             ChunkDispatcherProvider chunkDispatcherProvider,
             ExceptionHandlerProvider exceptionHandlerProvider,
-            TeamManager teamManager,
-            RecipeManager recipeManager,
-            CommandManager commandManager,
-            BossBarManager bossBarManager,
-            SchedulerManager schedulerManager,
-            PacketListenerManager packetListenerManager,
-            BiomeManager biomeManager,
-            DimensionTypeManager dimensionTypeManager,
-            TagManager tagManager,
-            BlockManager blockManager
+            TeamManagerProvider teamManagerProvider,
+            RecipeManagerProvider recipeManagerProvider,
+            CommandManagerProvider commandManagerProvider,
+            BossBarManagerProvider bossBarManagerProvider,
+            SchedulerManagerProvider schedulerManagerProvider,
+            PacketListenerManagerProvider packetListenerManagerProvider,
+            BiomeManagerProvider biomeManagerProvider,
+            DimensionTypeManagerProvider dimensionTypeManagerProvider,
+            BlockManagerProvider blockManagerProvider
     ) {
         this.exceptionHandlerProvider = exceptionHandlerProvider;
-        this.serverSettings = serverSettings;
-        this.biomeManager = biomeManager;
-        this.dimensionTypeManager = dimensionTypeManager;
-        this.globalEventHandler = globalEventHandler;
-        this.defaultTags = new CachedPacket(() -> serverSettings, new TagsPacket(tagManager.getTagMap()));
-        defaultPlayerProvider = (uuid, username, connection) -> new Player(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, this, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, connection);
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.biomeManagerProvider = biomeManagerProvider;
+        this.dimensionTypeManagerProvider = dimensionTypeManagerProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.defaultTags = new CachedPacket(serverSettingsProvider, new TagsPacket(tagManager.getTagMap()));
+        defaultPlayerProvider = (uuid, username, connection) -> new Player(globalEventHandlerProvider.getGlobalEventHandler(), serverSettingsProvider.getServerSettings(), chunkDispatcherProvider, exceptionHandlerProvider, () -> this, teamManagerProvider, recipeManagerProvider, commandManagerProvider, bossBarManagerProvider, schedulerManagerProvider, packetListenerManagerProvider, blockManagerProvider, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }
 
@@ -206,13 +209,13 @@ public final class ConnectionManagerImpl implements ConnectionManager {
 
             // Compression
             if (playerConnection instanceof PlayerSocketConnection socketConnection) {
-                final int threshold = serverSettings.getCompressionThreshold();
+                final int threshold = serverSettingsProvider.getServerSettings().getCompressionThreshold();
                 if (threshold > 0) socketConnection.startCompression();
             }
 
             // Call pre login event
             AsyncPlayerPreLoginEvent asyncPlayerPreLoginEvent = new AsyncPlayerPreLoginEvent(player);
-            globalEventHandler.call(asyncPlayerPreLoginEvent);
+            globalEventHandlerProvider.getGlobalEventHandler().call(asyncPlayerPreLoginEvent);
             if (!player.isOnline())
                 return; // Player has been kicked
 
@@ -251,10 +254,10 @@ public final class ConnectionManagerImpl implements ConnectionManager {
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
         CompletableFuture<Void> configFuture = AsyncUtils.runAsync(exceptionHandlerProvider.getExceptionHandler(), () -> {
-            player.sendPacket(PluginMessagePacket.getBrandPacket(serverSettings));
+            player.sendPacket(PluginMessagePacket.getBrandPacket(serverSettingsProvider.getServerSettings()));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
-            globalEventHandler.call(event);
+            globalEventHandlerProvider.getGlobalEventHandler().call(event);
 
             final Instance spawningInstance = event.getSpawningInstance();
             Check.notNull(spawningInstance, "You need to specify a spawning instance in the AsyncPlayerConfigurationEvent");
@@ -263,8 +266,8 @@ public final class ConnectionManagerImpl implements ConnectionManager {
             if (event.willSendRegistryData()) {
                 var registry = new HashMap<String, NBT>();
                 registry.put("minecraft:chat_type", Messenger.chatRegistry());
-                registry.put("minecraft:dimension_type", dimensionTypeManager.toNBT());
-                registry.put("minecraft:worldgen/biome", biomeManager.toNBT());
+                registry.put("minecraft:dimension_type", dimensionTypeManagerProvider.getDimensionTypeManager().toNBT());
+                registry.put("minecraft:worldgen/biome", biomeManagerProvider.getBiomeManager().toNBT());
                 registry.put("minecraft:damage_type", DamageType.getNBT());
                 player.sendPacket(new RegistryDataPacket(NBT.Compound(registry)));
 

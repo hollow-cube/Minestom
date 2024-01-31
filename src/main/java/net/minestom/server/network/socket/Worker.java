@@ -1,10 +1,9 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.ServerSettings;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.ServerSettingsProvider;
+import net.minestom.server.event.GlobalEventHandlerProvider;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.thread.MinestomThread;
 import net.minestom.server.utils.ObjectPool;
@@ -30,20 +29,21 @@ public final class Worker extends MinestomThread {
     final Selector selector;
     private final Map<SocketChannel, PlayerSocketConnection> connectionMap = new ConcurrentHashMap<>();
 
-    private final ConnectionManager connectionManager;
-    private final EventNode<Event> globalEventHandler;
-    private final ExceptionHandler exceptionHandler;
-    private final ServerSettings serverSettings;
+
     private final Server server;
+    private final ConnectionManagerProvider connectionManagerProvider;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final ServerSettingsProvider serverSettingsProvider;
     private final MpscUnboundedXaddArrayQueue<Runnable> queue = new MpscUnboundedXaddArrayQueue<>(1024);
 
-    Worker(Server server, ConnectionManager connectionManager, EventNode<Event> globalEventHandler, ExceptionHandler exceptionHandler, ServerSettings serverSettings) {
+    Worker(Server server, ConnectionManagerProvider connectionManagerProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, ServerSettingsProvider serverSettingsProvider) {
         super("Ms-worker-" + COUNTER.getAndIncrement());
-        this.connectionManager = connectionManager;
-        this.globalEventHandler = globalEventHandler;
-        this.exceptionHandler = exceptionHandler;
-        this.serverSettings = serverSettings;
         this.server = server;
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.serverSettingsProvider = serverSettingsProvider;
         try {
             this.selector = Selector.open();
         } catch (IOException e) {
@@ -62,7 +62,7 @@ public final class Worker extends MinestomThread {
                 try {
                     this.queue.drain(Runnable::run);
                 } catch (Exception e) {
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
                 // Flush all connections if needed
                 for (PlayerSocketConnection connection : connectionMap.values()) {
@@ -99,12 +99,12 @@ public final class Worker extends MinestomThread {
                         // TODO print exception? (should ignore disconnection)
                         connection.disconnect();
                     } catch (Throwable t) {
-                        exceptionHandler.handleException(t);
+                        exceptionHandlerProvider.getExceptionHandler().handleException(t);
                         connection.disconnect();
                     }
                 });
             } catch (Exception e) {
-                exceptionHandler.handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
             }
         }
     }
@@ -124,15 +124,15 @@ public final class Worker extends MinestomThread {
     }
 
     void receiveConnection(SocketChannel channel) throws IOException {
-        this.connectionMap.put(channel, new PlayerSocketConnection(server, connectionManager, globalEventHandler, exceptionHandler, serverSettings, this, channel, channel.getRemoteAddress()));
+        this.connectionMap.put(channel, new PlayerSocketConnection(globalEventHandlerProvider.getGlobalEventHandler(), () -> server, connectionManagerProvider, exceptionHandlerProvider, serverSettingsProvider, this, channel, channel.getRemoteAddress()));
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
         if (channel.getLocalAddress() instanceof InetSocketAddress) {
             Socket socket = channel.socket();
 
-            socket.setSendBufferSize(serverSettings.getSendBufferSize());
-            socket.setReceiveBufferSize(serverSettings.getReceiveBufferSize());
-            socket.setTcpNoDelay(serverSettings.isTcpNoDelay());
+            socket.setSendBufferSize(serverSettingsProvider.getServerSettings().getSendBufferSize());
+            socket.setReceiveBufferSize(serverSettingsProvider.getServerSettings().getReceiveBufferSize());
+            socket.setTcpNoDelay(serverSettingsProvider.getServerSettings().isTcpNoDelay());
             socket.setSoTimeout(30 * 1000); // 30 seconds
         }
     }

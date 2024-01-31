@@ -2,10 +2,10 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
-import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.network.ConnectionManagerProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -19,16 +19,18 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
     protected final IterableAudienceProvider collection;
     protected final Audience players;
     protected final Audience server;
-    private final ServerSettings serverSettings;
-    private final ConnectionManager connectionManager;
     private final CommandManager commandManager;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final ConnectionManagerProvider connectionManagerProvider;
 
-    protected SingleAudienceProvider(ServerSettings serverSettings, ConnectionManager connectionManager, CommandManager commandManager) {
-        this.serverSettings = serverSettings;
-        this.connectionManager = connectionManager;
+
+    protected SingleAudienceProvider(CommandManager commandManager, ServerSettingsProvider serverSettingsProvider, ConnectionManagerProvider connectionManagerProvider) {
         this.commandManager = commandManager;
-        this.collection = new IterableAudienceProvider(connectionManager, commandManager);
-        this.players = PacketGroupingAudience.of(serverSettings, connectionManager.getOnlinePlayers());
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.connectionManagerProvider = connectionManagerProvider;
+
+        this.collection = new IterableAudienceProvider(connectionManagerProvider, commandManager);
+        this.players = PacketGroupingAudience.of(serverSettingsProvider, () -> connectionManagerProvider.getConnectionManager().getOnlinePlayers());
         this.server = Audience.audience(this.players, commandManager.getConsoleSender());
     }
 
@@ -53,7 +55,7 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
 
     @Override
     public @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(serverSettings, connectionManager.getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(serverSettingsProvider, connectionManagerProvider.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     @Override

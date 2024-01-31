@@ -18,7 +18,7 @@ public class ChatMessageListener {
     public static void commandChatListener(ClientCommandChatPacket packet, Player player) {
         final String command = packet.message();
         if (Messenger.canReceiveCommand(player)) {
-            player.getCommandManager().execute(player, command);
+            player.getCommandManagerProvider().getCommandManager().execute(player, command);
         } else {
             Messenger.sendRejectionMessage(player);
         }
@@ -31,7 +31,7 @@ public class ChatMessageListener {
             return;
         }
 
-        final Collection<Player> players = player.getConnectionManager().getOnlinePlayers();
+        final Collection<Player> players = player.getConnectionManagerProvider().getConnectionManager().getOnlinePlayers();
         PlayerChatEvent playerChatEvent = new PlayerChatEvent(player, players, () -> buildDefaultChatMessage(player, message), message);
 
         // Call the event

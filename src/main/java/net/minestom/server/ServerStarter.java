@@ -1,14 +1,13 @@
 package net.minestom.server;
 
 import lombok.RequiredArgsConstructor;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
-import net.minestom.server.monitoring.BenchmarkManager;
-import net.minestom.server.network.ConnectionManager;
-import net.minestom.server.network.socket.Server;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.monitoring.BenchmarkManagerProvider;
+import net.minestom.server.network.ConnectionManagerProvider;
+import net.minestom.server.network.socket.ServerProvider;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.thread.TickSchedulerThread;
-import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +21,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ServerStarter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerStarter.class);
 
-    private final ServerSettings serverSettings;
-    private final Server server;
-    private final ExceptionHandler exceptionHandler;
-    private final SchedulerManager schedulerManager;
-    private final ConnectionManager connectionManager;
-    private final BenchmarkManager benchmarkManager;
-    private final ThreadDispatcher<Chunk> dispatcher;
-    private final Ticker ticker;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final ServerProvider serverProvider;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final SchedulerManagerProvider schedulerManagerProvider;
+    private final ConnectionManagerProvider connectionManagerProvider;
+    private final BenchmarkManagerProvider benchmarkManagerProvider;
+    private final ChunkDispatcherProvider chunkDispatcherProvider;
+    private final TickerProvider tickerProvider;
+
+    public ServerStarter(ServerFacade serverFacade) {
+        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    }
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
@@ -38,25 +41,25 @@ public class ServerStarter {
             throw new IllegalStateException("Server already started");
         }
 
-        LOGGER.info("Starting " + serverSettings.getBrandName() + " server.");
+        LOGGER.info("Starting " + serverSettingsProvider.getServerSettings().getBrandName() + " server.");
 
         // Init server
         try {
-            server.init(socketAddress);
+            serverProvider.getServer().init(socketAddress);
         } catch (IOException e) {
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
             throw new RuntimeException(e);
         }
 
         // Start server
-        server.start();
+        serverProvider.getServer().start();
 
-        LOGGER.info(serverSettings.getBrandName() + " server started successfully.");
+        LOGGER.info(serverSettingsProvider.getServerSettings().getBrandName() + " server started successfully.");
 
         // Stop the server on SIGINT
-        if (serverSettings.isShutdownOnSignal()) Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+        if (serverSettingsProvider.getServerSettings().isShutdownOnSignal()) Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
 
-        new TickSchedulerThread(serverSettings, ticker, this, exceptionHandler).start();
+        new TickSchedulerThread(serverSettingsProvider.getServerSettings(), tickerProvider.getTicker(), this, exceptionHandlerProvider.getExceptionHandler()).start();
     }
 
     public void start(@NotNull String hostname, int port) {
@@ -66,14 +69,14 @@ public class ServerStarter {
     public void stop() {
         if (!stopped.compareAndSet(false, true))
             return;
-        LOGGER.info("Stopping " + serverSettings.getBrandName() + " server.");
-        schedulerManager.shutdown();
-        connectionManager.shutdown();
-        server.stop();
+        LOGGER.info("Stopping " + serverSettingsProvider.getServerSettings().getBrandName() + " server.");
+        schedulerManagerProvider.getSchedulerManager().shutdown();
+        connectionManagerProvider.getConnectionManager().shutdown();
+        serverProvider.getServer().stop();
         LOGGER.info("Shutting down all thread pools.");
-        benchmarkManager.disable();
-        dispatcher.shutdown();
-        LOGGER.info(serverSettings.getBrandName() + " server stopped successfully.");
+        benchmarkManagerProvider.getBenchmarkManager().disable();
+        chunkDispatcherProvider.getChunkDispatcher().shutdown();
+        LOGGER.info(serverSettingsProvider.getServerSettings().getBrandName() + " server stopped successfully.");
     }
 
     public boolean isAlive() {

@@ -93,7 +93,7 @@ public interface Viewable {
      * @return the audience
      */
     default @NotNull Audience getViewersAsAudience(ServerSettings serverSettings) {
-        return PacketGroupingAudience.of(serverSettings, this.getViewers());
+        return PacketGroupingAudience.of(() -> serverSettings, this.getViewers());
     }
 
     /**

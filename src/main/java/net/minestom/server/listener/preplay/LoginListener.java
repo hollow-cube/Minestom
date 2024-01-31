@@ -96,7 +96,7 @@ public final class LoginListener {
                 return;
             }
 
-            final boolean hasPublicKey = connection.playerPublicKey() != null;
+            final boolean hasPublicKey = connection.getPlayerPublicKey() != null;
             final boolean verificationFailed = hasPublicKey || !Arrays.equals(socketConnection.getNonce(),
                     mojangAuth.getMojangCrypt().decryptUsingKey(mojangAuth.getKeyPair().getPrivate(), packet.encryptedVerifyToken()));
 

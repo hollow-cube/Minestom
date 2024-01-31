@@ -3,8 +3,8 @@ package net.minestom.server.entity.fakeplayer;
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
 import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
-import net.minestom.server.adventure.bossbar.BossBarManager;
-import net.minestom.server.command.CommandManager;
+import net.minestom.server.adventure.bossbar.BossBarManagerProvider;
+import net.minestom.server.command.CommandManagerProvider;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
@@ -14,18 +14,18 @@ import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.listener.manager.PacketListenerManager;
-import net.minestom.server.network.ConnectionManager;
+import net.minestom.server.instance.block.BlockManagerProvider;
+import net.minestom.server.listener.manager.PacketListenerManagerProvider;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.client.login.ClientLoginAcknowledgedPacket;
 import net.minestom.server.network.player.FakePlayerConnection;
 import net.minestom.server.network.player.PlayerConnection;
-import net.minestom.server.network.socket.Server;
-import net.minestom.server.recipe.RecipeManager;
-import net.minestom.server.scoreboard.TeamManager;
+import net.minestom.server.network.socket.ServerProvider;
+import net.minestom.server.recipe.RecipeManagerProvider;
+import net.minestom.server.scoreboard.TeamManagerProvider;
 import net.minestom.server.thread.ChunkDispatcherProvider;
-import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,23 +50,13 @@ public class FakePlayer extends Player implements NavigableEntity {
     private final Navigator navigator = new Navigator(this);
 
     private EventListener<PlayerSpawnEvent> spawnListener;
-    private final SchedulerManager scheduleManager;
+    private final SchedulerManagerProvider schedulerManagerProvider;
 
     public FakePlayer(ServerFacade serverFacade, @NotNull UUID uuid, @NotNull String username, @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
         this(
                 serverFacade.getGlobalEventHandler(),
                 serverFacade.getServerSettings(),
-                serverFacade,
-                serverFacade,
-                serverFacade.getConnectionManager(),
-                serverFacade.getTeamManager(),
-                serverFacade.getRecipeManager(),
-                serverFacade.getCommandManager(),
-                serverFacade.getBossBarManager(),
-                serverFacade.getSchedulerManager(),
-                serverFacade.getPacketListenerManager(),
-                serverFacade.getBlockManager(),
-                serverFacade.getServer(),
+                serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade,
                 uuid, username, option, spawnCallback
         );
     }
@@ -85,21 +75,21 @@ public class FakePlayer extends Player implements NavigableEntity {
             ChunkDispatcherProvider chunkDispatcherProvider,
             ExceptionHandlerProvider exceptionHandlerProvider,
 
-            ConnectionManager connectionManager,
-            TeamManager teamManager,
-            RecipeManager recipeManager,
-            CommandManager commandManager,
-            BossBarManager bossBarManager,
-            SchedulerManager schedulerManager,
-            PacketListenerManager packetListenerManager,
-            BlockManager blockManager,
-                      Server server,
+            ConnectionManagerProvider connectionManagerProvider,
+            TeamManagerProvider teamManagerProvider,
+            RecipeManagerProvider recipeManagerProvider,
+            CommandManagerProvider commandManagerProvider,
+            BossBarManagerProvider bossBarManagerProvider,
+            SchedulerManagerProvider schedulerManagerProvider,
+            PacketListenerManagerProvider packetListenerManagerProvider,
+            BlockManagerProvider blockManagerProvider,
+                      ServerProvider serverProvider,
                       @NotNull UUID uuid,
                       @NotNull String username,
                       @NotNull FakePlayerOption option,
                       @Nullable Consumer<FakePlayer> spawnCallback) {
-        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, connectionManager, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, new FakePlayerConnection(server, connectionManager));
-        this.scheduleManager = schedulerManager;
+        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, connectionManagerProvider, teamManagerProvider, recipeManagerProvider, commandManagerProvider, bossBarManagerProvider, schedulerManagerProvider, packetListenerManagerProvider, blockManagerProvider, uuid, username, new FakePlayerConnection(serverProvider, connectionManagerProvider));
+        this.schedulerManagerProvider = schedulerManagerProvider;
 
         this.option = option;
 
@@ -119,9 +109,9 @@ public class FakePlayer extends Player implements NavigableEntity {
         }
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
-        connectionManager.transitionLoginToConfig(this).thenRun(() -> {
+        connectionManagerProvider.getConnectionManager().transitionLoginToConfig(this).thenRun(() -> {
             // Need to immediately reply with login acknowledged for the player to enter config.
-            packetListenerManager.processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
+            packetListenerManagerProvider.getPacketListenerManager().processClientPacket(new ClientLoginAcknowledgedPacket(), getPlayerConnection());
         });
     }
 
@@ -210,7 +200,7 @@ public class FakePlayer extends Player implements NavigableEntity {
     private void handleTabList(PlayerConnection connection) {
         if (!option.isInTabList()) {
             // Remove from tab-list
-            scheduleManager.buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.getServerTick(serverSettingsProvider.getServerSettings())).schedule();
+            schedulerManagerProvider.getSchedulerManager().buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.getServerTick(serverSettingsProvider.getServerSettings())).schedule();
         }
     }
 }

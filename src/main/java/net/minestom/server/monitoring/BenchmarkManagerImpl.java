@@ -2,8 +2,9 @@ package net.minestom.server.monitoring;
 
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import lombok.RequiredArgsConstructor;
 import net.minestom.server.ServerConsts;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public final class BenchmarkManagerImpl implements BenchmarkManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(BenchmarkManagerImpl.class);
     private static final ThreadMXBean THREAD_MX_BEAN = ManagementFactory.getThreadMXBean();
@@ -35,19 +37,11 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
     private final Long2LongMap lastBlockedMap = new Long2LongOpenHashMap();
     private final Map<String, ThreadResult> resultMap = new ConcurrentHashMap<>();
 
+    @lombok.Getter
     private boolean enabled = false;
     private volatile boolean stop = false;
     private long time;
-    private final ExceptionHandler exceptionHandler;
-
-    public BenchmarkManagerImpl(ExceptionHandler exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
 
     @Override
     public void enable(@NotNull Duration duration) {
@@ -69,7 +63,7 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
                 try {
                     Thread.sleep(time);
                 } catch (InterruptedException e) {
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
             }
             stop = false;

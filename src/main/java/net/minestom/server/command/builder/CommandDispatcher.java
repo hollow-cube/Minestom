@@ -2,13 +2,13 @@ package net.minestom.server.command.builder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.RequiredArgsConstructor;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandParser;
 import net.minestom.server.command.CommandSender;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.event.GlobalEventHandlerProvider;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Class responsible for parsing {@link Command}.
  */
+@RequiredArgsConstructor
 public class CommandDispatcher {
     private final CommandManager manager;
 
@@ -25,12 +26,8 @@ public class CommandDispatcher {
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .build();
 
-    public CommandDispatcher(CommandManager manager) {
-        this.manager = manager;
-    }
-
-    public CommandDispatcher(ExceptionHandler exceptionHandler, EventNode<Event> globalEventHandler) {
-        this(new CommandManagerImpl(exceptionHandler, globalEventHandler));
+    public CommandDispatcher(ExceptionHandlerProvider exceptionHandlerProvider, GlobalEventHandlerProvider globalEventHandlerProvider) {
+        this(new CommandManagerImpl(exceptionHandlerProvider, globalEventHandlerProvider));
     }
 
     /**

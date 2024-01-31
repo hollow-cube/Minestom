@@ -6,6 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayConfigListener {
     public static void configAckListener(@NotNull ClientConfigurationAckPacket packet, @NotNull Player player) {
-        player.getConnectionManager().doConfiguration(player, false);
+        player.getConnectionManagerProvider().getConnectionManager().doConfiguration(player, false);
     }
 }

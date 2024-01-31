@@ -85,20 +85,20 @@ final class ServerFacadeImpl implements ServerFacade {
         this.biomeManager = new BiomeManagerImpl();
         this.instanceManager = new InstanceManagerImpl(this);
 
-        this.commandManager = new CommandManagerImpl(exceptionHandler, globalEventHandler);
+        this.commandManager = new CommandManagerImpl(this, this);
         this.recipeManager = new RecipeManagerImpl();
 
         this.schedulerManager = new SchedulerManagerImpl();
-        this.benchmarkManager = new BenchmarkManagerImpl(exceptionHandler);
+        this.benchmarkManager = new BenchmarkManagerImpl(this);
         this.dimensionTypeManager = new DimensionTypeManagerImpl();
         this.advancementManager = new AdvancementManagerImpl(serverSettings);
         this.tagManager = new TagManagerImpl();
         this.teamManager = new TeamManagerImpl(serverSettings);
-        this.connectionManager = new ConnectionManagerImpl(serverSettings, globalEventHandler, this, this, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, biomeManager, dimensionTypeManager, tagManager, blockManager);
-        this.server = new ServerImpl(connectionManager, globalEventHandler, exceptionHandler, serverSettings, packetProcessor);
-        this.audienceManager = new AudienceManagerImpl(connectionManager, commandManager, serverSettings);
-        this.ticker = new TickerImpl(connectionManager, schedulerManager, server, globalEventHandler, exceptionHandler, instanceManager, chunkDispatcher);
-        this.serverStarter = new ServerStarter(serverSettings, server, exceptionHandler, schedulerManager, connectionManager, benchmarkManager, chunkDispatcher, ticker);
-        this.mojangAuth = new MojangAuth(serverStarter, exceptionHandler);
+        this.connectionManager = new ConnectionManagerImpl(tagManager, this);
+        this.server = new ServerImpl(serverSettings, this);
+        this.audienceManager = new AudienceManagerImpl(commandManager, this, this);
+        this.ticker = new TickerImpl(this);
+        this.serverStarter = new ServerStarter(this);
+        this.mojangAuth = new MojangAuth(this, this);
     }
 }

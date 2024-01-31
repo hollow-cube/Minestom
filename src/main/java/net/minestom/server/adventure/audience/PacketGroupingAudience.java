@@ -10,6 +10,7 @@ import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.TitlePart;
 import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
@@ -23,6 +24,7 @@ import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
  * An audience implementation that sends grouped packets if possible.
@@ -37,16 +39,30 @@ public interface PacketGroupingAudience extends ForwardingAudience {
      * @param players the players
      * @return the audience
      */
-    static @NotNull PacketGroupingAudience of(ServerSettings serverSettings, @NotNull Collection<Player> players) {
+    static @NotNull PacketGroupingAudience of(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<Player> players) {
         return new PacketGroupingAudience() {
             @Override
             public ServerSettings getServerSettings() {
-                return serverSettings;
+                return serverSettingsProvider.getServerSettings();
             }
 
             @Override
             public @NotNull Collection<@NotNull Player> getPlayers() {
                 return players;
+            }
+        };
+    }
+
+    static @NotNull PacketGroupingAudience of(ServerSettingsProvider serverSettingsProvider, @NotNull Supplier<Collection<Player>> playersSupplier) {
+        return new PacketGroupingAudience() {
+            @Override
+            public ServerSettings getServerSettings() {
+                return serverSettingsProvider.getServerSettings();
+            }
+
+            @Override
+            public @NotNull Collection<@NotNull Player> getPlayers() {
+                return playersSupplier.get();
             }
         };
     }
