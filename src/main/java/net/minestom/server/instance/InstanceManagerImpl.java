@@ -1,17 +1,17 @@
 package net.minestom.server.instance;
 
 import lombok.RequiredArgsConstructor;
-import net.minestom.server.ServerSettings;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettingsProvider;
+import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.instance.InstanceRegisterEvent;
 import net.minestom.server.event.instance.InstanceUnregisterEvent;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.block.BlockManager;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.instance.block.BlockManagerProvider;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,12 +24,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @RequiredArgsConstructor
 public final class InstanceManagerImpl implements InstanceManager {
-    private final ThreadDispatcher<Chunk> dispatcher;
-    private final EventNode<Event> globalEventHandler;
-    private final ServerSettings serverSettings;
-    private final ExceptionHandler exceptionHandler;
-    private final BlockManager blockManager;
-    private final BiomeManager biomeManager;
+    private final ChunkDispatcherProvider chunkDispatcherProvider;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final BlockManagerProvider blockManagerProvider;
+    private final BiomeManagerProvider biomeManagerProvider;
+
+    public InstanceManagerImpl(ServerFacade serverFacade) {
+        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    }
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
 
@@ -42,7 +46,7 @@ public final class InstanceManagerImpl implements InstanceManager {
     @Override
     @ApiStatus.Experimental
     public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        final InstanceContainer instanceContainer = new InstanceContainer(exceptionHandler, blockManager, biomeManager, serverSettings, globalEventHandler, dispatcher, UUID.randomUUID(), dimensionType, loader);
+        final InstanceContainer instanceContainer = new InstanceContainer(globalEventHandlerProvider.getGlobalEventHandler(), exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, serverSettingsProvider, chunkDispatcherProvider, UUID.randomUUID(), dimensionType, loader, dimensionType.getName());
         registerInstance(instanceContainer);
         return instanceContainer;
     }
@@ -62,7 +66,7 @@ public final class InstanceManagerImpl implements InstanceManager {
         Check.notNull(instanceContainer, "Instance container cannot be null when creating a SharedInstance!");
         Check.stateCondition(!instanceContainer.isRegistered(), "The container needs to be register in the InstanceManager");
 
-        final SharedInstance sharedInstance = new SharedInstance(serverSettings, globalEventHandler, UUID.randomUUID(), instanceContainer);
+        final SharedInstance sharedInstance = new SharedInstance(globalEventHandlerProvider.getGlobalEventHandler(), serverSettingsProvider, UUID.randomUUID(), instanceContainer);
         return registerSharedInstance(sharedInstance);
     }
 
@@ -71,12 +75,12 @@ public final class InstanceManagerImpl implements InstanceManager {
         Check.stateCondition(!instance.getPlayers().isEmpty(), "You cannot unregister an instance with players inside.");
         synchronized (instance) {
             InstanceUnregisterEvent event = new InstanceUnregisterEvent(instance);
-            globalEventHandler.call(event);
+            globalEventHandlerProvider.getGlobalEventHandler().call(event);
 
             // Unload all chunks
             if (instance instanceof InstanceContainer) {
                 instance.getChunks().forEach(instance::unloadChunk);
-                instance.getChunks().forEach(dispatcher::deletePartition);
+                instance.getChunks().forEach((partition) -> chunkDispatcherProvider.getChunkDispatcher().deletePartition(partition));
             }
             // Unregister
             instance.setRegistered(false);
@@ -108,8 +112,8 @@ public final class InstanceManagerImpl implements InstanceManager {
     private void UNSAFE_registerInstance(@NotNull Instance instance) {
         instance.setRegistered(true);
         this.instances.add(instance);
-        instance.getChunks().forEach(dispatcher::createPartition);
+        instance.getChunks().forEach((partition) -> chunkDispatcherProvider.getChunkDispatcher().createPartition(partition));
         InstanceRegisterEvent event = new InstanceRegisterEvent(instance);
-        globalEventHandler.call(event);
+        globalEventHandlerProvider.getGlobalEventHandler().call(event);
     }
 }

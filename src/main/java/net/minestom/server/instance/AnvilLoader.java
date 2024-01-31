@@ -3,14 +3,14 @@ package net.minestom.server.instance;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.instance.block.BlockManagerProvider;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.async.AsyncUtils;
 import net.minestom.server.world.biomes.Biome;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.mca.*;
@@ -42,9 +42,9 @@ public class AnvilLoader implements IChunkLoader {
     private static final Biome BIOME = Biome.PLAINS;
 
     private final Map<String, RegionFile> alreadyLoaded = new ConcurrentHashMap<>();
-    private final ExceptionHandler exceptionHandler;
-    private final BlockManager blockManager;
-    private final BiomeManager biomeManager;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final BlockManagerProvider blockManagerProvider;
+    private final BiomeManagerProvider biomeManagerProvider;
     private final Path path;
     private final Path levelPath;
     private final Path regionPath;
@@ -60,17 +60,17 @@ public class AnvilLoader implements IChunkLoader {
     // thread local to avoid contention issues with locks
     private final ThreadLocal<Int2ObjectMap<BlockState>> blockStateId2ObjectCacheTLS = ThreadLocal.withInitial(Int2ObjectArrayMap::new);
 
-    public AnvilLoader(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, @NotNull Path path) {
-        this.exceptionHandler = exceptionHandler;
-        this.blockManager = blockManager;
-        this.biomeManager = biomeManager;
+    public AnvilLoader(ExceptionHandlerProvider exceptionHandlerProvider, BlockManagerProvider blockManagerProvider, BiomeManagerProvider biomeManagerProvider, @NotNull Path path) {
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.blockManagerProvider = blockManagerProvider;
+        this.biomeManagerProvider = biomeManagerProvider;
         this.path = path;
         this.levelPath = path.resolve("level.dat");
         this.regionPath = path.resolve("region");
     }
 
-    public AnvilLoader(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, @NotNull String path) {
-        this(exceptionHandler, blockManager, biomeManager, Path.of(path));
+    public AnvilLoader(ExceptionHandlerProvider exceptionHandlerProvider, BlockManagerProvider blockManagerProvider, BiomeManagerProvider biomeManagerProvider, @NotNull String path) {
+        this(exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, Path.of(path));
     }
 
     @Override
@@ -83,7 +83,7 @@ public class AnvilLoader implements IChunkLoader {
             Files.copy(levelPath, path.resolve("level.dat_old"), StandardCopyOption.REPLACE_EXISTING);
             instance.tagHandler().updateContent(tag);
         } catch (IOException | NBTException e) {
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
         }
     }
 
@@ -96,7 +96,7 @@ public class AnvilLoader implements IChunkLoader {
         try {
             return loadMCA(instance, chunkX, chunkZ);
         } catch (Exception e) {
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -162,7 +162,7 @@ public class AnvilLoader implements IChunkLoader {
                 }
                 return new RegionFile(new RandomAccessFile(regionPath.toFile(), "rw"), regionX, regionZ, instance.getDimensionType().getMinY(), instance.getDimensionType().getMaxY() - 1);
             } catch (IOException | AnvilException e) {
-                exceptionHandler.handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 return null;
             }
         });
@@ -200,7 +200,7 @@ public class AnvilLoader implements IChunkLoader {
                                     int finalY = sectionY * Chunk.CHUNK_SECTION_SIZE + y;
                                     String biomeName = sectionBiomeInformation.getBaseBiome();
                                     Biome biome = biomeCache.computeIfAbsent(biomeName, n ->
-                                            Objects.requireNonNullElse(biomeManager.getByName(NamespaceID.from(n)), BIOME));
+                                            Objects.requireNonNullElse(biomeManagerProvider.getBiomeManager().getByName(NamespaceID.from(n)), BIOME));
                                     chunk.setBiome(finalX, finalY, finalZ, biome);
                                 }
                             }
@@ -216,7 +216,7 @@ public class AnvilLoader implements IChunkLoader {
                                     int index = x / 4 + (z / 4) * 4 + (y / 4) * 16;
                                     String biomeName = sectionBiomeInformation.getBiomes()[index];
                                     Biome biome = biomeCache.computeIfAbsent(biomeName, n ->
-                                            Objects.requireNonNullElse(biomeManager.getByName(NamespaceID.from(n)), BIOME));
+                                            Objects.requireNonNullElse(biomeManagerProvider.getBiomeManager().getByName(NamespaceID.from(n)), BIOME));
                                     chunk.setBiome(finalX, finalY, finalZ, biome);
                                 }
                             }
@@ -258,7 +258,7 @@ public class AnvilLoader implements IChunkLoader {
 
                         if (!properties.isEmpty()) block = block.withProperties(properties);
                         // Handler
-                        final BlockHandler handler = blockManager.getHandler(block.name());
+                        final BlockHandler handler = blockManagerProvider.getBlockManager().getHandler(block.name());
                         if (handler != null) block = block.withHandler(handler);
 
                         convertedPalette[i] = block;
@@ -275,7 +275,7 @@ public class AnvilLoader implements IChunkLoader {
 
                                 chunk.setBlock(x, y + yOffset, z, block);
                             } catch (Exception e) {
-                                exceptionHandler.handleException(e);
+                                exceptionHandlerProvider.getExceptionHandler().handleException(e);
                             }
                         }
                     }
@@ -297,7 +297,7 @@ public class AnvilLoader implements IChunkLoader {
 
             final String tileEntityID = te.getString("id");
             if (tileEntityID != null) {
-                final BlockHandler handler = blockManager.getHandlerOrDummy(tileEntityID);
+                final BlockHandler handler = blockManagerProvider.getBlockManager().getHandlerOrDummy(tileEntityID);
                 block = block.withHandler(handler);
             }
             // Remove anvil tags
@@ -352,7 +352,7 @@ public class AnvilLoader implements IChunkLoader {
                     alreadyLoaded.put(n, mcaFile);
                 } catch (AnvilException | IOException e) {
                     LOGGER.error("Failed to save chunk " + chunkX + ", " + chunkZ, e);
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                     return AsyncUtils.VOID_FUTURE;
                 }
             }
@@ -364,7 +364,7 @@ public class AnvilLoader implements IChunkLoader {
             mcaFile.writeColumnData(writer.toNBT(), chunk.getChunkX(), chunk.getChunkZ());
         } catch (IOException e) {
             LOGGER.error("Failed to save chunk " + chunkX + ", " + chunkZ, e);
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
             return AsyncUtils.VOID_FUTURE;
         }
         return AsyncUtils.VOID_FUTURE;
@@ -471,7 +471,7 @@ public class AnvilLoader implements IChunkLoader {
                         try {
                             regionFile.close();
                         } catch (IOException e) {
-                            exceptionHandler.handleException(e);
+                            exceptionHandlerProvider.getExceptionHandler().handleException(e);
                         }
                     }
                 }
@@ -493,7 +493,7 @@ public class AnvilLoader implements IChunkLoader {
                 parallelSavingThreadPool.shutdown();
                 parallelSavingThreadPool.awaitTermination(1L, java.util.concurrent.TimeUnit.DAYS);
             } catch (InterruptedException e) {
-                exceptionHandler.handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
             }
             return AsyncUtils.VOID_FUTURE;
         } else {

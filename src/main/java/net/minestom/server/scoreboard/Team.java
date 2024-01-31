@@ -134,7 +134,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket addPlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.AddEntitiesToTeamAction(toAdd));
         // Sends to all online players the add player packet
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, addPlayerPacket);
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, addPlayerPacket);
 
         // invalidate player members
         this.isPlayerMembersUpToDate = false;
@@ -165,7 +165,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket removePlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.RemoveEntitiesToTeamAction(toRemove));
         // Sends to all online player the remove player packet
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, removePlayerPacket);
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, removePlayerPacket);
 
         // Removes the member from the team
         this.members.removeAll(toRemove);
@@ -469,7 +469,7 @@ public class Team implements PacketGroupingAudience {
     public void sendUpdatePacket() {
         final var info = new TeamsPacket.UpdateTeamAction(teamDisplayName, friendlyFlags,
                 nameTagVisibility, collisionRule, teamColor, prefix, suffix);
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, new TeamsPacket(teamName, info));
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, new TeamsPacket(teamName, info));
     }
 
     @Override

@@ -77,7 +77,7 @@ public class AdvancementTab implements Viewable {
                 "You tried to set a parent which doesn't exist or isn't registered");
         cacheAdvancement(identifier, advancement, parent);
         if (!getViewers().isEmpty()) {
-            sendPacketToViewers(serverSettings, advancement.getUpdatePacket());
+            sendPacketToViewers(() -> serverSettings, advancement.getUpdatePacket());
         }
 
     }

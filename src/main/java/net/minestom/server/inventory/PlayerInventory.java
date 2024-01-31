@@ -39,7 +39,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         cursorItem = ItemStack.AIR;
         super.clear();
         // Update equipments
-        this.player.sendPacketToViewersAndSelf(serverSettings, player.getEquipmentsPacket());
+        this.player.sendPacketToViewersAndSelf(() -> serverSettings, player.getEquipmentsPacket());
     }
 
     @Override

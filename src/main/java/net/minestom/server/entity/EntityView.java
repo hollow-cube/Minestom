@@ -228,7 +228,7 @@ final class EntityView {
             final Point point = trackedLocation.point();
 
             Int2ObjectOpenHashMap<T> entityMap = new Int2ObjectOpenHashMap<>(lastSize);
-            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, entity.serverSettings.getEntityViewDistance(), target,
+            instance.getEntityTracker().nearbyEntitiesByChunkRange(point, entity.getServerSettingsProvider().getServerSettings().getEntityViewDistance(), target,
                     (entity) -> entityMap.putIfAbsent(entity.getEntityId(), entity));
             this.lastSize = entityMap.size();
             return entityMap.values();

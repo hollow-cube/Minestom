@@ -1,8 +1,9 @@
 package net.minestom.server.listener.manager;
 
-import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.player.PlayerPacketEvent;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.extras.MojangAuthProvider;
 import net.minestom.server.listener.*;
 import net.minestom.server.listener.common.KeepAliveListener;
@@ -41,24 +42,28 @@ public final class PacketListenerManagerImpl implements PacketListenerManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(PacketListenerManagerImpl.class);
 
     private final Map<Class<? extends ClientPacket>, PacketPrePlayListenerConsumer>[] listeners = new Map[ConnectionState.values().length];
-    private final GlobalEventHandler globalEventHandler;
-    private final ExceptionHandler exceptionHandler;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
 
-    public PacketListenerManagerImpl(GlobalEventHandler globalEventHandler, ExceptionHandler exceptionHandler, MojangAuthProvider mojangAuthProvider, ConnectionManagerProvider connectionManagerProvider, SchedulerManagerProvider schedulerManagerProvider, ServerProvider serverProvider) {
-        this.globalEventHandler = globalEventHandler;
-        this.exceptionHandler = exceptionHandler;
+    public PacketListenerManagerImpl(ServerFacade serverFacade) {
+        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    }
+
+    public PacketListenerManagerImpl(GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, MojangAuthProvider mojangAuthProvider, ConnectionManagerProvider connectionManagerProvider, SchedulerManagerProvider schedulerManagerProvider, ServerProvider serverProvider) {
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
         for (int i = 0; i < listeners.length; i++) {
             listeners[i] = new ConcurrentHashMap<>();
         }
 
         setListener(ConnectionState.HANDSHAKE, ClientHandshakePacket.class, HandshakeListener::listener);
 
-        setListener(ConnectionState.STATUS, StatusRequestPacket.class, (packet, connection) -> StatusListener.requestListener(connectionManagerProvider.getConnectionManager(), globalEventHandler, serverProvider.getServer(), packet, connection));
-        setListener(ConnectionState.STATUS, PingPacket.class, (packet, connection) -> StatusListener.pingListener(globalEventHandler, schedulerManagerProvider.getSchedulerManager(), packet, connection));
+        setListener(ConnectionState.STATUS, StatusRequestPacket.class, (packet, connection) -> StatusListener.requestListener(connectionManagerProvider.getConnectionManager(), globalEventHandlerProvider.getGlobalEventHandler(), serverProvider.getServer(), packet, connection));
+        setListener(ConnectionState.STATUS, PingPacket.class, (packet, connection) -> StatusListener.pingListener(globalEventHandlerProvider.getGlobalEventHandler(), schedulerManagerProvider.getSchedulerManager(), packet, connection));
 
         setListener(ConnectionState.LOGIN, ClientLoginStartPacket.class, (packet, connection) -> LoginListener.loginStartListener(mojangAuthProvider.getMojangAuth(), connectionManagerProvider.getConnectionManager(), packet, connection));
-        setListener(ConnectionState.LOGIN, ClientEncryptionResponsePacket.class, (packet, connection) -> LoginListener.loginEncryptionResponseListener(mojangAuthProvider.getMojangAuth(), exceptionHandler, connectionManagerProvider.getConnectionManager(), packet, connection));
-        setListener(ConnectionState.LOGIN, ClientLoginPluginResponsePacket.class, (packet, connection) -> LoginListener.loginPluginResponseListener(exceptionHandler, connectionManagerProvider.getConnectionManager(), packet, connection));
+        setListener(ConnectionState.LOGIN, ClientEncryptionResponsePacket.class, (packet, connection) -> LoginListener.loginEncryptionResponseListener(mojangAuthProvider.getMojangAuth(), exceptionHandlerProvider.getExceptionHandler(), connectionManagerProvider.getConnectionManager(), packet, connection));
+        setListener(ConnectionState.LOGIN, ClientLoginPluginResponsePacket.class, (packet, connection) -> LoginListener.loginPluginResponseListener(exceptionHandlerProvider.getExceptionHandler(), connectionManagerProvider.getConnectionManager(), packet, connection));
         setListener(ConnectionState.LOGIN, ClientLoginAcknowledgedPacket.class, (packet, connection) -> LoginListener.loginAckListener(connectionManagerProvider.getConnectionManager(), packet, connection));
 
         setConfigurationListener(ClientSettingsPacket.class, SettingsListener::listener);
@@ -120,7 +125,7 @@ public final class PacketListenerManagerImpl implements PacketListenerManager {
         // Event
         if (state == ConnectionState.PLAY) {
             PlayerPacketEvent playerPacketEvent = new PlayerPacketEvent(connection.getPlayer(), packet);
-            globalEventHandler.call(playerPacketEvent);
+            globalEventHandlerProvider.getGlobalEventHandler().call(playerPacketEvent);
             if (playerPacketEvent.isCancelled()) {
                 return;
             }
@@ -131,7 +136,7 @@ public final class PacketListenerManagerImpl implements PacketListenerManager {
             packetListenerConsumer.accept(packet, connection);
         } catch (Exception e) {
             // Packet is likely invalid
-            exceptionHandler.handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
         }
     }
 

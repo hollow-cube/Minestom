@@ -1,7 +1,7 @@
 package net.minestom.server.network;
 
 import net.minestom.server.entity.Player;
-import net.minestom.server.listener.manager.PacketListenerManager;
+import net.minestom.server.listener.manager.PacketListenerManagerProvider;
 import net.minestom.server.network.packet.client.ClientPacket;
 import net.minestom.server.network.packet.client.ClientPacketsHandler;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
@@ -17,15 +17,15 @@ public class PacketProcessorImpl implements PacketProcessor {
     private final ClientPacketsHandler configurationHandler;
     private final ClientPacketsHandler playHandler;
 
-    private final PacketListenerManager packetListenerManager;
+    private final PacketListenerManagerProvider packetListenerManagerProvider;
 
-    public PacketProcessorImpl(@NotNull PacketListenerManager packetListenerManager) {
+    public PacketProcessorImpl(@NotNull PacketListenerManagerProvider packetListenerManagerProvider) {
         statusHandler = new ClientPacketsHandler.Status();
         loginHandler = new ClientPacketsHandler.Login();
         configurationHandler = new ClientPacketsHandler.Configuration();
         playHandler = new ClientPacketsHandler.Play();
 
-        this.packetListenerManager = packetListenerManager;
+        this.packetListenerManagerProvider = packetListenerManagerProvider;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class PacketProcessorImpl implements PacketProcessor {
 
         switch (connection.getConnectionState()) {
             // Process all pre-config packets immediately
-            case HANDSHAKE, STATUS, LOGIN -> packetListenerManager.processClientPacket(packet, connection);
+            case HANDSHAKE, STATUS, LOGIN -> packetListenerManagerProvider.getPacketListenerManager().processClientPacket(packet, connection);
             // Process config and play packets on the next tick
             case CONFIGURATION, PLAY -> {
                 final Player player = connection.getPlayer();

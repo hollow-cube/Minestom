@@ -25,12 +25,12 @@ public class VillagerInventory extends Inventory {
 
     public VillagerInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull Component title) {
         super(globalEventHandler, serverSettings, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(serverSettings, this::createTradePacket);
+        tradeCache = new CachedPacket(() -> serverSettings, this::createTradePacket);
     }
 
     public VillagerInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull String title) {
         super(globalEventHandler, serverSettings, InventoryType.MERCHANT, title);
-        tradeCache = new CachedPacket(serverSettings, this::createTradePacket);
+        tradeCache = new CachedPacket(() -> serverSettings, this::createTradePacket);
     }
 
     public List<TradeListPacket.Trade> getTrades() {
@@ -87,7 +87,7 @@ public class VillagerInventory extends Inventory {
     public void update() {
         super.update();
         this.tradeCache.invalidate();
-        sendPacketToViewers(serverSettings, tradeCache);
+        sendPacketToViewers(() -> serverSettings, tradeCache);
     }
 
     @Override

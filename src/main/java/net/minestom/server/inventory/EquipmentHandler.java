@@ -168,7 +168,7 @@ public interface EquipmentHandler {
 
         Entity entity = (Entity) this;
         final ItemStack itemStack = getEquipment(slot);
-        entity.sendPacketToViewers(getServerSettings(), new EntityEquipmentPacket(entity.getEntityId(), Map.of(slot, itemStack)));
+        entity.sendPacketToViewers(this::getServerSettings, new EntityEquipmentPacket(entity.getEntityId(), Map.of(slot, itemStack)));
     }
 
     ServerSettings getServerSettings();

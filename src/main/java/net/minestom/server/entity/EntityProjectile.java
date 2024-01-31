@@ -1,22 +1,22 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.event.entity.projectile.ProjectileUncollideEvent;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,11 +36,15 @@ public class EntityProjectile extends Entity {
     private final Entity shooter;
 
     public EntityProjectile(@NotNull Entity shooter, @NotNull EntityType entityType) {
-        this(shooter.serverSettings, shooter.globalEventHandler, shooter.dispatcher, shooter.exceptionHandler, shooter, entityType);
+        this(shooter.globalEventHandler, shooter.serverSettingsProvider, shooter.chunkDispatcherProvider, shooter.exceptionHandlerProvider, shooter, entityType);
     }
 
-    public EntityProjectile(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @Nullable Entity shooter, @NotNull EntityType entityType) {
-        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, entityType, UUID.randomUUID());
+    public EntityProjectile(ServerFacade serverFacade, @Nullable Entity shooter, @NotNull EntityType entityType) {
+        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, shooter, entityType);
+    }
+
+    public EntityProjectile(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @Nullable Entity shooter, @NotNull EntityType entityType) {
+        super(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, entityType, UUID.randomUUID());
         this.shooter = shooter;
         setup();
     }
@@ -106,7 +110,7 @@ public class EntityProjectile extends Entity {
             }
             super.onGround = true;
             this.velocity = Vec.ZERO;
-            sendPacketToViewersAndSelf(serverSettings, getVelocityPacket());
+            sendPacketToViewersAndSelf(serverSettingsProvider, getVelocityPacket());
             setNoGravity(true);
         } else {
             if (!super.onGround) {

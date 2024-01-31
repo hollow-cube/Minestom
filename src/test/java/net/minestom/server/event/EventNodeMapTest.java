@@ -91,7 +91,7 @@ public class EventNodeMapTest {
 
         var handle = node.getHandle(EventNodeTest.EntityTestEvent.class);
         assertFalse(handle.hasListener());
-        entity.eventNode().addListener(listener);
+        entity.getEventNode().addListener(listener);
         assertTrue(handle.hasListener());
 
         assertFalse(result.get());
@@ -100,7 +100,7 @@ public class EventNodeMapTest {
         assertTrue(result.get());
 
         result.set(false);
-        entity.eventNode().removeListener(listener);
+        entity.getEventNode().removeListener(listener);
 
         handle.call(new EventNodeTest.EntityTestEvent(entity));
         assertFalse(result.get());

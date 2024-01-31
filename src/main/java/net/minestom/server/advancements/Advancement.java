@@ -332,7 +332,7 @@ public class Advancement {
     protected void update() {
         updateCriteria();
         if (tab != null) {
-            tab.sendPacketsToViewers(serverSettings, tab.removePacket, tab.createPacket());
+            tab.sendPacketsToViewers(() -> serverSettings, tab.removePacket, tab.createPacket());
         }
     }
 

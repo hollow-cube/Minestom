@@ -2,7 +2,7 @@ package net.minestom.server.thread;
 
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jetbrains.annotations.ApiStatus;
@@ -31,10 +31,10 @@ public class ThreadDispatcherImpl<P> implements ThreadDispatcher<P> {
     // Requests consumed at the end of each tick
     private final MessagePassingQueue<DispatchUpdate<P>> updates = new MpscUnboundedArrayQueue<>(1024);
 
-    ThreadDispatcherImpl(ExceptionHandler exceptionHandler, ThreadProvider<P> provider, int threadCount) {
+    ThreadDispatcherImpl(ExceptionHandlerProvider exceptionHandlerProvider, ThreadProvider<P> provider, int threadCount) {
         this.provider = provider;
         TickThread[] threads = new TickThread[threadCount];
-        Arrays.setAll(threads, (i) -> new TickThread(exceptionHandler, i));
+        Arrays.setAll(threads, (i) -> new TickThread(exceptionHandlerProvider, i));
         this.threads = List.of(threads);
         this.threads.forEach(Thread::start);
     }

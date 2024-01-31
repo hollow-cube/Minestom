@@ -3,15 +3,13 @@ package net.minestom.server.entity;
 import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityItemMergeEvent;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.StackingRule;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -46,11 +44,11 @@ public class ItemEntity extends Entity {
     private long pickupDelay;
 
     public ItemEntity(ServerFacade serverFacade, @NotNull ItemStack itemStack) {
-        this(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), itemStack);
+        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, itemStack);
     }
 
-    public ItemEntity(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @NotNull ItemStack itemStack) {
-        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, EntityType.ITEM, UUID.randomUUID());
+    public ItemEntity(GlobalEventHandler globalEventHandler, ServerSettings serverSettings, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @NotNull ItemStack itemStack) {
+        super(globalEventHandler, () -> serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.ITEM, UUID.randomUUID());
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
         mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverSettings));

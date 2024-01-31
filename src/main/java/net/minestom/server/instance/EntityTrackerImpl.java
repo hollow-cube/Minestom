@@ -2,7 +2,7 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -30,7 +30,7 @@ import static net.minestom.server.utils.chunk.ChunkUtils.*;
 @RequiredArgsConstructor
 final class EntityTrackerImpl implements EntityTracker {
     
-    private final ServerSettings serverSettings;
+    private final ServerSettingsProvider serverSettingsProvider;
 
     static final AtomicInteger TARGET_COUNTER = new AtomicInteger();
 
@@ -55,7 +55,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, this);
-            nearbyEntitiesByChunkRange(point, serverSettings.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.add(newEntity);
             });
@@ -76,7 +76,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, null);
-            nearbyEntitiesByChunkRange(point, serverSettings.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.remove(newEntity);
             });
@@ -188,7 +188,7 @@ final class EntityTrackerImpl implements EntityTracker {
                                                @NotNull Target<T> target, @NotNull Update<T> update) {
         final TargetEntry<Entity> entry = entries[target.ordinal()];
         forDifferingChunksInRange(newPoint.chunkX(), newPoint.chunkZ(), oldPoint.chunkX(), oldPoint.chunkZ(),
-                serverSettings.getEntityViewDistance(), (chunkX, chunkZ) -> {
+                serverSettingsProvider.getServerSettings().getEntityViewDistance(), (chunkX, chunkZ) -> {
                     // Add
                     final List<Entity> entities = entry.chunkEntities.get(getChunkIndex(chunkX, chunkZ));
                     if (entities == null || entities.isEmpty()) return;
@@ -282,7 +282,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
 
         private void collectPlayers(EntityTracker tracker, Int2ObjectOpenHashMap<Player> map) {
-            tracker.nearbyEntitiesByChunkRange(point, serverSettings.getChunkViewDistance(),
+            tracker.nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getChunkViewDistance(),
                     EntityTracker.Target.PLAYERS, (player) -> map.putIfAbsent(player.getEntityId(), player));
         }
 

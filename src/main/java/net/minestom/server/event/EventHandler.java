@@ -9,5 +9,5 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface EventHandler<T extends Event> {
-    @NotNull EventNode<T> eventNode();
+    @NotNull EventNode<T> getEventNode();
 }

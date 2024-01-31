@@ -13,7 +13,7 @@ import net.minestom.server.utils.collection.IntMappedArray;
 import net.minestom.server.utils.collection.MappedCollection;
 import net.minestom.server.world.DimensionType;
 import net.minestom.server.world.biomes.Biome;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +75,7 @@ public final class SnapshotImpl {
         }
     }
 
-    public record Chunk(BiomeManager biomeManager,
+    public record Chunk(BiomeManagerProvider biomeManagerProvider,
                         int minSection, int chunkX, int chunkZ,
                         Section[] sections,
                         Int2ObjectOpenHashMap<Block> blockEntries,
@@ -104,7 +104,7 @@ public final class SnapshotImpl {
             final Section section = sections[getChunkCoordinate(y) - minSection];
             final int id = section.biomePalette()
                     .get(toSectionRelativeCoordinate(x) / 4, toSectionRelativeCoordinate(y) / 4, toSectionRelativeCoordinate(z) / 4);
-            return biomeManager.getById(id);
+            return biomeManagerProvider.getBiomeManager().getById(id);
         }
 
         @Override

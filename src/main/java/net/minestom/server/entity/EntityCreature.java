@@ -8,13 +8,11 @@ import net.minestom.server.entity.ai.EntityAI;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityAttackEvent;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,14 +39,14 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
     }
 
     public EntityCreature(ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), entityType, uuid);
+        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, entityType, uuid);
     }
 
     /**
      * Constructor which allows to specify an UUID. Only use if you know what you are doing!
      */
-    public EntityCreature(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, entityType, uuid);
+    public EntityCreature(GlobalEventHandler globalEventHandler, ServerSettings serverSettings, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, entityType, uuid);
         heal();
     }
 

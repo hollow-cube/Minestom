@@ -3,7 +3,7 @@ package net.minestom.server.thread;
 import net.minestom.server.ServerConsts;
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Chunk;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @ApiStatus.Internal
 public final class TickThread extends MinestomThread {
     private final ReentrantLock lock = new ReentrantLock();
-    private final ExceptionHandler exceptionHandler;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
     private volatile boolean stop;
 
     private CountDownLatch latch;
@@ -32,9 +32,9 @@ public final class TickThread extends MinestomThread {
     private long tickNum = 0;
     private final List<ThreadDispatcherImpl.Partition> entries = new ArrayList<>();
 
-    public TickThread(ExceptionHandler exceptionHandler, int number) {
+    public TickThread(ExceptionHandlerProvider exceptionHandlerProvider, int number) {
         super(ServerConsts.THREAD_NAME_TICK + "-" + number);
-        this.exceptionHandler = exceptionHandler;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
     }
 
     public static @Nullable TickThread current() {
@@ -51,7 +51,7 @@ public final class TickThread extends MinestomThread {
             try {
                 tick();
             } catch (Exception e) {
-                exceptionHandler.handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
             }
             this.lock.unlock();
             // #acquire() callbacks
@@ -76,7 +76,7 @@ public final class TickThread extends MinestomThread {
                 try {
                     element.tick(tickTime);
                 } catch (Throwable e) {
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
             }
         }

@@ -62,12 +62,12 @@ public class TabList implements Scoreboard {
 
     public void setHeader(@NotNull Component header) {
         this.header = header;
-        sendPacketToViewers(serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
+        sendPacketToViewers(() -> serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
     }
 
     public void setFooter(@NotNull Component footer) {
         this.footer = footer;
-        sendPacketToViewers(serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
+        sendPacketToViewers(() -> serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
     }
 
     @Override

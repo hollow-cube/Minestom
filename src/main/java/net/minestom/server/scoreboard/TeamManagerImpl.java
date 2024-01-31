@@ -29,13 +29,13 @@ public final class TeamManagerImpl implements TeamManager {
      */
     void registerNewTeam(@NotNull Team team, ConnectionManager connectionManager) {
         this.teams.add(team);
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, team.createTeamsCreationPacket());
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, team.createTeamsCreationPacket());
     }
 
     @Override
     public boolean deleteTeam(@NotNull Team team, ConnectionManager connectionManager) {
         // Sends to all online players a team destroy packet
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, team.createTeamDestructionPacket());
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, team.createTeamDestructionPacket());
         return this.teams.remove(team);
     }
 

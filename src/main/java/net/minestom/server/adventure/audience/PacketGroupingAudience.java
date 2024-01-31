@@ -66,12 +66,13 @@ public interface PacketGroupingAudience extends ForwardingAudience {
      * @param packet the packet to broadcast
      */
     default void sendGroupedPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(getServerSettings(), getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(this::getServerSettings, getPlayers(), packet);
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
     default void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        Messenger.sendMessage(getServerSettings(), this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
+        Messenger.sendMessage(this::getServerSettings, this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
     }
 
     @Override

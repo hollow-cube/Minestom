@@ -98,7 +98,7 @@ public class Sidebar implements Scoreboard {
      */
     public void setTitle(@NotNull Component title) {
         this.title = title;
-        sendPacketToViewers(serverSettings, new ScoreboardObjectivePacket(objectiveName, (byte) 2, title,
+        sendPacketToViewers(() -> serverSettings, new ScoreboardObjectivePacket(objectiveName, (byte) 2, title,
                 ScoreboardObjectivePacket.Type.INTEGER, null));
     }
 
@@ -129,7 +129,7 @@ public class Sidebar implements Scoreboard {
             this.lines.add(scoreboardLine);
 
             // Send to current viewers
-            sendPacketsToViewers(serverSettings, scoreboardLine.sidebarTeam.getCreationPacket(), scoreboardLine.getScoreCreationPacket(objectiveName));
+            sendPacketsToViewers(() -> serverSettings, scoreboardLine.sidebarTeam.getCreationPacket(), scoreboardLine.getScoreCreationPacket(objectiveName));
         }
     }
 
@@ -143,7 +143,7 @@ public class Sidebar implements Scoreboard {
         final ScoreboardLine scoreboardLine = getLine(id);
         if (scoreboardLine != null) {
             scoreboardLine.refreshContent(content);
-            sendPacketToViewers(serverSettings, scoreboardLine.sidebarTeam.updatePrefix(content));
+            sendPacketToViewers(() -> serverSettings, scoreboardLine.sidebarTeam.updatePrefix(content));
         }
     }
 
@@ -157,7 +157,7 @@ public class Sidebar implements Scoreboard {
         final ScoreboardLine scoreboardLine = getLine(id);
         if (scoreboardLine != null) {
             scoreboardLine.line = score;
-            sendPacketToViewers(serverSettings, scoreboardLine.getLineScoreUpdatePacket(objectiveName, score));
+            sendPacketToViewers(() -> serverSettings, scoreboardLine.getLineScoreUpdatePacket(objectiveName, score));
         }
     }
 
@@ -196,7 +196,7 @@ public class Sidebar implements Scoreboard {
             if (line.id.equals(id)) {
 
                 // Remove the line for current viewers
-                sendPacketsToViewers(serverSettings, line.getScoreDestructionPacket(objectiveName), line.sidebarTeam.getDestructionPacket());
+                sendPacketsToViewers(() -> serverSettings, line.getScoreDestructionPacket(objectiveName), line.sidebarTeam.getDestructionPacket());
 
                 line.returnName(availableColors);
                 return true;

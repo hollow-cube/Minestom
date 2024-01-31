@@ -1,7 +1,7 @@
 package net.minestom.server.adventure.bossbar;
 
 import net.kyori.adventure.bossbar.BossBar;
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.entity.Player;
 import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
@@ -13,14 +13,14 @@ public class BossBarManagerImpl implements BossBarManager {
     private final BossBarListener listener;
     private final Map<UUID, Set<BossBarHolder>> playerBars = new ConcurrentHashMap<>();
     final Map<BossBar, BossBarHolder> bars = new ConcurrentHashMap<>();
-    private final ServerSettings serverSettings;
+    private final ServerSettingsProvider serverSettingsProvider;
 
     /**
      * Creates a new boss bar manager.
      */
-    public BossBarManagerImpl(ServerSettings serverSettings) {
-        this.serverSettings = serverSettings;
-        this.listener = new BossBarListener(serverSettings,this);
+    public BossBarManagerImpl(ServerSettingsProvider serverSettingsProvider) {
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.listener = new BossBarListener(serverSettingsProvider,this);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class BossBarManagerImpl implements BossBarManager {
         BossBarHolder holder = this.getOrCreateHandler(bar);
         Collection<Player> addedPlayers = players.stream().filter(holder::addViewer).toList();
         if (!addedPlayers.isEmpty()) {
-            PacketUtils.sendGroupedPacket(serverSettings, addedPlayers, holder.createAddPacket());
+            PacketUtils.sendGroupedPacket(serverSettingsProvider, addedPlayers, holder.createAddPacket());
         }
     }
 
@@ -56,7 +56,7 @@ public class BossBarManagerImpl implements BossBarManager {
         if (holder != null) {
             Collection<Player> removedPlayers = players.stream().filter(holder::removeViewer).toList();
             if (!removedPlayers.isEmpty()) {
-                PacketUtils.sendGroupedPacket(serverSettings, removedPlayers, holder.createRemovePacket());
+                PacketUtils.sendGroupedPacket(serverSettingsProvider, removedPlayers, holder.createRemovePacket());
             }
         }
     }
@@ -65,7 +65,7 @@ public class BossBarManagerImpl implements BossBarManager {
     public void destroyBossBar(@NotNull BossBar bossBar) {
         BossBarHolder holder = this.bars.remove(bossBar);
         if (holder != null) {
-            PacketUtils.sendGroupedPacket(serverSettings, holder.players, holder.createRemovePacket());
+            PacketUtils.sendGroupedPacket(serverSettingsProvider, holder.players, holder.createRemovePacket());
             for (Player player : holder.players) {
                 this.removePlayer(player, holder);
             }

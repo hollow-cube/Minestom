@@ -14,7 +14,6 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.animal.HorseMeta;
 
 import java.util.Locale;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,7 +63,7 @@ public class HorseCommand extends Command {
         boolean baby = context.get("baby");
         HorseMeta.Marking marking = context.get("marking");
         HorseMeta.Color color = context.get("color");
-        var horse = new EntityCreature(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.HORSE, UUID.randomUUID());
+        var horse = new EntityCreature(serverFacade, EntityType.HORSE);
         var meta = (HorseMeta) horse.getEntityMeta();
         meta.setBaby(baby);
         meta.setVariant(new HorseMeta.Variant(marking, color));

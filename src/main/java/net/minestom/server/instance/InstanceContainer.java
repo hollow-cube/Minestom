@@ -1,21 +1,21 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.instance.InstanceChunkLoadEvent;
 import net.minestom.server.event.instance.InstanceChunkUnloadEvent;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.instance.block.BlockManager;
+import net.minestom.server.instance.block.BlockManagerProvider;
 import net.minestom.server.instance.block.rule.BlockPlacementRule;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.palette.Palette;
@@ -23,7 +23,7 @@ import net.minestom.server.network.packet.server.play.BlockChangePacket;
 import net.minestom.server.network.packet.server.play.BlockEntityDataPacket;
 import net.minestom.server.network.packet.server.play.EffectPacket;
 import net.minestom.server.network.packet.server.play.UnloadChunkPacket;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.async.AsyncUtils;
@@ -32,7 +32,7 @@ import net.minestom.server.utils.chunk.ChunkCache;
 import net.minestom.server.utils.chunk.ChunkSupplier;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
-import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,12 +64,12 @@ public class InstanceContainer extends Instance {
 
     // the shared instances assigned to this instance
     private final List<SharedInstance> sharedInstances = new CopyOnWriteArrayList<>();
-    private final ExceptionHandler exceptionHandler;
-    private final BlockManager blockManager;
-    private final ServerSettings serverSettings;
-    private final EventNode<Event> globalEventHandler;
-    private final ThreadDispatcher<Chunk> dispatcher;
-    private final BiomeManager biomeManager;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final BlockManagerProvider blockManagerProvider;
+    private final BiomeManagerProvider biomeManagerProvider;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final GlobalEventHandler globalEventHandler;
+    private final ChunkDispatcherProvider chunkDispatcherProvider;
 
     // the chunk generator used, can be null
     private volatile Generator generator;
@@ -94,30 +94,47 @@ public class InstanceContainer extends Instance {
     protected InstanceContainer srcInstance; // only present if this instance has been created using a copy
     private long lastBlockChangeTime; // Time at which the last block change happened (#setBlock)
 
-    public InstanceContainer(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(exceptionHandler, blockManager, biomeManager, serverSettings, globalEventHandler, dispatcher, uniqueId, dimensionType, null, dimensionType.getName());
+    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(serverFacade, uniqueId, dimensionType, null, dimensionType.getName());
     }
 
-    public InstanceContainer(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
-        this(exceptionHandler, blockManager, biomeManager, serverSettings, globalEventHandler, dispatcher, uniqueId, dimensionType, null, dimensionName);
-    }
-
-    @ApiStatus.Experimental
-    public InstanceContainer(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        this(exceptionHandler, blockManager, biomeManager, serverSettings, globalEventHandler, dispatcher, uniqueId, dimensionType, loader, dimensionType.getName());
+    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+        this(serverFacade, uniqueId, dimensionType, null, dimensionName);
     }
 
     @ApiStatus.Experimental
-    public InstanceContainer(ExceptionHandler exceptionHandler, BlockManager blockManager, BiomeManager biomeManager, ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
-        super(serverSettings, globalEventHandler, uniqueId, dimensionType, dimensionName);
-        this.exceptionHandler = exceptionHandler;
-        this.blockManager = blockManager;
-        this.biomeManager = biomeManager;
-        this.serverSettings = serverSettings;
+    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
+        this(serverFacade, uniqueId, dimensionType, loader, dimensionType.getName());
+    }
+
+    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
+        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, uniqueId, dimensionType, loader, dimensionName);
+    }
+
+    @ApiStatus.Experimental
+    public InstanceContainer(
+            @NotNull GlobalEventHandler globalEventHandler,
+
+            @NotNull ExceptionHandlerProvider exceptionHandlerProvider,
+            @NotNull BlockManagerProvider blockManagerProvider,
+            @NotNull BiomeManagerProvider biomeManagerProvider,
+            @NotNull ServerSettingsProvider serverSettingsProvider,
+            @NotNull ChunkDispatcherProvider chunkDispatcherProvider,
+
+            @NotNull UUID uniqueId,
+            @NotNull DimensionType dimensionType,
+            @Nullable IChunkLoader loader,
+            @NotNull NamespaceID dimensionName
+    ) {
+        super(globalEventHandler, serverSettingsProvider, uniqueId, dimensionType, dimensionName);
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.blockManagerProvider = blockManagerProvider;
+        this.biomeManagerProvider = biomeManagerProvider;
+        this.serverSettingsProvider = serverSettingsProvider;
         this.globalEventHandler = globalEventHandler;
-        this.dispatcher = dispatcher;
-        setChunkSupplier((instance, chunkX, chunkZ) -> new DynamicChunk(biomeManager, instance, chunkX, chunkZ));
-        setChunkLoader(Objects.requireNonNullElseGet(loader, () -> new AnvilLoader(exceptionHandler, blockManager, biomeManager, "world")));
+        this.chunkDispatcherProvider = chunkDispatcherProvider;
+        setChunkSupplier((instance, chunkX, chunkZ) -> new DynamicChunk(biomeManagerProvider, instance, chunkX, chunkZ));
+        setChunkLoader(Objects.requireNonNullElseGet(loader, () -> new AnvilLoader(exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, "world")));
         this.chunkLoader.loadInstance(this);
     }
 
@@ -147,7 +164,7 @@ public class InstanceContainer extends Instance {
                                               @Nullable BlockHandler.Placement placement, @Nullable BlockHandler.Destroy destroy,
                                               boolean doBlockUpdates, int updateDistance) {
         if (chunk.isReadOnly()) return;
-        if(y >= getDimensionType().getMaxY() || y < getDimensionType().getMinY()) {
+        if (y >= getDimensionType().getMaxY() || y < getDimensionType().getMinY()) {
             LOGGER.warn("tried to set a block outside the world bounds, should be within [{}, {}): {}", getDimensionType().getMinY(), getDimensionType().getMaxY(), y);
             return;
         }
@@ -164,7 +181,7 @@ public class InstanceContainer extends Instance {
             this.currentlyChangingBlocks.put(blockPosition, block);
 
             // Change id based on neighbors
-            final BlockPlacementRule blockPlacementRule = blockManager.getBlockPlacementRule(block);
+            final BlockPlacementRule blockPlacementRule = blockManagerProvider.getBlockManager().getBlockPlacementRule(block);
             if (placement != null && blockPlacementRule != null && doBlockUpdates) {
                 BlockPlacementRule.PlacementState rulePlacement;
                 if (placement instanceof BlockHandler.PlayerPlacement pp) {
@@ -197,11 +214,11 @@ public class InstanceContainer extends Instance {
 
             // Refresh player chunk block
             {
-                chunk.sendPacketToViewers(serverSettings, new BlockChangePacket(blockPosition, block.stateId()));
+                chunk.sendPacketToViewers(serverSettingsProvider, new BlockChangePacket(blockPosition, block.stateId()));
                 var registry = block.registry();
                 if (registry.isBlockEntity()) {
                     final NBTCompound data = BlockUtils.extractClientNbt(block);
-                    chunk.sendPacketToViewers(serverSettings, new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
+                    chunk.sendPacketToViewers(serverSettingsProvider, new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
                 }
             }
         }
@@ -242,7 +259,7 @@ public class InstanceContainer extends Instance {
             UNSAFE_setBlock(chunk, x, y, z, resultBlock, null,
                     new BlockHandler.PlayerDestroy(block, this, blockPosition, player), doBlockUpdates, 0);
             // Send the block break effect packet
-            PacketUtils.sendGroupedPacket(serverSettings, chunk.getViewers(),
+            PacketUtils.sendGroupedPacket(serverSettingsProvider, chunk.getViewers(),
                     new EffectPacket(2001 /*Block break + block break sound*/, blockPosition, block.stateId(), false),
                     // Prevent the block breaker to play the particles and sound two times
                     (viewer) -> !viewer.equals(player));
@@ -265,7 +282,7 @@ public class InstanceContainer extends Instance {
         if (!isLoaded(chunk)) return;
         final int chunkX = chunk.getChunkX();
         final int chunkZ = chunk.getChunkZ();
-        chunk.sendPacketToViewers(serverSettings, new UnloadChunkPacket(chunkX, chunkZ));
+        chunk.sendPacketToViewers(serverSettingsProvider, new UnloadChunkPacket(chunkX, chunkZ));
         globalEventHandler.call(new InstanceChunkUnloadEvent(this, chunk));
         // Remove all entities in chunk
         getEntityTracker().chunkEntities(chunkX, chunkZ, EntityTracker.Target.ENTITIES).forEach(Entity::remove);
@@ -275,7 +292,7 @@ public class InstanceContainer extends Instance {
         if (chunkLoader != null) {
             chunkLoader.unloadChunk(chunk);
         }
-        dispatcher.deletePartition(chunk);
+        chunkDispatcherProvider.getChunkDispatcher().deletePartition(chunk);
     }
 
     @Override
@@ -326,7 +343,7 @@ public class InstanceContainer extends Instance {
                     completableFuture.complete(chunk);
                 })
                 .exceptionally(throwable -> {
-                    exceptionHandler.handleException(throwable);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(throwable);
                     return null;
                 });
         if (loader.supportsParallelLoading()) {
@@ -392,7 +409,7 @@ public class InstanceContainer extends Instance {
                     // Apply awaiting forks
                     processFork(chunk);
                 } catch (Throwable e) {
-                    exceptionHandler.handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 } finally {
                     // End generation
                     refreshLastBlockChangeTime();
@@ -527,7 +544,14 @@ public class InstanceContainer extends Instance {
      * @see #getSrcInstance() to retrieve the "creation source" of the copied instance
      */
     public synchronized InstanceContainer copy() {
-        InstanceContainer copiedInstance = new InstanceContainer(exceptionHandler, blockManager, biomeManager, serverSettings, globalEventHandler, dispatcher, UUID.randomUUID(), getDimensionType());
+        InstanceContainer copiedInstance = new InstanceContainer(
+                globalEventHandler,
+                exceptionHandlerProvider,
+                blockManagerProvider,
+                biomeManagerProvider,
+                serverSettingsProvider,
+                chunkDispatcherProvider,
+                UUID.randomUUID(), getDimensionType(), null, getDimensionName());
         copiedInstance.srcInstance = this;
         copiedInstance.tagHandler = this.tagHandler.copy();
         copiedInstance.lastBlockChangeTime = this.lastBlockChangeTime;
@@ -651,8 +675,9 @@ public class InstanceContainer extends Instance {
             final Block neighborBlock = cache.getBlock(neighborX, neighborY, neighborZ, Condition.TYPE);
             if (neighborBlock == null)
                 continue;
-            final BlockPlacementRule neighborBlockPlacementRule = blockManager.getBlockPlacementRule(neighborBlock);
-            if (neighborBlockPlacementRule == null || updateDistance >= neighborBlockPlacementRule.maxUpdateDistance()) continue;
+            final BlockPlacementRule neighborBlockPlacementRule = blockManagerProvider.getBlockManager().getBlockPlacementRule(neighborBlock);
+            if (neighborBlockPlacementRule == null || updateDistance >= neighborBlockPlacementRule.maxUpdateDistance())
+                continue;
 
             final Vec neighborPosition = new Vec(neighborX, neighborY, neighborZ);
             final Block newNeighborBlock = neighborBlockPlacementRule.blockUpdate(new BlockPlacementRule.UpdateState(
@@ -681,6 +706,6 @@ public class InstanceContainer extends Instance {
 
     private void cacheChunk(@NotNull Chunk chunk) {
         this.chunks.put(getChunkIndex(chunk), chunk);
-        dispatcher.createPartition(chunk);
+        chunkDispatcherProvider.getChunkDispatcher().createPartition(chunk);
     }
 }

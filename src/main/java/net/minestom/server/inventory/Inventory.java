@@ -92,7 +92,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     public void setTitle(@NotNull Component title) {
         this.title = title;
         // Re-open the inventory
-        sendPacketToViewers(serverSettings, new OpenWindowPacket(getWindowId(), getInventoryType().getWindowType(), title));
+        sendPacketToViewers(() -> serverSettings, new OpenWindowPacket(getWindowId(), getInventoryType().getWindowType(), title));
         // Send inventory items
         update();
     }
@@ -198,7 +198,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     @Override
     protected void UNSAFE_itemInsert(int slot, @NotNull ItemStack itemStack, boolean sendPacket) {
         itemStacks[slot] = itemStack;
-        if (sendPacket) sendPacketToViewers(serverSettings, new SetSlotPacket(getWindowId(), 0, (short) slot, itemStack));
+        if (sendPacket) sendPacketToViewers(() -> serverSettings, new SetSlotPacket(getWindowId(), 0, (short) slot, itemStack));
     }
 
     private @NotNull WindowItemsPacket createNewWindowItemsPacket(Player player) {
@@ -213,7 +213,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
      * @see <a href="https://wiki.vg/Protocol#Window_Property">https://wiki.vg/Protocol#Window_Property</a>
      */
     protected void sendProperty(@NotNull InventoryProperty property, short value) {
-        sendPacketToViewers(serverSettings, new WindowPropertyPacket(getWindowId(), property.getProperty(), value));
+        sendPacketToViewers(() -> serverSettings, new WindowPropertyPacket(getWindowId(), property.getProperty(), value));
     }
 
     @Override

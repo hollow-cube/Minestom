@@ -57,7 +57,7 @@ public class InstanceUnregisterIntegrationTest {
 
             Game(Env env) {
                 instance = env.process().getInstanceManager().createInstanceContainer(env.process());
-                instance.eventNode().addListener(PlayerMoveEvent.class, e -> System.out.println(instance));
+                instance.getEventNode().addListener(PlayerMoveEvent.class, e -> System.out.println(instance));
             }
         }
         var game = new Game(env);
@@ -98,7 +98,7 @@ public class InstanceUnregisterIntegrationTest {
     }
 
     private void tmp(InstanceContainer instanceContainer) {
-        instanceContainer.eventNode().addListener(InstanceTickEvent.class, (e) -> {
+        instanceContainer.getEventNode().addListener(InstanceTickEvent.class, (e) -> {
             var uuid = instanceContainer.getUniqueId();
         });
     }

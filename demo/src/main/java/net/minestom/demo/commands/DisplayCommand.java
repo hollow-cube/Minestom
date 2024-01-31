@@ -20,7 +20,6 @@ import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.temporal.TemporalUnit;
-import java.util.UUID;
 
 public class DisplayCommand extends Command {
 
@@ -45,7 +44,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.ITEM_DISPLAY, UUID.randomUUID());
+        var entity = new Entity(serverFacade, EntityType.ITEM_DISPLAY);
         var meta = (ItemDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setItemStack(ItemStack.of(Material.STICK));
@@ -60,7 +59,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.BLOCK_DISPLAY, UUID.randomUUID());
+        var entity = new Entity(serverFacade, EntityType.BLOCK_DISPLAY);
         var meta = (BlockDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBlockState(Block.ORANGE_CANDLE_CAKE.stateId());
@@ -75,7 +74,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade.getServerSettings(), serverFacade.getGlobalEventHandler(), serverFacade.getChunkDispatcher(), serverFacade.getExceptionHandler(), EntityType.TEXT_DISPLAY, UUID.randomUUID());
+        var entity = new Entity(serverFacade, EntityType.TEXT_DISPLAY);
         var meta = (TextDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);

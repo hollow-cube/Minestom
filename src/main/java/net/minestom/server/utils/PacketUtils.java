@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.minestom.server.ServerFacade;
 import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.adventure.ComponentHolder;
 import net.minestom.server.adventure.MinestomAdventure;
@@ -69,7 +70,7 @@ public final class PacketUtils {
      * <ol>
      *     <li>If {@code audience} is a {@link Player}, send the packet to them.</li>
      *     <li>Otherwise, if {@code audience} is a {@link PacketGroupingAudience}, call
-     *     {@link #sendGroupedPacket(ServerSettings, Collection, ServerPacket)} on the players that the
+     *     {@link #sendGroupedPacket(ServerSettingsProvider, Collection, ServerPacket)} on the players that the
      *     grouping audience contains.</li>
      *     <li>Otherwise, if {@code audience} is a {@link ForwardingAudience.Single},
      *     call this method on the single audience inside the forwarding audience.</li>
@@ -86,7 +87,7 @@ public final class PacketUtils {
         if (audience instanceof Player player) {
             player.sendPacket(packet);
         } else if (audience instanceof PacketGroupingAudience groupingAudience) {
-            PacketUtils.sendGroupedPacket(serverFacade.getServerSettings(), groupingAudience.getPlayers(), packet);
+            PacketUtils.sendGroupedPacket(serverFacade, groupingAudience.getPlayers(), packet);
         } else if (audience instanceof ForwardingAudience.Single singleAudience) {
             PacketUtils.sendPacket(serverFacade, singleAudience.audience(), packet);
         } else if (audience instanceof ForwardingAudience forwardingAudience) {
@@ -105,9 +106,9 @@ public final class PacketUtils {
      * @param packet    the packet to send to the players
      * @param predicate predicate to ignore specific players
      */
-    public static void sendGroupedPacket(ServerSettings serverSettings, @NotNull Collection<Player> players, @NotNull ServerPacket packet,
+    public static void sendGroupedPacket(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<Player> players, @NotNull ServerPacket packet,
                                          @NotNull Predicate<Player> predicate) {
-        final var sendablePacket = shouldUseCachePacket(packet) ? new CachedPacket(serverSettings, packet) : packet;
+        final var sendablePacket = shouldUseCachePacket(packet) ? new CachedPacket(serverSettingsProvider, packet) : packet;
 
         players.forEach(player -> {
             if (predicate.test(player)) player.sendPacket(sendablePacket);
@@ -148,17 +149,17 @@ public final class PacketUtils {
     }
 
     /**
-     * Same as {@link #sendGroupedPacket(ServerSettings, Collection, ServerPacket, Predicate)}
+     * Same as {@link #sendGroupedPacket(ServerSettingsProvider, Collection, ServerPacket, Predicate)}
      * but with the player validator sets to null.
      *
-     * @see #sendGroupedPacket(ServerSettings, Collection, ServerPacket, Predicate)
+     * @see #sendGroupedPacket(ServerSettingsProvider, Collection, ServerPacket, Predicate)
      */
-    public static void sendGroupedPacket(ServerSettings serverSettings, @NotNull Collection<Player> players, @NotNull ServerPacket packet) {
-        sendGroupedPacket(serverSettings, players, packet, player -> true);
+    public static void sendGroupedPacket(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<Player> players, @NotNull ServerPacket packet) {
+        sendGroupedPacket(serverSettingsProvider, players, packet, player -> true);
     }
 
-    public static void broadcastPlayPacket(ConnectionManager connectionManager, ServerSettings serverSettings, @NotNull ServerPacket packet) {
-        sendGroupedPacket(serverSettings, connectionManager.getOnlinePlayers(), packet);
+    public static void broadcastPlayPacket(ConnectionManager connectionManager, ServerSettingsProvider serverSettingsProvider, @NotNull ServerPacket packet) {
+        sendGroupedPacket(serverSettingsProvider, connectionManager.getOnlinePlayers(), packet);
     }
 
     @ApiStatus.Experimental
@@ -166,11 +167,11 @@ public final class PacketUtils {
                                              @Nullable Entity entity) {
         if (entity != null && !entity.hasPredictableViewers()) {
             // Operation cannot be optimized
-            entity.sendPacketToViewers(serverSettings, serverPacket);
+            entity.sendPacketToViewers(() -> serverSettings, serverPacket);
             return;
         }
         if (!VIEWABLE_PACKET) {
-            sendGroupedPacket(serverSettings, viewable.getViewers(), serverPacket, value -> !Objects.equals(value, entity));
+            sendGroupedPacket(() -> serverSettings, viewable.getViewers(), serverPacket, value -> !Objects.equals(value, entity));
             return;
         }
         final Player exception = entity instanceof Player ? (Player) entity : null;

@@ -85,7 +85,7 @@ public class EntityRemovalIntegrationTest {
         // Ensure that the entities GCed when a local listener is present
         var node = env.process().getGlobalEventHandler();
         var entity = new Entity(env.process(), EntityType.ZOMBIE);
-        entity.eventNode().addListener(EntityTickEvent.class, event -> {
+        entity.getEventNode().addListener(EntityTickEvent.class, event -> {
         });
         node.call(new EntityTickEvent(entity));
 

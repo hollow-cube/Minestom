@@ -9,12 +9,10 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.event.Event;
 import net.minestom.server.event.EventListener;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.PlayerSpawnEvent;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.listener.manager.PacketListenerManager;
@@ -26,7 +24,7 @@ import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.socket.Server;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.scoreboard.TeamManager;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -56,10 +54,10 @@ public class FakePlayer extends Player implements NavigableEntity {
 
     public FakePlayer(ServerFacade serverFacade, @NotNull UUID uuid, @NotNull String username, @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
         this(
-                serverFacade.getServerSettings(),
                 serverFacade.getGlobalEventHandler(),
-                serverFacade.getChunkDispatcher(),
-                serverFacade.getExceptionHandler(),
+                serverFacade.getServerSettings(),
+                serverFacade,
+                serverFacade,
                 serverFacade.getConnectionManager(),
                 serverFacade.getTeamManager(),
                 serverFacade.getRecipeManager(),
@@ -80,24 +78,27 @@ public class FakePlayer extends Player implements NavigableEntity {
      * @param username The username for the fake player.
      * @param option   Any option for the fake player.
      */
-    public FakePlayer(ServerSettings serverSettings,
-                      EventNode<Event> globalEventHandler,
-                      ThreadDispatcher<Chunk> dispatcher,
-                      ExceptionHandler exceptionHandler,
-                      ConnectionManager connectionManager,
-                      TeamManager teamManager,
-                      RecipeManager recipeManager,
-                      CommandManager commandManager,
-                      BossBarManager bossBarManager,
-                      SchedulerManager schedulerManager,
-                      PacketListenerManager packetListenerManager,
-                      BlockManager blockManager,
+    public FakePlayer(
+            GlobalEventHandler globalEventHandler,
+            ServerSettings serverSettings,
+
+            ChunkDispatcherProvider chunkDispatcherProvider,
+            ExceptionHandlerProvider exceptionHandlerProvider,
+
+            ConnectionManager connectionManager,
+            TeamManager teamManager,
+            RecipeManager recipeManager,
+            CommandManager commandManager,
+            BossBarManager bossBarManager,
+            SchedulerManager schedulerManager,
+            PacketListenerManager packetListenerManager,
+            BlockManager blockManager,
                       Server server,
                       @NotNull UUID uuid,
                       @NotNull String username,
                       @NotNull FakePlayerOption option,
                       @Nullable Consumer<FakePlayer> spawnCallback) {
-        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, connectionManager, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, new FakePlayerConnection(server, connectionManager));
+        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, connectionManager, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, new FakePlayerConnection(server, connectionManager));
         this.scheduleManager = schedulerManager;
 
         this.option = option;
@@ -209,7 +210,7 @@ public class FakePlayer extends Player implements NavigableEntity {
     private void handleTabList(PlayerConnection connection) {
         if (!option.isInTabList()) {
             // Remove from tab-list
-            scheduleManager.buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.getServerTick(serverSettings)).schedule();
+            scheduleManager.buildTask(() -> connection.sendPacket(getRemovePlayerToList())).delay(20, TimeUnit.getServerTick(serverSettingsProvider.getServerSettings())).schedule();
         }
     }
 }

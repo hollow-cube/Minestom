@@ -67,7 +67,7 @@ public class UseItemListener {
             PlayerItemAnimationEvent playerItemAnimationEvent = new PlayerItemAnimationEvent(player, itemAnimationType, hand);
             player.getGlobalEventHandler().callCancellable(playerItemAnimationEvent, () -> {
                 player.refreshActiveHand(true, hand == Player.Hand.OFF, false);
-                player.sendPacketToViewers(player.getServerSettings(), player.getMetadataPacket());
+                player.sendPacketToViewers(player.getServerSettingsProvider(), player.getMetadataPacket());
             });
         }
     }

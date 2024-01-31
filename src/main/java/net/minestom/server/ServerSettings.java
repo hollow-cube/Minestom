@@ -47,13 +47,13 @@ public final class ServerSettings {
         return 1000 / tickPerSecond;
     }
 
-    public void updateBrandName(@NotNull String brandName, @NotNull ConnectionManager connectionManager, ServerSettings serverSettings) {
+    public void updateBrandName(@NotNull String brandName, @NotNull ConnectionManager connectionManager, ServerSettingsProvider serverSettingsProvider) {
         setBrandName(brandName);
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, PluginMessagePacket.getBrandPacket(this));
+        PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, PluginMessagePacket.getBrandPacket(this));
     }
 
-    public void updateDifficulty(@NotNull Difficulty difficulty, @NotNull ConnectionManager connectionManager, ServerSettings serverSettings) {
+    public void updateDifficulty(@NotNull Difficulty difficulty, @NotNull ConnectionManager connectionManager, ServerSettingsProvider serverSettingsProvider) {
         setDifficulty(difficulty);
-        PacketUtils.broadcastPlayPacket(connectionManager, serverSettings, new ServerDifficultyPacket(difficulty, true));
+        PacketUtils.broadcastPlayPacket(connectionManager, serverSettingsProvider, new ServerDifficultyPacket(difficulty, true));
     }
 }

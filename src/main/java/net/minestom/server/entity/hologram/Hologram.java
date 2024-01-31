@@ -1,19 +1,17 @@
 package net.minestom.server.entity.hologram;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
+import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +42,12 @@ public class Hologram implements Viewable {
      * @param text          The text of this hologram.
      * @param autoViewable  {@code true}if the hologram should be visible automatically, otherwise {@code false}.
      */
-    public Hologram(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, Instance instance, Pos spawnPosition, Component text, boolean autoViewable, boolean marker) {
-        this.entity = new Entity(serverSettings, globalEventHandler, dispatcher, exceptionHandler, EntityType.ARMOR_STAND, UUID.randomUUID());
+    public Hologram(@NotNull GlobalEventHandler globalEventHandler,
+                    @NotNull ServerSettingsProvider serverSettingsProvider,
+                    @NotNull ChunkDispatcherProvider chunkDispatcherProvider,
+                    @NotNull ExceptionHandlerProvider exceptionHandlerProvider,
+                    Instance instance, Pos spawnPosition, Component text, boolean autoViewable, boolean marker) {
+        this.entity = new Entity(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.ARMOR_STAND, UUID.randomUUID());
 
         ArmorStandMeta armorStandMeta = (ArmorStandMeta) entity.getEntityMeta();
 

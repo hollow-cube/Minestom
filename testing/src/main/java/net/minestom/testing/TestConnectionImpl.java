@@ -42,7 +42,7 @@ final class TestConnectionImpl implements TestConnection {
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
         var player = process.getConnectionManager().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
-        player.eventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
+        player.getEventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
             event.getPlayer().setRespawnPoint(pos);
         });

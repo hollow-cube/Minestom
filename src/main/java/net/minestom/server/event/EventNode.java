@@ -2,6 +2,7 @@ package net.minestom.server.event;
 
 import net.minestom.server.ServerFacade;
 import net.minestom.server.event.trait.CancellableEvent;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.tag.TagReadable;
 import org.jetbrains.annotations.ApiStatus;
@@ -173,20 +174,20 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull ServerFacade serverFacade,
+    static <E extends Event, V> @NotNull EventNode<E> tag(@NotNull ExceptionHandlerProvider exceptionHandlerProvider,
                                                           @NotNull String name,
                                                           @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                           @NotNull Tag<V> tag,
                                                           @NotNull Predicate<@Nullable V> consumer) {
-        return create(serverFacade, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
+        return create(exceptionHandlerProvider, name, filter, (e, h) -> consumer.test(h.getTag(tag)));
     }
 
-    private static <E extends Event, V> EventNode<E> create(@NotNull ServerFacade serverFacade,
+    private static <E extends Event, V> EventNode<E> create(@NotNull ExceptionHandlerProvider exceptionHandlerProvider,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @Nullable BiPredicate<E, V> predicate) {
         //noinspection unchecked
-        return new EventNodeImpl<>(serverFacade.getExceptionHandler(), name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
+        return new EventNodeImpl<>(exceptionHandlerProvider, name, filter, predicate != null ? (e, o) -> predicate.test(e, (V) o) : null);
     }
 
     /**

@@ -58,7 +58,7 @@ public final class PlayerDiggingListener {
                 var registry = diggingResult.block().registry();
                 if (registry.isBlockEntity()) {
                     final NBTCompound data = BlockUtils.extractClientNbt(diggingResult.block());
-                    player.sendPacketToViewersAndSelf(player.getServerSettings(), new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
+                    player.sendPacketToViewersAndSelf(player.getServerSettingsProvider(), new BlockEntityDataPacket(blockPosition, registry.blockEntityId(), data));
                 }
             }
         }

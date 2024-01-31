@@ -58,33 +58,33 @@ public interface Viewable {
      *
      * @param packet the packet to send to all viewers
      */
-    default void sendPacketToViewers(ServerSettings serverSettings, @NotNull SendablePacket packet) {
+    default void sendPacketToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket packet) {
         if (packet instanceof ServerPacket serverPacket) {
-            PacketUtils.sendGroupedPacket(serverSettings, getViewers(), serverPacket);
+            PacketUtils.sendGroupedPacket(serverSettingsProvider, getViewers(), serverPacket);
         } else {
             getViewers().forEach(player -> player.sendPacket(packet));
         }
     }
 
-    default void sendPacketsToViewers(ServerSettings serverSettings, @NotNull Collection<SendablePacket> packets) {
+    default void sendPacketsToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<SendablePacket> packets) {
         for (SendablePacket packet : packets) {
-            sendPacketToViewers(serverSettings, packet);
+            sendPacketToViewers(serverSettingsProvider, packet);
         }
     }
 
-    default void sendPacketsToViewers(ServerSettings serverSettings, @NotNull SendablePacket... packets) {
-        sendPacketsToViewers(serverSettings, List.of(packets));
+    default void sendPacketsToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket... packets) {
+        sendPacketsToViewers(serverSettingsProvider, List.of(packets));
     }
 
     /**
      * Sends a packet to all viewers and the viewable element if it is a player.
      * <p>
-     * If 'this' isn't a player, then only {@link #sendPacketToViewers(ServerSettings, SendablePacket)} is called.
+     * If 'this' isn't a player, then only {@link #sendPacketToViewers(ServerSettingsProvider, SendablePacket)} is called.
      *
      * @param packet the packet to send
      */
-    default void sendPacketToViewersAndSelf(ServerSettings serverSettings, @NotNull SendablePacket packet) {
-        sendPacketToViewers(serverSettings, packet);
+    default void sendPacketToViewersAndSelf(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket packet) {
+        sendPacketToViewers(serverSettingsProvider, packet);
     }
 
     /**

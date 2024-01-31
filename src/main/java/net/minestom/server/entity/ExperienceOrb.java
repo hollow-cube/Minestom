@@ -1,12 +1,11 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.coordinate.Vec;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
-import net.minestom.server.exception.ExceptionHandler;
-import net.minestom.server.instance.Chunk;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 
 import java.util.Comparator;
 import java.util.UUID;
@@ -17,8 +16,11 @@ public class ExperienceOrb extends Entity {
     private Player target;
     private long lastTargetUpdateTick;
 
-    public ExperienceOrb(ServerSettings serverSettings, EventNode<Event> globalEventHandler, ThreadDispatcher<Chunk> dispatcher, ExceptionHandler exceptionHandler, short experienceCount) {
-        super(serverSettings, globalEventHandler, dispatcher, exceptionHandler, EntityType.EXPERIENCE_ORB, UUID.randomUUID());
+    public ExperienceOrb(ServerFacade serverFacade, short experienceCount) {
+        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, experienceCount);
+    }
+    public ExperienceOrb(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, short experienceCount) {
+        super(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.EXPERIENCE_ORB, UUID.randomUUID());
         setBoundingBox(0.5f, 0.5f, 0.5f);
         //todo vanilla sets random velocity here?
         this.experienceCount = experienceCount;

@@ -9,11 +9,11 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
-import net.minestom.server.exception.ExceptionHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.gamedata.tags.TagManager;
-import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.BlockManager;
 import net.minestom.server.listener.manager.PacketListenerManager;
@@ -30,7 +30,7 @@ import net.minestom.server.network.player.PlayerConnection;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.recipe.RecipeManager;
 import net.minestom.server.scoreboard.TeamManager;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.timer.SchedulerManager;
 import net.minestom.server.utils.StringUtils;
 import net.minestom.server.utils.async.AsyncUtils;
@@ -80,7 +80,7 @@ public final class ConnectionManagerImpl implements ConnectionManager {
 
     private final Set<Player> unmodifiableConfigurationPlayers = Collections.unmodifiableSet(configurationPlayers);
     private final Set<Player> unmodifiablePlayPlayers = Collections.unmodifiableSet(playPlayers);
-    private final ExceptionHandler exceptionHandler;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
     private final ServerSettings serverSettings;
     private final BiomeManager biomeManager;
     private final DimensionTypeManager dimensionTypeManager;
@@ -95,9 +95,9 @@ public final class ConnectionManagerImpl implements ConnectionManager {
 
     public ConnectionManagerImpl(
             ServerSettings serverSettings,
-            EventNode<Event> globalEventHandler,
-            ThreadDispatcher<Chunk> dispatcher,
-            ExceptionHandler exceptionHandler,
+            GlobalEventHandler globalEventHandler,
+            ChunkDispatcherProvider chunkDispatcherProvider,
+            ExceptionHandlerProvider exceptionHandlerProvider,
             TeamManager teamManager,
             RecipeManager recipeManager,
             CommandManager commandManager,
@@ -109,13 +109,13 @@ public final class ConnectionManagerImpl implements ConnectionManager {
             TagManager tagManager,
             BlockManager blockManager
     ) {
-        this.exceptionHandler = exceptionHandler;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
         this.serverSettings = serverSettings;
         this.biomeManager = biomeManager;
         this.dimensionTypeManager = dimensionTypeManager;
         this.globalEventHandler = globalEventHandler;
-        this.defaultTags = new CachedPacket(serverSettings, new TagsPacket(tagManager.getTagMap()));
-        defaultPlayerProvider = (uuid, username, connection) -> new Player(serverSettings, globalEventHandler, dispatcher, exceptionHandler, this, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, connection);
+        this.defaultTags = new CachedPacket(() -> serverSettings, new TagsPacket(tagManager.getTagMap()));
+        defaultPlayerProvider = (uuid, username, connection) -> new Player(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, this, teamManager, recipeManager, commandManager, bossBarManager, schedulerManager, packetListenerManager, blockManager, uuid, username, connection);
         playerProvider = defaultPlayerProvider;
     }
 
@@ -201,7 +201,7 @@ public final class ConnectionManagerImpl implements ConnectionManager {
     @Override
     @ApiStatus.Internal
     public @NotNull CompletableFuture<Void> transitionLoginToConfig(@NotNull Player player) {
-        return AsyncUtils.runAsync(exceptionHandler, () -> {
+        return AsyncUtils.runAsync(exceptionHandlerProvider.getExceptionHandler(), () -> {
             final PlayerConnection playerConnection = player.getPlayerConnection();
 
             // Compression
@@ -250,7 +250,7 @@ public final class ConnectionManagerImpl implements ConnectionManager {
         }
 
         player.getPlayerConnection().setConnectionState(ConnectionState.CONFIGURATION);
-        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(exceptionHandler, () -> {
+        CompletableFuture<Void> configFuture = AsyncUtils.runAsync(exceptionHandlerProvider.getExceptionHandler(), () -> {
             player.sendPacket(PluginMessagePacket.getBrandPacket(serverSettings));
 
             var event = new AsyncPlayerConfigurationEvent(player, isFirstConfig);
