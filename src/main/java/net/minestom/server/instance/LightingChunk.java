@@ -9,23 +9,20 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.instance.light.Light;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.server.CachedPacket;
 import net.minestom.server.network.packet.server.play.data.LightData;
-import net.minestom.server.timer.ExecutionType;
-import net.minestom.server.timer.Task;
-import net.minestom.server.timer.TaskSchedule;
+import net.minestom.server.timer.*;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static net.minestom.server.instance.light.LightCompute.emptyContent;
@@ -34,23 +31,6 @@ public class LightingChunk extends DynamicChunk {
 
     private static final int LIGHTING_CHUNKS_PER_SEND = Integer.getInteger("minestom.lighting.chunks-per-send", 10);
     private static final int LIGHTING_CHUNKS_SEND_DELAY = Integer.getInteger("minestom.lighting.chunks-send-delay", 100);
-
-    private static final ExecutorService pool = Executors.newWorkStealingPool();
-
-    private int[] heightmap;
-    final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
-    boolean sendNeighbours = true;
-    boolean chunkLoaded = false;
-
-    enum LightType {
-        SKY,
-        BLOCK
-    }
-
-    private enum QueueType {
-        INTERNAL,
-        EXTERNAL
-    }
 
     private static final Set<NamespaceID> DIFFUSE_SKY_LIGHT = Set.of(
             Block.COBWEB.namespace(),
@@ -77,8 +57,31 @@ public class LightingChunk extends DynamicChunk {
             Block.LAVA.namespace()
     );
 
+    private static final ExecutorService pool = Executors.newWorkStealingPool();
+
+    private int[] heightmap;
+    private boolean sendNeighbours = true;
+    private boolean chunkLoaded = false;
+    private volatile boolean lightCalculated = false;
+
+    final CachedPacket lightCache = new CachedPacket(this::createLightPacket);
+
+    private enum LightType {
+        SKY,
+        BLOCK
+    }
+
+    private enum QueueType {
+        INTERNAL,
+        EXTERNAL
+    }
+
     public LightingChunk(@NotNull Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ);
+    }
+
+    public boolean isLightCalculated() {
+        return lightCalculated;
     }
 
     private boolean checkSkyOcclusion(Block block) {
@@ -257,86 +260,90 @@ public class LightingChunk extends DynamicChunk {
             return;
         }
 
-        sendingTask = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
-            queueLock.lock();
-            var copy = new ArrayList<>(sendQueue);
-            sendQueue.clear();
-            queuedChunks.clear();
-            queueLock.unlock();
-
-            // if (copy.size() != 0) {
-            //     System.out.println("Sending lighting for " + copy.size() + " chunks");
-            // }
-
-            int count = 0;
-
-            for (LightingChunk f : copy) {
-                f.sections.forEach(s -> {
-                    s.blockLight().invalidate();
-                    s.skyLight().invalidate();
-                });
-                f.chunkCache.invalidate();
-                f.lightCache.invalidate();
-            }
-
-            // Load all the lighting
-            for (LightingChunk f : copy) {
-                if (f.isLoaded()) {
-                    f.lightCache.body(ConnectionState.PLAY);
-                }
-            }
-
-            // Send it slowly
-            for (LightingChunk f : copy) {
-                if (f.isLoaded()) {
-                    f.sendLighting();
-                    if (f.getViewers().size() == 0) continue;
-                }
-                count++;
-
-                if (count % LIGHTING_CHUNKS_PER_SEND == 0) {
-                    // System.out.println("Sent " + count + " lighting chunks " + (count * 100 / copy.size()) + "%");
-                    try {
-                        Thread.sleep(LIGHTING_CHUNKS_SEND_DELAY);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }, TaskSchedule.immediate(), TaskSchedule.tick(20), ExecutionType.ASYNC);
+        sendingTask = MinecraftServer.getSchedulerManager().scheduleTask(
+                LightingChunk::processSendQueue,
+                TaskSchedule.immediate(),
+                TaskSchedule.tick(20),
+                ExecutionType.ASYNC
+        );
         lightLock.unlock();
     }
 
+    private static void processSendQueue() {
+        queueLock.lock();
+        var copy = new ArrayList<>(sendQueue);
+        sendQueue.clear();
+        queuedChunks.clear();
+        queueLock.unlock();
+
+        // if (copy.size() != 0) {
+        //     System.out.println("Sending lighting for " + copy.size() + " chunks");
+        // }
+
+        int count = 0;
+
+        for (LightingChunk f : copy) {
+            f.sections.forEach(s -> {
+                s.blockLight().invalidate();
+                s.skyLight().invalidate();
+            });
+            f.chunkCache.invalidate();
+            f.lightCache.invalidate();
+        }
+
+        // Load all the lighting
+        for (LightingChunk f : copy) {
+            if (f.isLoaded()) {
+                f.lightCache.body(ConnectionState.PLAY);
+                f.lightCalculated = true;
+            }
+        }
+
+        // Send it slowly
+        for (LightingChunk f : copy) {
+            if (f.isLoaded()) {
+                f.sendLighting();
+                if (f.getViewers().isEmpty()) continue;
+            }
+            count++;
+
+            if (count % LIGHTING_CHUNKS_PER_SEND == 0) {
+                // System.out.println("Sent " + count + " lighting chunks " + (count * 100 / copy.size()) + "%");
+                try {
+                    Thread.sleep(LIGHTING_CHUNKS_SEND_DELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     private static void flushQueue(Instance instance, Set<Point> queue, LightType type, QueueType queueType) {
-        AtomicInteger count = new AtomicInteger(0);
-        Set<Light> sections = ConcurrentHashMap.newKeySet();
         Set<Point> newQueue = ConcurrentHashMap.newKeySet();
+
+        List<CompletableFuture<Void>> tasks = new ArrayList<>();
 
         for (Point point : queue) {
             Chunk chunk = instance.getChunk(point.blockX(), point.blockZ());
-            if (chunk == null) {
-                count.getAndIncrement();
-                continue;
-            }
+            if (chunk == null) continue;
 
             var light = type == LightType.BLOCK ? chunk.getSection(point.blockY()).blockLight() : chunk.getSection(point.blockY()).skyLight();
 
-            pool.submit(() -> {
-                if (queueType == QueueType.INTERNAL) light.calculateInternal(instance, chunk.getChunkX(), point.blockY(), chunk.getChunkZ());
+            CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
+                if (queueType == QueueType.INTERNAL)
+                    light.calculateInternal(instance, chunk.getChunkX(), point.blockY(), chunk.getChunkZ());
                 else light.calculateExternal(instance, chunk, point.blockY());
-
-                sections.add(light);
 
                 var toAdd = light.flip();
                 if (toAdd != null) newQueue.addAll(toAdd);
+            }, pool);
 
-                count.incrementAndGet();
-            });
+            tasks.add(task);
         }
 
-        while (count.get() < queue.size()) { }
+        tasks.forEach(CompletableFuture::join);
 
-        if (newQueue.size() > 0) {
+        if (!newQueue.isEmpty()) {
             flushQueue(instance, newQueue, type, QueueType.EXTERNAL);
         }
     }
@@ -392,7 +399,7 @@ public class LightingChunk extends DynamicChunk {
         toCheck.add(point);
         found.add(point);
 
-        while (toCheck.size() > 0) {
+        while (!toCheck.isEmpty()) {
             final Point current = toCheck.poll();
             final Set<Point> nearby = getNearbyRequired(instance, current);
             nearby.forEach(p -> {
