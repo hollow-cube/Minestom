@@ -1,7 +1,7 @@
 package net.minestom.testing;
 
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
@@ -24,32 +24,33 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 final class TestConnectionImpl implements TestConnection {
     private final Env env;
-    private final ServerProcess process;
-    private final PlayerConnectionImpl playerConnection = new PlayerConnectionImpl();
+    private final ServerFacade process;
+    private final PlayerConnectionImpl playerConnection;
 
     private final List<IncomingCollector<ServerPacket>> incomingTrackers = new CopyOnWriteArrayList<>();
 
     TestConnectionImpl(Env env) {
         this.env = env;
         this.process = env.process();
+        this.playerConnection = new PlayerConnectionImpl(env.process());
     }
 
     @Override
     public @NotNull CompletableFuture<Player> connect(@NotNull Instance instance, @NotNull Pos pos) {
         // Use player provider to disable queued chunk sending
-        process.connection().setPlayerProvider(TestPlayerImpl::new);
+        process.getConnectionManager().setPlayerProvider(TestPlayerImpl::new);
 
         playerConnection.setConnectionState(ConnectionState.LOGIN);
-        var player = process.connection().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
-        player.eventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
+        var player = process.getConnectionManager().createPlayer(playerConnection, UUID.randomUUID(), "RandName");
+        player.getEventNode().addListener(AsyncPlayerConfigurationEvent.class, event -> {
             event.setSpawningInstance(instance);
             event.getPlayer().setRespawnPoint(pos);
         });
 
         // Force the player through the entirety of the login process manually
-        process.connection().doConfiguration(player, true);
-        process.connection().transitionConfigToPlay(player);
-        process.connection().updateWaitingPlayers();
+        process.getConnectionManager().doConfiguration(player, true);
+        process.getConnectionManager().transitionConfigToPlay(player);
+        process.getConnectionManager().updateWaitingPlayers();
         return CompletableFuture.completedFuture(player);
     }
 
@@ -61,6 +62,11 @@ final class TestConnectionImpl implements TestConnection {
     }
 
     final class PlayerConnectionImpl extends PlayerConnection {
+
+        PlayerConnectionImpl(ServerFacade serverFacade) {
+            super(serverFacade);
+        }
+
         @Override
         public void sendPacket(@NotNull SendablePacket packet) {
             final var serverPacket = this.extractPacket(packet);

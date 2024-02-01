@@ -1,6 +1,7 @@
 package net.minestom.testing;
 
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerFacade;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventListener;
@@ -14,15 +15,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 final class EnvImpl implements Env {
-    private final ServerProcess process;
+    private final ServerFacade process;
     private final List<FlexibleListenerImpl<?>> listeners = new CopyOnWriteArrayList<>();
 
-    public EnvImpl(ServerProcess process) {
-        this.process = process;
+    public EnvImpl() {
+        this.process = ServerFacade.of(ServerSettings.builder().build());
     }
 
     @Override
-    public @NotNull ServerProcess process() {
+    public @NotNull ServerFacade process() {
         return process;
     }
 
@@ -34,13 +35,13 @@ final class EnvImpl implements Env {
     @Override
     public @NotNull <E extends Event, H> Collector<E> trackEvent(@NotNull Class<E> eventType, @NotNull EventFilter<? super E, H> filter, @NotNull H actor) {
         var tracker = new EventCollector<E>(actor);
-        this.process.eventHandler().map(actor, filter).addListener(eventType, tracker.events::add);
+        this.process.getGlobalEventHandler().map(actor, filter).addListener(eventType, tracker.events::add);
         return tracker;
     }
 
     @Override
     public @NotNull <E extends Event> FlexibleListener<E> listen(@NotNull Class<E> eventType) {
-        var handler = process.eventHandler();
+        var handler = process.getGlobalEventHandler();
         var flexible = new FlexibleListenerImpl<>(eventType);
         var listener = EventListener.of(eventType, e -> flexible.handler.accept(e));
         handler.addListener(listener);
@@ -62,7 +63,7 @@ final class EnvImpl implements Env {
 
         @Override
         public @NotNull List<E> collect() {
-            process.eventHandler().unmap(handler);
+            process.getGlobalEventHandler().unmap(handler);
             return List.copyOf(events);
         }
     }

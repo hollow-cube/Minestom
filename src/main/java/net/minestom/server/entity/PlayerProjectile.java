@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.collision.CollisionUtils;
 import net.minestom.server.collision.PhysicsResult;
 import net.minestom.server.collision.ShapeImpl;
@@ -8,15 +8,18 @@ import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -24,8 +27,12 @@ public class PlayerProjectile extends LivingEntity {
     private final Entity shooter;
     private long cooldown = 0;
 
-    public PlayerProjectile(Entity shooter, EntityType type) {
-        super(type);
+    public PlayerProjectile(GlobalEventHandler globalEventHandler,
+                            ServerSettings serverSettings,
+                            ChunkDispatcherProvider chunkDispatcherProvider,
+                            ExceptionHandlerProvider exceptionHandlerProvider,
+                            Entity shooter, EntityType type) {
+        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, type, UUID.randomUUID());
         this.shooter = shooter;
         this.hasCollision = false;
         setup();
@@ -51,7 +58,7 @@ public class PlayerProjectile extends LivingEntity {
         // Check if we're inside of a block
         if (insideBlock != null) {
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(spawnPosition), instance.getBlock(spawnPosition));
-            MinecraftServer.getGlobalEventHandler().call(e);
+            globalEventHandler.call(e);
         }
 
         return res;
@@ -87,7 +94,7 @@ public class PlayerProjectile extends LivingEntity {
         dz += random.nextGaussian() * spread;
 
         final EntityShootEvent shootEvent = new EntityShootEvent(this.shooter, this, from, power, spread);
-        EventDispatcher.call(shootEvent);
+        globalEventHandler.call(shootEvent);
         if (shootEvent.isCancelled()) {
             remove();
             return;
@@ -149,7 +156,7 @@ public class PlayerProjectile extends LivingEntity {
         if (collided != null && collided.collisionShapes()[0] != shooter) {
             if (collided.collisionShapes()[0] instanceof Entity entity) {
                 var e = new ProjectileCollideWithEntityEvent(this, collided.newPosition(), entity);
-                MinecraftServer.getGlobalEventHandler().call(e);
+                globalEventHandler.call(e);
                 return;
             }
         }
@@ -173,7 +180,7 @@ public class PlayerProjectile extends LivingEntity {
             if (hitBlock == null) return;
 
             var e = new ProjectileCollideWithBlockEvent(this, Pos.fromPoint(hitPoint), hitBlock);
-            MinecraftServer.getGlobalEventHandler().call(e);
+            globalEventHandler.call(e);
         }
     }
 }

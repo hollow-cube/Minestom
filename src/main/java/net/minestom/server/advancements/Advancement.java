@@ -1,6 +1,7 @@
 package net.minestom.server.advancements;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.network.packet.server.play.AdvancementsPacket;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 public class Advancement {
 
+    private final ServerSettings serverSettings;
     protected AdvancementTab tab;
 
     private boolean achieved;
@@ -40,19 +42,19 @@ public class Advancement {
     private AdvancementsPacket.Criteria criteria;
     private boolean sendTelemetryData;
 
-    public Advancement(@NotNull Component title, @NotNull Component description,
+    public Advancement(ServerSettings serverSettings, @NotNull Component title, @NotNull Component description,
                        @NotNull Material icon, @NotNull FrameType frameType,
                        float x, float y) {
-        this(title, description, ItemStack.of(icon), frameType, x, y, false);
+        this(serverSettings, title, description, ItemStack.of(icon), frameType, x, y, false);
     }
 
-    public Advancement(@NotNull Component title, Component description,
+    public Advancement(ServerSettings serverSettings, @NotNull Component title, Component description,
                        @NotNull ItemStack icon, @NotNull FrameType frameType,
                        float x, float y) {
-        this(title, description, icon, frameType, x, y, false);
+        this(serverSettings, title, description, icon, frameType, x, y, false);
     }
 
-    public Advancement(@NotNull Component title, Component description,
+    public Advancement(ServerSettings serverSettings, @NotNull Component title, Component description,
                        @NotNull ItemStack icon, @NotNull FrameType frameType,
                        float x, float y, boolean sendTelemetryData) {
         this.title = title;
@@ -62,6 +64,7 @@ public class Advancement {
         this.x = x;
         this.y = y;
         this.sendTelemetryData = sendTelemetryData;
+        this.serverSettings = serverSettings;
     }
 
     /**
@@ -329,7 +332,7 @@ public class Advancement {
     protected void update() {
         updateCriteria();
         if (tab != null) {
-            tab.sendPacketsToViewers(tab.removePacket, tab.createPacket());
+            tab.sendPacketsToViewers(() -> serverSettings, tab.removePacket, tab.createPacket());
         }
     }
 

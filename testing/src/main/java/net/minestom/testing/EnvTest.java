@@ -1,6 +1,5 @@
 package net.minestom.testing;
 
-import net.minestom.server.MinecraftServer;
 import org.junit.jupiter.api.extension.*;
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver;
 
@@ -37,7 +36,7 @@ public @interface EnvTest {
         @Override
         public Env resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
                 throws ParameterResolutionException {
-            return new EnvImpl(MinecraftServer.updateProcess());
+            return new EnvImpl();
         }
     }
 }

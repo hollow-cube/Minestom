@@ -6,7 +6,6 @@ import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
@@ -20,10 +19,15 @@ import net.minestom.server.item.Material;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.temporal.TemporalUnit;
+
 public class DisplayCommand extends Command {
 
-    public DisplayCommand() {
+    private final MinecraftServer minecraftServer;
+
+    public DisplayCommand(MinecraftServer minecraftServer) {
         super("display");
+        this.minecraftServer = minecraftServer;
 
         var follow = ArgumentType.Literal("follow");
 
@@ -40,7 +44,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(EntityType.ITEM_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.ITEM_DISPLAY);
         var meta = (ItemDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setItemStack(ItemStack.of(Material.STICK));
@@ -55,7 +59,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(EntityType.BLOCK_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.BLOCK_DISPLAY);
         var meta = (BlockDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBlockState(Block.ORANGE_CANDLE_CAKE.stateId());
@@ -70,7 +74,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(EntityType.TEXT_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.TEXT_DISPLAY);
         var meta = (TextDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
@@ -85,7 +89,8 @@ public class DisplayCommand extends Command {
     private void startSmoothFollow(@NotNull Entity entity, @NotNull Player player) {
 //        entity.setCustomName(Component.text("MY CUSTOM NAME"));
 //        entity.setCustomNameVisible(true);
-        MinecraftServer.getSchedulerManager().buildTask(() -> {
+        TemporalUnit serverTick = TimeUnit.getServerTick(minecraftServer.getServerSettings());
+        minecraftServer.getSchedulerManager().buildTask(() -> {
             var meta = (AbstractDisplayMeta) entity.getEntityMeta();
             meta.setNotifyAboutChanges(false);
             meta.setTransformationInterpolationStartDelta(1);
@@ -95,6 +100,6 @@ public class DisplayCommand extends Command {
 //            meta.setScale(new Vec(5, 5, 5));
             meta.setTranslation(player.getPosition().sub(entity.getPosition()));
             meta.setNotifyAboutChanges(true);
-        }).delay(20, TimeUnit.SERVER_TICK).repeat(20, TimeUnit.SERVER_TICK).schedule();
+        }).delay(20, serverTick).repeat(20, serverTick).schedule();
     }
 }

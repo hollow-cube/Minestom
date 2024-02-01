@@ -1,10 +1,11 @@
 package net.minestom.server.command;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandResult;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.network.packet.server.play.DeclareCommandsPacket;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,7 +16,8 @@ public class CommandManagerTest {
 
     @Test
     public void testCommandRegistration() {
-        var manager = new CommandManager();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         var command = new Command("name1", "name2");
 
@@ -34,7 +36,8 @@ public class CommandManagerTest {
 
     @Test
     public void testUnknownCommandCallback() {
-        var manager = new CommandManager();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         AtomicBoolean check = new AtomicBoolean(false);
         manager.setUnknownCommandCallback((sender, command) -> check.set(true));
@@ -50,7 +53,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxABFirst() {
-        var manager = new CommandManager();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);
@@ -78,7 +82,8 @@ public class CommandManagerTest {
 
     @Test
     public void testSharedArgumentSyntaxAFirst() {
-        var manager = new CommandManager();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         var checkA = new AtomicBoolean(false);
         var checkAB = new AtomicBoolean(false);

@@ -1,5 +1,6 @@
 package net.minestom.server.event;
 
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandles;
@@ -23,9 +24,9 @@ final class EventNodeLazyImpl<E extends Event> extends EventNodeImpl<E> {
     @SuppressWarnings("unused")
     private boolean mapped;
 
-    EventNodeLazyImpl(@NotNull EventNodeImpl<? super E> holder,
+    EventNodeLazyImpl(@NotNull ExceptionHandlerProvider exceptionHandlerProvider, @NotNull EventNodeImpl<? super E> holder,
                       @NotNull Object owner, @NotNull EventFilter<E, ?> filter) {
-        super(owner.toString(), filter, null);
+        super(exceptionHandlerProvider, owner.toString(), filter, null);
         this.holder = holder;
         this.owner = new WeakReference<>(owner);
     }

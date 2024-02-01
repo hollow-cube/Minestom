@@ -17,7 +17,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.function.Function;
 
 public class RangedAttackGoal extends GoalSelector {
-    private final Cooldown cooldown = new Cooldown(Duration.of(5, TimeUnit.SERVER_TICK));
+    private final Cooldown cooldown;
 
     private long lastShot;
     private final Duration delay;
@@ -63,6 +63,7 @@ public class RangedAttackGoal extends GoalSelector {
         this.comeClose = comeClose;
         this.power = power;
         this.spread = spread;
+        this.cooldown = new Cooldown(Duration.of(5, TimeUnit.getServerTick(entityCreature.getServerSettings())));
         Check.argCondition(desirableRange > attackRange, "Desirable range can not exceed attack range!");
     }
 

@@ -1,6 +1,9 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryProperty;
 import net.minestom.server.inventory.InventoryType;
@@ -13,12 +16,12 @@ public class BeaconInventory extends Inventory {
     private PotionEffect firstPotionEffect;
     private PotionEffect secondPotionEffect;
 
-    public BeaconInventory(@NotNull Component title) {
-        super(InventoryType.BEACON, title);
+    public BeaconInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull Component title) {
+        super(globalEventHandler, serverSettings, InventoryType.BEACON, title);
     }
 
-    public BeaconInventory(@NotNull String title) {
-        super(InventoryType.BEACON, title);
+    public BeaconInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull String title) {
+        super(globalEventHandler, serverSettings, InventoryType.BEACON, title);
     }
 
     /**

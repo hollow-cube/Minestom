@@ -1,6 +1,8 @@
 package net.minestom.server.command;
 
 import net.kyori.adventure.identity.Identity;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.permission.Permission;
@@ -17,7 +19,8 @@ public class CommandConditionTest {
 
     @Test
     public void mainCondition() {
-        var dispatcher = new CommandDispatcher();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -40,7 +43,8 @@ public class CommandConditionTest {
 
     @Test
     public void subCondition() {
-        var dispatcher = new CommandDispatcher();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -84,7 +88,8 @@ public class CommandConditionTest {
 
     @Test
     public void subConditionOverride() {
-        var dispatcher = new CommandDispatcher();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -139,6 +144,11 @@ public class CommandConditionTest {
         @Override
         public @NotNull Identity identity() {
             return Identity.nil();
+        }
+
+        @Override
+        public MinecraftServer getServerProcess() {
+            return null;
         }
     }
 }

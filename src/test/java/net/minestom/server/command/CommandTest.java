@@ -1,5 +1,7 @@
 package net.minestom.server.command;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +30,8 @@ public class CommandTest {
 
     @Test
     public void testGlobalListener() {
-        var manager = new CommandManager();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         AtomicBoolean hasRun = new AtomicBoolean(false);
 

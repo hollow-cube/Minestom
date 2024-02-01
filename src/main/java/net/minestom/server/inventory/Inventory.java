@@ -1,8 +1,11 @@
 package net.minestom.server.inventory;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.Viewable;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.inventory.click.InventoryClickResult;
 import net.minestom.server.item.ItemStack;
@@ -23,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Represents an inventory which can be viewed by a collection of {@link Player}.
  * <p>
- * You can create one with {@link Inventory#Inventory(InventoryType, String)} or by making your own subclass.
+ * You can create one with {@link Inventory#Inventory(EventNode, ServerSettings, InventoryType, String)} or by making your own subclass.
  * It can then be opened using {@link Player#openInventory(Inventory)}.
  */
 public non-sealed class Inventory extends AbstractInventory implements Viewable {
@@ -33,6 +36,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     private final byte id;
     // the type of this inventory
     private final InventoryType inventoryType;
+    protected final ServerSettings serverSettings;
     // the title of this inventory
     private Component title;
 
@@ -44,8 +48,9 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     // (player -> cursor item) map, used by the click listeners
     private final ConcurrentHashMap<Player, ItemStack> cursorPlayersItem = new ConcurrentHashMap<>();
 
-    public Inventory(@NotNull InventoryType inventoryType, @NotNull Component title) {
-        super(inventoryType.getSize());
+    public Inventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull InventoryType inventoryType, @NotNull Component title) {
+        super(globalEventHandler, inventoryType.getSize());
+        this.serverSettings = serverSettings;
         this.id = generateId();
         this.inventoryType = inventoryType;
         this.title = title;
@@ -53,8 +58,8 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
         this.offset = getSize();
     }
 
-    public Inventory(@NotNull InventoryType inventoryType, @NotNull String title) {
-        this(inventoryType, Component.text(title));
+    public Inventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull InventoryType inventoryType, @NotNull String title) {
+        this(globalEventHandler, serverSettings, inventoryType, Component.text(title));
     }
 
     private static byte generateId() {
@@ -87,7 +92,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     public void setTitle(@NotNull Component title) {
         this.title = title;
         // Re-open the inventory
-        sendPacketToViewers(new OpenWindowPacket(getWindowId(), getInventoryType().getWindowType(), title));
+        sendPacketToViewers(() -> serverSettings, new OpenWindowPacket(getWindowId(), getInventoryType().getWindowType(), title));
         // Send inventory items
         update();
     }
@@ -193,7 +198,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
     @Override
     protected void UNSAFE_itemInsert(int slot, @NotNull ItemStack itemStack, boolean sendPacket) {
         itemStacks[slot] = itemStack;
-        if (sendPacket) sendPacketToViewers(new SetSlotPacket(getWindowId(), 0, (short) slot, itemStack));
+        if (sendPacket) sendPacketToViewers(() -> serverSettings, new SetSlotPacket(getWindowId(), 0, (short) slot, itemStack));
     }
 
     private @NotNull WindowItemsPacket createNewWindowItemsPacket(Player player) {
@@ -208,7 +213,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
      * @see <a href="https://wiki.vg/Protocol#Window_Property">https://wiki.vg/Protocol#Window_Property</a>
      */
     protected void sendProperty(@NotNull InventoryProperty property, short value) {
-        sendPacketToViewers(new WindowPropertyPacket(getWindowId(), property.getProperty(), value));
+        sendPacketToViewers(() -> serverSettings, new WindowPropertyPacket(getWindowId(), property.getProperty(), value));
     }
 
     @Override
@@ -230,7 +235,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
+        callClickEvent(globalEventHandler, player, isInWindow ? this : null, slot, ClickType.LEFT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -253,7 +258,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         this.cursorPlayersItem.put(player, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
+        callClickEvent(globalEventHandler, player, isInWindow ? this : null, slot, ClickType.RIGHT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -303,7 +308,7 @@ public non-sealed class Inventory extends AbstractInventory implements Viewable 
             playerInventory.setItemStack(clickSlot, clickResult.getClicked());
         }
         playerInventory.setItemStack(convertedKey, clickResult.getCursor());
-        callClickEvent(player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
+        callClickEvent(globalEventHandler, player, isInWindow ? this : null, slot, ClickType.CHANGE_HELD, clicked, getCursorItem(player));
         return true;
     }
 

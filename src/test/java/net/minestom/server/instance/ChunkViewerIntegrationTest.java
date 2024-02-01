@@ -1,6 +1,5 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.server.play.ChunkDataPacket;
 import net.minestom.server.utils.chunk.ChunkUtils;
@@ -22,8 +21,8 @@ public class ChunkViewerIntegrationTest {
         if (sharedInstance) {
             // Chunks get their viewers from the instance
             // Ensuring that the system works with shared instances is therefore important
-            var manager = env.process().instance();
-            instance = manager.createSharedInstance((InstanceContainer) instance);
+            var manager = env.process().getInstanceManager();
+            instance = manager.createSharedInstance(env.process(), (InstanceContainer) instance);
         }
 
         var chunk = instance.loadChunk(0, 0).join();
@@ -37,7 +36,7 @@ public class ChunkViewerIntegrationTest {
 
     @Test
     public void renderDistance(Env env) {
-        final int viewRadius = MinecraftServer.getChunkViewDistance();
+        final int viewRadius = env.process().getServerSettings().getChunkViewDistance();
         final int count = ChunkUtils.getChunkCount(viewRadius);
         var instance = env.createFlatInstance();
         var connection = env.createConnection();

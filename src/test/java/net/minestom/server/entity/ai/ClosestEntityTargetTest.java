@@ -1,11 +1,11 @@
 package net.minestom.server.entity.ai;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.ai.target.ClosestEntityTarget;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,19 +18,19 @@ public class ClosestEntityTargetTest {
     public void validFindTarget(Env env) {
         var instance = env.createFlatInstance();
 
-        var self = new EntityCreature(EntityType.ZOMBIE);
+        var self = new EntityCreature(env.process(), EntityType.ZOMBIE);
         self.setInstance(instance, new Pos(0, 42, 0)).join();
 
-        var spider = new EntityCreature(EntityType.SPIDER);
+        var spider = new EntityCreature(env.process(), EntityType.SPIDER);
         spider.setInstance(instance, new Pos(-3, 42, -3)).join();
 
-        var secondSpider = new EntityCreature(EntityType.SPIDER);
+        var secondSpider = new EntityCreature(env.process(), EntityType.SPIDER);
         secondSpider.setInstance(instance, new Pos(-4, 42, -4)).join();
 
-        var skeleton = new EntityCreature(EntityType.SKELETON);
+        var skeleton = new EntityCreature(env.process(), EntityType.SKELETON);
         skeleton.setInstance(instance, new Pos(5, 42, 5)).join();
 
-        var zombie = new EntityCreature(EntityType.ZOMBIE);
+        var zombie = new EntityCreature(env.process(), EntityType.ZOMBIE);
         zombie.setInstance(instance, new Pos(10, 42, -10)).join();
 
         assertEquals(5, instance.getEntities().size(), "Not all entities are in the instance");

@@ -12,11 +12,11 @@ import java.util.function.IntUnaryOperator;
  */
 public interface Palette extends NetworkBuffer.Writer {
     static Palette blocks() {
-        return newPalette(16, 8, 4);
+        return newPalette( 16, 8, 4);
     }
 
     static Palette biomes() {
-        return newPalette(4, 3, 1);
+        return newPalette( 4, 3, 1);
     }
 
     static Palette newPalette(int dimension, int maxBitsPerEntry, int bitsPerEntry) {

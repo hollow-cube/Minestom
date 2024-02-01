@@ -1,6 +1,7 @@
 package net.minestom.server.permission;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.junit.jupiter.api.AfterEach;
@@ -19,11 +20,12 @@ public class TestPermissions {
     private Player player;
 
     private Permission permission1, permission2, permission3, wildcard;
+    private MinecraftServer minecraftServer;
 
     @BeforeEach
     public void init() {
-        MinecraftServer.init(); // for entity manager
-        player = new Player(UUID.randomUUID(), "TestPlayer", null) {
+        minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        player = new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", null) {
             @Override
             protected void playerConnectionInit() {
             }

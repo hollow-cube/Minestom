@@ -35,7 +35,7 @@ public class CommandSuggestionIntegrationTest {
             suggestion.addEntry(new SuggestionEntry("test1"));
         }));
 
-        env.process().command().register(command);
+        env.process().getCommandManager().register(command);
 
         var listener = connection.trackIncoming(TabCompletePacket.class);
         player.addPacketToQueue(new ClientTabCompletePacket(3, "test te"));
@@ -63,7 +63,7 @@ public class CommandSuggestionIntegrationTest {
         var command = new Command("foo");
 
         command.addSyntax((sender,context)->{}, suggestArg, defaultArg);
-        env.process().command().register(command);
+        env.process().getCommandManager().register(command);
 
         var listener = connection.trackIncoming(TabCompletePacket.class);
         player.addPacketToQueue(new ClientTabCompletePacket(1, "foo 1"));

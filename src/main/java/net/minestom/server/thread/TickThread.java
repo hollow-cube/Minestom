@@ -3,6 +3,7 @@ package net.minestom.server.thread;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Chunk;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -18,20 +19,22 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Thread responsible for ticking {@link Chunk chunks} and {@link Entity entities}.
  * <p>
- * Created in {@link ThreadDispatcher}, and awaken every tick with a task to execute.
+ * Created in {@link ThreadDispatcherImpl}, and awaken every tick with a task to execute.
  */
 @ApiStatus.Internal
 public final class TickThread extends MinestomThread {
     private final ReentrantLock lock = new ReentrantLock();
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
     private volatile boolean stop;
 
     private CountDownLatch latch;
     private long tickTime;
     private long tickNum = 0;
-    private final List<ThreadDispatcher.Partition> entries = new ArrayList<>();
+    private final List<ThreadDispatcherImpl.Partition> entries = new ArrayList<>();
 
-    public TickThread(int number) {
+    public TickThread(ExceptionHandlerProvider exceptionHandlerProvider, int number) {
         super(MinecraftServer.THREAD_NAME_TICK + "-" + number);
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
     }
 
     public static @Nullable TickThread current() {
@@ -48,7 +51,7 @@ public final class TickThread extends MinestomThread {
             try {
                 tick();
             } catch (Exception e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
             }
             this.lock.unlock();
             // #acquire() callbacks
@@ -60,7 +63,7 @@ public final class TickThread extends MinestomThread {
     private void tick() {
         final ReentrantLock lock = this.lock;
         final long tickTime = this.tickTime;
-        for (ThreadDispatcher.Partition entry : entries) {
+        for (ThreadDispatcherImpl.Partition entry : entries) {
             assert entry.thread() == this;
             final List<Tickable> elements = entry.elements();
             if (elements.isEmpty()) continue;
@@ -73,7 +76,7 @@ public final class TickThread extends MinestomThread {
                 try {
                     element.tick(tickTime);
                 } catch (Throwable e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
             }
         }
@@ -92,7 +95,7 @@ public final class TickThread extends MinestomThread {
         LockSupport.unpark(this);
     }
 
-    public Collection<ThreadDispatcher.Partition> entries() {
+    public Collection<ThreadDispatcherImpl.Partition> entries() {
         return entries;
     }
 

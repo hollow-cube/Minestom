@@ -27,7 +27,7 @@ public class AdvancementIntegrationTest {
                 "minecraft:textures/block/stone.png"
         );
 
-        AdvancementTab tab = env.process().advancement().createTab("minestom:minestom_tab", root);
+        AdvancementTab tab = env.process().getAdvancementManager().createTab("minestom:minestom_tab", root);
 
         // Add viewer
         tab.addViewer(player);
@@ -70,8 +70,8 @@ public class AdvancementIntegrationTest {
                 "minecraft:textures/block/stone.png"
         );
 
-        AdvancementTab tab1 = env.process().advancement().createTab("minestom:minestom_tab1", root1);
-        AdvancementTab tab2 = env.process().advancement().createTab("minestom:minestom_tab2", root2);
+        AdvancementTab tab1 = env.process().getAdvancementManager().createTab("minestom:minestom_tab1", root1);
+        AdvancementTab tab2 = env.process().getAdvancementManager().createTab("minestom:minestom_tab2", root2);
         tab1.addViewer(player);
         tab2.addViewer(player);
 

@@ -145,10 +145,10 @@ public class PlayerIntegrationTest {
     public void refreshPlayerTest(Env env) {
         final int TEST_PERMISSION_LEVEL = 2;
         final var testDimension = DimensionType.builder(NamespaceID.from("minestom:test_dimension")).build();
-        env.process().dimension().addDimension(testDimension);
+        env.process().getDimensionTypeManager().addDimension(testDimension);
 
         var instance = env.createFlatInstance();
-        var instance2 = env.process().instance().createInstanceContainer(testDimension);
+        var instance2 = env.process().getInstanceManager().createInstanceContainer(env.process(), testDimension);
 
         var connection = env.createConnection();
         var player = connection.connect(instance, new Pos(0, 42, 0)).join();
@@ -181,9 +181,9 @@ public class PlayerIntegrationTest {
     public void deathLocationTest(Env env) {
         String dimensionNamespace = "minestom:test_dimension";
         final var testDimension = DimensionType.builder(NamespaceID.from(dimensionNamespace)).build();
-        env.process().dimension().addDimension(testDimension);
+        env.process().getDimensionTypeManager().addDimension(testDimension);
 
-        var instance = env.process().instance().createInstanceContainer(testDimension);
+        var instance = env.process().getInstanceManager().createInstanceContainer(env.process(), testDimension);
         var connection = env.createConnection();
         var player = connection.connect(instance, new Pos(5, 42, 2)).join();
 

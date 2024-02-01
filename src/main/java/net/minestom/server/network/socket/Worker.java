@@ -1,6 +1,9 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettingsProvider;
+import net.minestom.server.event.GlobalEventHandlerProvider;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.player.PlayerSocketConnection;
 import net.minestom.server.thread.MinestomThread;
 import net.minestom.server.utils.ObjectPool;
@@ -25,12 +28,22 @@ public final class Worker extends MinestomThread {
 
     final Selector selector;
     private final Map<SocketChannel, PlayerSocketConnection> connectionMap = new ConcurrentHashMap<>();
+
+
     private final Server server;
+    private final ConnectionManagerProvider connectionManagerProvider;
+    private final GlobalEventHandlerProvider globalEventHandlerProvider;
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final ServerSettingsProvider serverSettingsProvider;
     private final MpscUnboundedXaddArrayQueue<Runnable> queue = new MpscUnboundedXaddArrayQueue<>(1024);
 
-    Worker(Server server) {
+    Worker(Server server, ConnectionManagerProvider connectionManagerProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, ServerSettingsProvider serverSettingsProvider) {
         super("Ms-worker-" + COUNTER.getAndIncrement());
         this.server = server;
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.serverSettingsProvider = serverSettingsProvider;
         try {
             this.selector = Selector.open();
         } catch (IOException e) {
@@ -49,7 +62,7 @@ public final class Worker extends MinestomThread {
                 try {
                     this.queue.drain(Runnable::run);
                 } catch (Exception e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
                 // Flush all connections if needed
                 for (PlayerSocketConnection connection : connectionMap.values()) {
@@ -86,12 +99,12 @@ public final class Worker extends MinestomThread {
                         // TODO print exception? (should ignore disconnection)
                         connection.disconnect();
                     } catch (Throwable t) {
-                        MinecraftServer.getExceptionManager().handleException(t);
+                        exceptionHandlerProvider.getExceptionHandler().handleException(t);
                         connection.disconnect();
                     }
                 });
             } catch (Exception e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                exceptionHandlerProvider.getExceptionHandler().handleException(e);
             }
         }
     }
@@ -111,14 +124,15 @@ public final class Worker extends MinestomThread {
     }
 
     void receiveConnection(SocketChannel channel) throws IOException {
-        this.connectionMap.put(channel, new PlayerSocketConnection(this, channel, channel.getRemoteAddress()));
+        this.connectionMap.put(channel, new PlayerSocketConnection(globalEventHandlerProvider.getGlobalEventHandler(), () -> server, connectionManagerProvider, exceptionHandlerProvider, serverSettingsProvider, this, channel, channel.getRemoteAddress()));
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
         if (channel.getLocalAddress() instanceof InetSocketAddress) {
             Socket socket = channel.socket();
-            socket.setSendBufferSize(Server.SOCKET_SEND_BUFFER_SIZE);
-            socket.setReceiveBufferSize(Server.SOCKET_RECEIVE_BUFFER_SIZE);
-            socket.setTcpNoDelay(Server.NO_DELAY);
+
+            socket.setSendBufferSize(serverSettingsProvider.getServerSettings().getSendBufferSize());
+            socket.setReceiveBufferSize(serverSettingsProvider.getServerSettings().getReceiveBufferSize());
+            socket.setTcpNoDelay(serverSettingsProvider.getServerSettings().isTcpNoDelay());
             socket.setSoTimeout(30 * 1000); // 30 seconds
         }
     }

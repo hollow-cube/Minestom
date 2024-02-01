@@ -9,7 +9,8 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.TitlePart;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.adventure.AdventurePacketConvertor;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.entity.Player;
@@ -23,6 +24,7 @@ import net.minestom.server.utils.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
  * An audience implementation that sends grouped packets if possible.
@@ -37,9 +39,35 @@ public interface PacketGroupingAudience extends ForwardingAudience {
      * @param players the players
      * @return the audience
      */
-    static @NotNull PacketGroupingAudience of(@NotNull Collection<Player> players) {
-        return () -> players;
+    static @NotNull PacketGroupingAudience of(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<Player> players) {
+        return new PacketGroupingAudience() {
+            @Override
+            public ServerSettings getServerSettings() {
+                return serverSettingsProvider.getServerSettings();
+            }
+
+            @Override
+            public @NotNull Collection<@NotNull Player> getPlayers() {
+                return players;
+            }
+        };
     }
+
+    static @NotNull PacketGroupingAudience of(ServerSettingsProvider serverSettingsProvider, @NotNull Supplier<Collection<Player>> playersSupplier) {
+        return new PacketGroupingAudience() {
+            @Override
+            public ServerSettings getServerSettings() {
+                return serverSettingsProvider.getServerSettings();
+            }
+
+            @Override
+            public @NotNull Collection<@NotNull Player> getPlayers() {
+                return playersSupplier.get();
+            }
+        };
+    }
+
+    ServerSettings getServerSettings();
 
     /**
      * Gets an iterable of the players this audience contains.
@@ -54,12 +82,13 @@ public interface PacketGroupingAudience extends ForwardingAudience {
      * @param packet the packet to broadcast
      */
     default void sendGroupedPacket(@NotNull ServerPacket packet) {
-        PacketUtils.sendGroupedPacket(getPlayers(), packet);
+        PacketUtils.sendGroupedPacket(this::getServerSettings, getPlayers(), packet);
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
     default void sendMessage(@NotNull Identity source, @NotNull Component message, @NotNull MessageType type) {
-        Messenger.sendMessage(this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
+        Messenger.sendMessage(this::getServerSettings, this.getPlayers(), message, ChatPosition.fromMessageType(type), source.uuid());
     }
 
     @Override
@@ -89,12 +118,16 @@ public interface PacketGroupingAudience extends ForwardingAudience {
 
     @Override
     default void showBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().addBossBar(this.getPlayers(), bar);
+        for (Player player : this.getPlayers()) {
+            player.showBossBar(bar);
+        }
     }
 
     @Override
     default void hideBossBar(@NotNull BossBar bar) {
-        MinecraftServer.getBossBarManager().removeBossBar(this.getPlayers(), bar);
+        for (Player player : this.getPlayers()) {
+            player.hideBossBar(bar);
+        }
     }
 
     /**

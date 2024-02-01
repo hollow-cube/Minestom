@@ -5,6 +5,8 @@ import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.GameMode;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.utils.StringUtils;
 import net.minestom.server.utils.binary.BinaryWriter;
 import net.minestom.server.utils.entity.EntityFinder;
@@ -47,12 +49,16 @@ public class ArgumentEntity extends Argument<EntityFinder> {
             "distance", "dx", "dy", "dz",
             "scores", "tag", "team", "limit", "sort", "level", "gamemode",
             "x_rotation", "y_rotation", "type", "advancements", "predicate");
+    private final InstanceManager instanceManager;
+    private final ConnectionManager connectionManager;
 
     private boolean onlySingleEntity;
     private boolean onlyPlayers;
 
-    public ArgumentEntity(String id) {
+    public ArgumentEntity(String id, InstanceManager instanceManager, ConnectionManager connectionManager) {
         super(id, true);
+        this.instanceManager = instanceManager;
+        this.connectionManager = connectionManager;
     }
 
     public ArgumentEntity singleEntity(boolean singleEntity) {
@@ -68,42 +74,13 @@ public class ArgumentEntity extends Argument<EntityFinder> {
     @NotNull
     @Override
     public EntityFinder parse(@NotNull CommandSender sender, @NotNull String input) throws ArgumentSyntaxException {
-        return staticParse(sender, input, onlySingleEntity, onlyPlayers);
-    }
-
-    @Override
-    public String parser() {
-        return "minecraft:entity";
-    }
-
-    @Override
-    public byte @Nullable [] nodeProperties() {
-        return BinaryWriter.makeArray(packetWriter -> {
-            byte mask = 0;
-            if (this.isOnlySingleEntity()) {
-                mask |= 0x01;
-            }
-            if (this.isOnlyPlayers()) {
-                mask |= 0x02;
-            }
-            packetWriter.writeByte(mask);
-        });
-    }
-
-    /**
-     * @deprecated use {@link Argument#parse(CommandSender, Argument)}
-     */
-    @Deprecated
-    @NotNull
-    public static EntityFinder staticParse(@NotNull CommandSender sender, @NotNull String input,
-                                           boolean onlySingleEntity, boolean onlyPlayers) throws ArgumentSyntaxException {
         // Check for raw player name or UUID
         if (!input.contains(SELECTOR_PREFIX) && !input.contains(StringUtils.SPACE)) {
 
             // Check if the input is a valid UUID
             try {
                 final UUID uuid = UUID.fromString(input);
-                return new EntityFinder()
+                return new EntityFinder(instanceManager, connectionManager)
                         .setTargetSelector(EntityFinder.TargetSelector.MINESTOM_UUID)
                         .setConstantUuid(uuid);
             } catch (IllegalArgumentException ignored) {
@@ -111,7 +88,7 @@ public class ArgumentEntity extends Argument<EntityFinder> {
 
             // Check if the input is a valid player name
             if (USERNAME_PATTERN.matcher(input).matches()) {
-                return new EntityFinder()
+                return new EntityFinder(instanceManager, connectionManager)
                         .setTargetSelector(EntityFinder.TargetSelector.MINESTOM_USERNAME)
                         .setConstantName(input);
             }
@@ -140,7 +117,7 @@ public class ArgumentEntity extends Argument<EntityFinder> {
             throw new ArgumentSyntaxException("Argument requires only players", input, ONLY_PLAYERS_ERROR);
 
         // Create the EntityFinder which will be used for the rest of the parsing
-        final EntityFinder entityFinder = new EntityFinder()
+        final EntityFinder entityFinder = new EntityFinder(instanceManager, connectionManager)
                 .setTargetSelector(toTargetSelector(selectorVariable));
 
         // The selector is a single selector variable which verify all the conditions
@@ -150,6 +127,25 @@ public class ArgumentEntity extends Argument<EntityFinder> {
         // START PARSING THE STRUCTURE
         final String structure = input.substring(2);
         return parseStructure(sender, input, entityFinder, structure);
+    }
+
+    @Override
+    public String parser() {
+        return "minecraft:entity";
+    }
+
+    @Override
+    public byte @Nullable [] nodeProperties() {
+        return BinaryWriter.makeArray(packetWriter -> {
+            byte mask = 0;
+            if (this.isOnlySingleEntity()) {
+                mask |= 0x01;
+            }
+            if (this.isOnlyPlayers()) {
+                mask |= 0x02;
+            }
+            packetWriter.writeByte(mask);
+        });
     }
 
     @NotNull

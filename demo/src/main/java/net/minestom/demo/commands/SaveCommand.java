@@ -14,18 +14,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class SaveCommand extends Command {
 
-    public SaveCommand() {
+    private final MinecraftServer minecraftServer;
+
+    public SaveCommand(MinecraftServer minecraftServer) {
         super("save");
+        this.minecraftServer = minecraftServer;
         addSyntax(this::execute);
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        for(var instance : MinecraftServer.getInstanceManager().getInstances()) {
+        for(var instance : minecraftServer.getInstanceManager().getInstances()) {
             CompletableFuture<Void> instanceSave = instance.saveInstance().thenCompose(v -> instance.saveChunksToStorage());
             try {
                 instanceSave.get();
             } catch (InterruptedException | ExecutionException e) {
-                MinecraftServer.getExceptionManager().handleException(e);
+                minecraftServer.getExceptionHandler().handleException(e);
             }
         }
         commandSender.sendMessage("Saving done!");

@@ -2,7 +2,6 @@ package net.minestom.server.instance.palette;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.network.NetworkBuffer;
 import net.minestom.server.utils.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -203,7 +202,6 @@ final class FlexiblePalette implements SpecializedPalette, Cloneable {
             palette.count = count;
             return palette;
         } catch (CloneNotSupportedException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
             throw new IllegalStateException("Weird thing happened");
         }
     }

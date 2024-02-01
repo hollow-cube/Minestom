@@ -1,12 +1,13 @@
 package net.minestom.server.utils.callback;
 
+import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Functional interface used by the {@link net.minestom.server.command.CommandManager}
+ * Functional interface used by the {@link CommandManagerImpl}
  * to execute a callback if an unknown command is run.
- * You can set it with {@link net.minestom.server.command.CommandManager#setUnknownCommandCallback(CommandCallback)}.
+ * You can set it with {@link CommandManagerImpl#setUnknownCommandCallback(CommandCallback)}.
  */
 @FunctionalInterface
 public interface CommandCallback {

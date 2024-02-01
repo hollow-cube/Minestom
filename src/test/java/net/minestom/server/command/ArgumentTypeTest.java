@@ -5,6 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -16,7 +18,6 @@ import net.minestom.server.item.Enchantment;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.particle.Particle;
-import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.tag.Tag;
 import net.minestom.server.utils.location.RelativeVec;
 import net.minestom.server.utils.math.FloatRange;
@@ -221,9 +222,10 @@ public class ArgumentTypeTest {
 
     @Test
     public void testArgumentTime() {
+        ServerSettings serverSettings = ServerSettings.builder().build();
         var arg = ArgumentType.Time("time");
-        assertArg(arg, Duration.of(20, TimeUnit.SERVER_TICK), "20");
-        assertArg(arg, Duration.of(40, TimeUnit.SERVER_TICK), "40t");
+        assertArg(arg, Duration.of(20, TimeUnit.getServerTick(serverSettings)), "20");
+        assertArg(arg, Duration.of(40, TimeUnit.getServerTick(serverSettings)), "40t");
         assertArg(arg, Duration.of(60, TimeUnit.SECOND), "60s");
         assertArg(arg, Duration.of(80, TimeUnit.DAY), "80d");
 
@@ -376,16 +378,17 @@ public class ArgumentTypeTest {
 
     @Test
     public void testArgumentGroup() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var arg = ArgumentType.Group("group", ArgumentType.Integer("integer"), ArgumentType.String("string"), ArgumentType.Double("double"));
 
         // Test normal input
-        var context1 = arg.parse(new ServerSender(), "1234 1234 1234");
+        var context1 = arg.parse(new ServerSender(minecraftServer), "1234 1234 1234");
         assertEquals(1234, context1.<Integer>get("integer"));
         assertEquals("1234", context1.<String>get("string"));
         assertEquals(1234.0, context1.<Double>get("double"));
 
         // Test different input + trailing spaces
-        var context2 = arg.parse(new ServerSender(), "1234 abcd 1234.5678   ");
+        var context2 = arg.parse(new ServerSender(minecraftServer), "1234 abcd 1234.5678   ");
         assertEquals(1234, context2.<Integer>get("integer"));
         assertEquals("abcd", context2.<String>get("string"));
         assertEquals(1234.5678, context2.<Double>get("double"));
@@ -452,7 +455,8 @@ public class ArgumentTypeTest {
 
     @Test
     public void testArgumentMapWithSender() {
-        var serverSender = new ServerSender();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var serverSender = new ServerSender(minecraftServer);
 
         var arg = ArgumentType.Word("word").from("word1", "word2", "word3")
                 .map((sender, s) -> {
@@ -464,18 +468,22 @@ public class ArgumentTypeTest {
     }
 
     private static <T> void assertArg(Argument<T> arg, T expected, String input) {
-        assertEquals(expected, arg.parse(new ServerSender(), input));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        assertEquals(expected, arg.parse(new ServerSender(minecraftServer), input));
     }
 
     private static <T> void assertArrayArg(Argument<T[]> arg, T[] expected, String input) {
-        assertArrayEquals(expected, arg.parse(new ServerSender(), input));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        assertArrayEquals(expected, arg.parse(new ServerSender(minecraftServer), input));
     }
 
     private static <T> void assertValidArg(Argument<T> arg, String input) {
-        assertDoesNotThrow(() -> arg.parse(new ServerSender(), input));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        assertDoesNotThrow(() -> arg.parse(new ServerSender(minecraftServer), input));
     }
 
     private static <T> void assertInvalidArg(Argument<T> arg, String input) {
-        assertThrows(ArgumentSyntaxException.class, () -> arg.parse(new ServerSender(), input));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        assertThrows(ArgumentSyntaxException.class, () -> arg.parse(new ServerSender(minecraftServer), input));
     }
 }

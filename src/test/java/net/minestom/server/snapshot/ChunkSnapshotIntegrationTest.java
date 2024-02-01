@@ -1,8 +1,8 @@
 package net.minestom.server.snapshot;
 
+import net.minestom.server.instance.block.Block;
 import net.minestom.testing.Env;
 import net.minestom.testing.EnvTest;
-import net.minestom.server.instance.block.Block;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +14,7 @@ public class ChunkSnapshotIntegrationTest {
     public void blocks(Env env) {
         var instance = env.createFlatInstance();
         instance.setBlock(0, 0, 0, Block.STONE);
-        var snapshot = ServerSnapshot.update();
+        var snapshot = ServerSnapshot.update(env.process());
 
         var inst = snapshot.instances().iterator().next();
         assertEquals(Block.STONE, inst.getBlock(0, 0, 0));

@@ -1,17 +1,22 @@
 package net.minestom.server.entity.hologram;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.metadata.other.ArmorStandMeta;
+import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Represents an invisible armor stand showing a {@link Component}.
@@ -35,33 +40,14 @@ public class Hologram implements Viewable {
      * @param instance      The instance where the hologram should be spawned.
      * @param spawnPosition The spawn position of this hologram.
      * @param text          The text of this hologram.
-     */
-    public Hologram(Instance instance, Pos spawnPosition, Component text) {
-        this(instance, spawnPosition, text, true);
-    }
-
-    /**
-     * Constructs a new {@link Hologram} with the given parameters.
-     *
-     * @param instance      The instance where the hologram should be spawned.
-     * @param spawnPosition The spawn position of this hologram.
-     * @param text          The text of this hologram.
      * @param autoViewable  {@code true}if the hologram should be visible automatically, otherwise {@code false}.
      */
-    public Hologram(Instance instance, Pos spawnPosition, Component text, boolean autoViewable) {
-        this(instance, spawnPosition, text, autoViewable, false);
-    }
-
-    /**
-     * Constructs a new {@link Hologram} with the given parameters.
-     *
-     * @param instance      The instance where the hologram should be spawned.
-     * @param spawnPosition The spawn position of this hologram.
-     * @param text          The text of this hologram.
-     * @param autoViewable  {@code true}if the hologram should be visible automatically, otherwise {@code false}.
-     */
-    public Hologram(Instance instance, Pos spawnPosition, Component text, boolean autoViewable, boolean marker) {
-        this.entity = new Entity(EntityType.ARMOR_STAND);
+    public Hologram(@NotNull GlobalEventHandler globalEventHandler,
+                    @NotNull ServerSettingsProvider serverSettingsProvider,
+                    @NotNull ChunkDispatcherProvider chunkDispatcherProvider,
+                    @NotNull ExceptionHandlerProvider exceptionHandlerProvider,
+                    Instance instance, Pos spawnPosition, Component text, boolean autoViewable, boolean marker) {
+        this.entity = new Entity(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.ARMOR_STAND, UUID.randomUUID());
 
         ArmorStandMeta armorStandMeta = (ArmorStandMeta) entity.getEntityMeta();
 
@@ -185,4 +171,5 @@ public class Hologram implements Viewable {
     private void checkRemoved() {
         Check.stateCondition(isRemoved(), "You cannot interact with a removed Hologram");
     }
+
 }

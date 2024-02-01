@@ -1,7 +1,10 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.network.packet.server.CachedPacket;
@@ -13,19 +16,21 @@ import java.util.Collections;
 import java.util.List;
 
 public class VillagerInventory extends Inventory {
-    private final CachedPacket tradeCache = new CachedPacket(this::createTradePacket);
+    private final CachedPacket tradeCache;
     private final List<TradeListPacket.Trade> trades = new ArrayList<>();
     private int villagerLevel;
     private int experience;
     private boolean regularVillager;
     private boolean canRestock;
 
-    public VillagerInventory(@NotNull Component title) {
-        super(InventoryType.MERCHANT, title);
+    public VillagerInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull Component title) {
+        super(globalEventHandler, serverSettings, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(() -> serverSettings, this::createTradePacket);
     }
 
-    public VillagerInventory(@NotNull String title) {
-        super(InventoryType.MERCHANT, title);
+    public VillagerInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull String title) {
+        super(globalEventHandler, serverSettings, InventoryType.MERCHANT, title);
+        tradeCache = new CachedPacket(() -> serverSettings, this::createTradePacket);
     }
 
     public List<TradeListPacket.Trade> getTrades() {
@@ -82,7 +87,7 @@ public class VillagerInventory extends Inventory {
     public void update() {
         super.update();
         this.tradeCache.invalidate();
-        sendPacketToViewers(tradeCache);
+        sendPacketToViewers(() -> serverSettings, tradeCache);
     }
 
     @Override

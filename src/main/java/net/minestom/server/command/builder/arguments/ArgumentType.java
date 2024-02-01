@@ -1,5 +1,7 @@
 package net.minestom.server.command.builder.arguments;
 
+import net.minestom.server.ServerSettings;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.builder.arguments.minecraft.*;
 import net.minestom.server.command.builder.arguments.minecraft.registry.ArgumentEnchantment;
 import net.minestom.server.command.builder.arguments.minecraft.registry.ArgumentEntityType;
@@ -12,6 +14,8 @@ import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeBl
 import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeVec2;
 import net.minestom.server.command.builder.arguments.relative.ArgumentRelativeVec3;
 import net.minestom.server.command.builder.parser.ArgumentParser;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,8 +100,8 @@ public class ArgumentType {
     /**
      * @see ArgumentCommand
      */
-    public static ArgumentCommand Command(@NotNull String id) {
-        return new ArgumentCommand(id);
+    public static ArgumentCommand Command(@NotNull String id, CommandManager commandManager) {
+        return new ArgumentCommand(commandManager, id);
     }
 
     /**
@@ -120,8 +124,8 @@ public class ArgumentType {
     /**
      * @see ArgumentTime
      */
-    public static ArgumentTime Time(@NotNull String id) {
-        return new ArgumentTime(id);
+    public static ArgumentTime Time(@NotNull String id, ServerSettings serverSettings) {
+        return new ArgumentTime(id, serverSettings);
     }
 
     /**
@@ -190,8 +194,8 @@ public class ArgumentType {
     /**
      * @see ArgumentEntity
      */
-    public static ArgumentEntity Entity(@NotNull String id) {
-        return new ArgumentEntity(id);
+    public static ArgumentEntity Entity(@NotNull String id, InstanceManager instanceManager, ConnectionManager connectionManager) {
+        return new ArgumentEntity(id, instanceManager, connectionManager);
     }
 
     /**
@@ -258,8 +262,8 @@ public class ArgumentType {
      * Note: this feature is in beta and is very likely to change depending on feedback.
      */
     @ApiStatus.Experimental
-    public static Argument<?>[] generate(@NotNull String format) {
-        return ArgumentParser.generate(format);
+    public static Argument<?>[] generate(@NotNull String format, CommandManager commandManager, ServerSettings serverSettings, InstanceManager instanceManager, ConnectionManager connectionManager) {
+        return ArgumentParser.generate(format, commandManager, serverSettings, instanceManager, connectionManager);
     }
 
     /**
@@ -271,10 +275,10 @@ public class ArgumentType {
 
     /**
      * @see ArgumentEntity
-     * @deprecated use {@link #Entity(String)}
+     * @deprecated use {@link #Entity(String, InstanceManager, ConnectionManager)}
      */
     @Deprecated
-    public static ArgumentEntity Entities(@NotNull String id) {
-        return new ArgumentEntity(id);
+    public static ArgumentEntity Entities(@NotNull String id, InstanceManager instanceManager, ConnectionManager connectionManager) {
+        return new ArgumentEntity(id, instanceManager, connectionManager);
     }
 }

@@ -51,7 +51,7 @@ public class AnvilLoaderIntegrationTest {
     public void loadHouse(Env env) {
         // load a world that contains only a basic house and make sure it is loaded properly
 
-        AnvilLoader chunkLoader = new AnvilLoader(worldFolder) {
+        AnvilLoader chunkLoader = new AnvilLoader(env.process(), worldFolder) {
             // Force loads inside current thread
             @Override
             public boolean supportsParallelLoading() {
@@ -146,7 +146,7 @@ public class AnvilLoaderIntegrationTest {
 
     @Test
     public void loadAndSaveChunk(Env env) throws InterruptedException {
-        Instance instance = env.createFlatInstance(new AnvilLoader(worldFolder) {
+        Instance instance = env.createFlatInstance(new AnvilLoader(env.process(), worldFolder) {
             // Force loads inside current thread
             @Override
             public boolean supportsParallelLoading() {

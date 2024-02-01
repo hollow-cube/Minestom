@@ -1,7 +1,7 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -27,12 +27,19 @@ import static net.minestom.server.instance.Chunk.CHUNK_SIZE_Z;
 import static net.minestom.server.utils.chunk.ChunkUtils.*;
 
 final class EntityTrackerImpl implements EntityTracker {
+
+    private final ServerSettingsProvider serverSettingsProvider;
+
     static final AtomicInteger TARGET_COUNTER = new AtomicInteger();
 
     // Store all data associated to a Target
     // The array index is the Target enum ordinal
     final TargetEntry<Entity>[] entries = EntityTracker.Target.TARGETS.stream().map((Function<Target<?>, TargetEntry>) TargetEntry::new).toArray(TargetEntry[]::new);
     private final Int2ObjectSyncMap<Point> entityPositions = Int2ObjectSyncMap.hashmap();
+
+    public EntityTrackerImpl(ServerSettingsProvider serverSettingsProvider) {
+        this.serverSettingsProvider = serverSettingsProvider;
+    }
 
     @Override
     public <T extends Entity> void register(@NotNull Entity entity, @NotNull Point point,
@@ -48,7 +55,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, this);
-            nearbyEntitiesByChunkRange(point, MinecraftServer.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.add(newEntity);
             });
@@ -69,7 +76,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
         if (update != null) {
             update.referenceUpdate(point, null);
-            nearbyEntitiesByChunkRange(point, MinecraftServer.getEntityViewDistance(), target, newEntity -> {
+            nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getEntityViewDistance(), target, newEntity -> {
                 if (newEntity == entity) return;
                 update.remove(newEntity);
             });
@@ -181,7 +188,7 @@ final class EntityTrackerImpl implements EntityTracker {
                                                @NotNull Target<T> target, @NotNull Update<T> update) {
         final TargetEntry<Entity> entry = entries[target.ordinal()];
         forDifferingChunksInRange(newPoint.chunkX(), newPoint.chunkZ(), oldPoint.chunkX(), oldPoint.chunkZ(),
-                MinecraftServer.getEntityViewDistance(), (chunkX, chunkZ) -> {
+                serverSettingsProvider.getServerSettings().getEntityViewDistance(), (chunkX, chunkZ) -> {
                     // Add
                     final List<Entity> entities = entry.chunkEntities.get(getChunkIndex(chunkX, chunkZ));
                     if (entities == null || entities.isEmpty()) return;
@@ -275,7 +282,7 @@ final class EntityTrackerImpl implements EntityTracker {
         }
 
         private void collectPlayers(EntityTracker tracker, Int2ObjectOpenHashMap<Player> map) {
-            tracker.nearbyEntitiesByChunkRange(point, MinecraftServer.getChunkViewDistance(),
+            tracker.nearbyEntitiesByChunkRange(point, serverSettingsProvider.getServerSettings().getChunkViewDistance(),
                     EntityTracker.Target.PLAYERS, (player) -> map.putIfAbsent(player.getEntityId(), player));
         }
 

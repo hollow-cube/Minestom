@@ -4,53 +4,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
-import net.minestom.server.utils.PacketUtils;
-import net.minestom.server.utils.UniqueIdUtils;
+import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * An object which manages all the {@link Team}'s
  */
-public final class TeamManager {
-
-    /**
-     * Represents all registered teams
-     */
-    private final Set<Team> teams;
-
-    /**
-     * Default constructor
-     */
-    public TeamManager() {
-        this.teams = new CopyOnWriteArraySet<>();
-    }
-
-    /**
-     * Registers a new {@link Team}
-     *
-     * @param team The team to be registered
-     */
-    protected void registerNewTeam(@NotNull Team team) {
-        this.teams.add(team);
-        PacketUtils.broadcastPlayPacket(team.createTeamsCreationPacket());
-    }
-
-    /**
-     * Deletes a {@link Team}
-     *
-     * @param registryName The registry name of team
-     * @return {@code true} if the team was deleted, otherwise {@code false}
-     */
-    public boolean deleteTeam(@NotNull String registryName) {
-        Team team = this.getTeam(registryName);
-        if (team == null) return false;
-        return this.deleteTeam(team);
-    }
+public interface TeamManager {
 
     /**
      * Deletes a {@link Team}
@@ -58,10 +21,18 @@ public final class TeamManager {
      * @param team The team to be deleted
      * @return {@code true} if the team was deleted, otherwise {@code false}
      */
-    public boolean deleteTeam(@NotNull Team team) {
-        // Sends to all online players a team destroy packet
-        PacketUtils.broadcastPlayPacket(team.createTeamDestructionPacket());
-        return this.teams.remove(team);
+    boolean deleteTeam(@NotNull Team team, ConnectionManager connectionManager);
+
+    /**
+     * Deletes a {@link Team}
+     *
+     * @param registryName The registry name of team
+     * @return {@code true} if the team was deleted, otherwise {@code false}
+     */
+    default boolean deleteTeam(@NotNull String registryName, ConnectionManager connectionManager) {
+        Team team = this.getTeam(registryName);
+        if (team == null) return false;
+        return this.deleteTeam(team, connectionManager);
     }
 
     /**
@@ -70,9 +41,7 @@ public final class TeamManager {
      * @param name The registry name of the team
      * @return the team builder
      */
-    public TeamBuilder createBuilder(@NotNull String name) {
-        return new TeamBuilder(name, this);
-    }
+    TeamBuilder createBuilder(@NotNull String name, ConnectionManager connectionManager);
 
     /**
      * Creates a {@link Team} with only the registry name
@@ -80,8 +49,8 @@ public final class TeamManager {
      * @param name The registry name
      * @return the created {@link Team}
      */
-    public Team createTeam(@NotNull String name) {
-        return this.createBuilder(name).build();
+    default Team createTeam(@NotNull String name, ConnectionManager connectionManager) {
+        return this.createBuilder(name, connectionManager).build();
     }
 
     /**
@@ -93,8 +62,8 @@ public final class TeamManager {
      * @param suffix    The team suffix
      * @return the created {@link Team} with a prefix, teamColor and suffix
      */
-    public Team createTeam(String name, Component prefix, NamedTextColor teamColor, Component suffix) {
-        return this.createBuilder(name).prefix(prefix).teamColor(teamColor).suffix(suffix).updateTeamPacket().build();
+    default Team createTeam(String name, Component prefix, NamedTextColor teamColor, Component suffix, ConnectionManager connectionManager) {
+        return this.createBuilder(name, connectionManager).prefix(prefix).teamColor(teamColor).suffix(suffix).updateTeamPacket().build();
     }
 
     /**
@@ -107,8 +76,8 @@ public final class TeamManager {
      * @param suffix      The team suffix
      * @return the created {@link Team} with a prefix, teamColor, suffix and the display name
      */
-    public Team createTeam(String name, Component displayName, Component prefix, NamedTextColor teamColor, Component suffix) {
-        return this.createBuilder(name).teamDisplayName(displayName).prefix(prefix).teamColor(teamColor).suffix(suffix).updateTeamPacket().build();
+    default Team createTeam(String name, Component displayName, Component prefix, NamedTextColor teamColor, Component suffix, ConnectionManager connectionManager) {
+        return this.createBuilder(name, connectionManager).teamDisplayName(displayName).prefix(prefix).teamColor(teamColor).suffix(suffix).updateTeamPacket().build();
     }
 
     /**
@@ -117,12 +86,7 @@ public final class TeamManager {
      * @param teamName The registry name of the team
      * @return a registered {@link Team} or {@code null}
      */
-    public Team getTeam(String teamName) {
-        for (Team team : this.teams) {
-            if (team.getTeamName().equals(teamName)) return team;
-        }
-        return null;
-    }
+    Team getTeam(String teamName);
 
     /**
      * Checks if the given name a registry name of a registered {@link Team}
@@ -130,11 +94,8 @@ public final class TeamManager {
      * @param teamName The name of the team
      * @return {@code true} if the team is registered, otherwise {@code false}
      */
-    public boolean exists(String teamName) {
-        for (Team team : this.teams) {
-            if (team.getTeamName().equals(teamName)) return true;
-        }
-        return false;
+    default boolean exists(String teamName) {
+        return getTeam(teamName) != null;
     }
 
     /**
@@ -143,7 +104,7 @@ public final class TeamManager {
      * @param team The searched team
      * @return {@code true} if the team is registered, otherwise {@code false}
      */
-    public boolean exists(Team team) {
+    default boolean exists(Team team) {
         return this.exists(team.getTeamName());
     }
 
@@ -155,15 +116,7 @@ public final class TeamManager {
      * @param team The team
      * @return a {@link List} with all registered {@link Player}
      */
-    public List<String> getPlayers(Team team) {
-        List<String> players = new ArrayList<>();
-        for (String member : team.getMembers()) {
-            boolean match = UniqueIdUtils.isUniqueId(member);
-
-            if (!match) players.add(member);
-        }
-        return players;
-    }
+    List<String> getPlayers(Team team);
 
     /**
      * Gets a {@link List} with all registered {@link LivingEntity} in the team
@@ -173,22 +126,12 @@ public final class TeamManager {
      * @param team The team
      * @return a {@link List} with all registered {@link LivingEntity}
      */
-    public List<String> getEntities(Team team) {
-        List<String> entities = new ArrayList<>();
-        for (String member : team.getMembers()) {
-            boolean match = UniqueIdUtils.isUniqueId(member);
-
-            if (match) entities.add(member);
-        }
-        return entities;
-    }
+    List<String> getEntities(Team team);
 
     /**
      * Gets a {@link Set} with all registered {@link Team}'s
      *
      * @return a {@link Set} with all registered {@link Team}'s
      */
-    public Set<Team> getTeams() {
-        return this.teams;
-    }
+    Set<Team> getTeams();
 }

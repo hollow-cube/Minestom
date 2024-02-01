@@ -1,5 +1,7 @@
 package net.minestom.server.thread;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,9 @@ public class AcquirableTest {
 
     @Test
     public void assignation() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         AtomicReference<TickThread> tickThread = new AtomicReference<>();
-        Entity entity = new Entity(EntityType.ZOMBIE) {
+        Entity entity = new Entity(minecraftServer, EntityType.ZOMBIE) {
             @Override
             public void tick(long time) {
                 super.tick(time);
@@ -24,7 +27,7 @@ public class AcquirableTest {
         Object first = new Object();
         Object second = new Object();
 
-        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.of(ThreadProvider.counter(), 2);
+        ThreadDispatcher<Object> dispatcher = ThreadDispatcher.of(minecraftServer.getExceptionHandler(), ThreadProvider.counter(), 2);
         dispatcher.createPartition(first);
         dispatcher.createPartition(second);
 

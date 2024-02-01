@@ -3,8 +3,11 @@ package net.minestom.server.command.builder;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandParser;
 import net.minestom.server.command.CommandSender;
+import net.minestom.server.event.GlobalEventHandlerProvider;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,12 +24,12 @@ public class CommandDispatcher {
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .build();
 
-    public CommandDispatcher(CommandManager manager) {
-        this.manager = manager;
+    public CommandDispatcher(ExceptionHandlerProvider exceptionHandlerProvider, GlobalEventHandlerProvider globalEventHandlerProvider) {
+        this(new CommandManagerImpl(exceptionHandlerProvider, globalEventHandlerProvider));
     }
 
-    public CommandDispatcher() {
-        this(new CommandManager());
+    public CommandDispatcher(CommandManager manager) {
+        this.manager = manager;
     }
 
     /**

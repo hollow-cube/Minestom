@@ -1,8 +1,10 @@
 package net.minestom.server.inventory;
 
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.item.EntityEquipEvent;
 import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.inventory.click.InventoryClickResult;
@@ -22,11 +24,13 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
     public static final int INVENTORY_SIZE = 46;
     public static final int INNER_INVENTORY_SIZE = 36;
 
+    private final ServerSettings serverSettings;
     protected final Player player;
     private ItemStack cursorItem = ItemStack.AIR;
 
-    public PlayerInventory(@NotNull Player player) {
-        super(INVENTORY_SIZE);
+    public PlayerInventory(ServerSettings serverSettings, @NotNull EventNode<Event> globalEventHandler, @NotNull Player player) {
+        super(globalEventHandler, INVENTORY_SIZE);
+        this.serverSettings = serverSettings;
         this.player = player;
     }
 
@@ -35,7 +39,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         cursorItem = ItemStack.AIR;
         super.clear();
         // Update equipments
-        this.player.sendPacketToViewersAndSelf(player.getEquipmentsPacket());
+        this.player.sendPacketToViewersAndSelf(() -> serverSettings, player.getEquipmentsPacket());
     }
 
     @Override
@@ -103,6 +107,11 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         safeItemInsert(BOOTS_SLOT, itemStack);
     }
 
+    @Override
+    public ServerSettings getServerSettings() {
+        return serverSettings;
+    }
+
     /**
      * Refreshes the player inventory by sending a {@link WindowItemsPacket} containing all.
      * the inventory items
@@ -145,7 +154,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         };
         if (equipmentSlot != null) {
             EntityEquipEvent entityEquipEvent = new EntityEquipEvent(player, itemStack, equipmentSlot);
-            EventDispatcher.call(entityEquipEvent);
+            globalEventHandler.call(entityEquipEvent);
             itemStack = entityEquipEvent.getEquippedItem();
         }
         this.itemStacks[slot] = itemStack;
@@ -195,7 +204,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setCursorItem(clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.LEFT_CLICK, clicked, cursor);
+        callClickEvent(globalEventHandler, player, null, convertedSlot, ClickType.LEFT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -211,7 +220,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setCursorItem(clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.RIGHT_CLICK, clicked, cursor);
+        callClickEvent(globalEventHandler, player, null, convertedSlot, ClickType.RIGHT_CLICK, clicked, cursor);
         return true;
     }
 
@@ -279,7 +288,7 @@ public non-sealed class PlayerInventory extends AbstractInventory implements Equ
         }
         setItemStack(convertedSlot, clickResult.getClicked());
         setItemStack(convertedKey, clickResult.getCursor());
-        callClickEvent(player, null, convertedSlot, ClickType.CHANGE_HELD, clicked, cursorItem);
+        callClickEvent(globalEventHandler, player, null, convertedSlot, ClickType.CHANGE_HELD, clicked, cursorItem);
         return true;
     }
 

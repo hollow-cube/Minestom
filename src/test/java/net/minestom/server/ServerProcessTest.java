@@ -16,8 +16,8 @@ public class ServerProcessTest {
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
-        AtomicReference<ServerProcess> process = new AtomicReference<>();
-        assertDoesNotThrow(() -> process.set(MinecraftServer.updateProcess()));
+        AtomicReference<MinecraftServer> process = new AtomicReference<>();
+        assertDoesNotThrow(() -> process.set(MinecraftServer.of(ServerSettings.builder().build())));
         assertDoesNotThrow(() -> process.get().start(new InetSocketAddress("localhost", 25565)));
         assertThrows(Exception.class, () -> process.get().start(new InetSocketAddress("localhost", 25566)));
         assertDoesNotThrow(() -> process.get().stop());
@@ -28,9 +28,9 @@ public class ServerProcessTest {
         // These like to fail on github actions
         assumeTrue(System.getenv("GITHUB_ACTIONS") == null);
 
-        var process = MinecraftServer.updateProcess();
+        var process = MinecraftServer.of(ServerSettings.builder().build());
         process.start(new InetSocketAddress("localhost", 25565));
-        var ticker = process.ticker();
+        var ticker = process.getTicker();
         assertDoesNotThrow(() -> ticker.tick(System.currentTimeMillis()));
         assertDoesNotThrow(process::stop);
     }

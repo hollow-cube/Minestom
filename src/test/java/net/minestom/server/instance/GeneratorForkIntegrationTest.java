@@ -1,11 +1,11 @@
 package net.minestom.server.instance;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.world.biomes.Biome;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,8 +15,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void local(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         var block = Block.STONE;
         instance.setGenerator(unit -> {
             var u = unit.fork(unit.absoluteStart(), unit.absoluteEnd());
@@ -30,8 +30,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void size(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         // Set the Generator
         instance.setGenerator(unit -> {
             Point start = unit.absoluteStart();
@@ -47,8 +47,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void signal(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         var block = Block.STONE;
         instance.setGenerator(unit -> {
             var u = unit.fork(unit.absoluteStart(), unit.absoluteEnd().add(16, 0, 16));
@@ -66,8 +66,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void air(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         instance.setGenerator(unit -> {
             var u = unit.fork(unit.absoluteStart(), unit.absoluteEnd().add(16, 0, 16));
             u.modifier().setRelative(16, 39 + 64, 0, Block.AIR);
@@ -80,8 +80,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void fillHeight(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         instance.setGenerator(unit -> {
             var u = unit.fork(unit.absoluteStart(), unit.absoluteEnd().add(16, 0, 16));
             u.modifier().fillHeight(0, 40, Block.STONE);
@@ -96,8 +96,8 @@ public class GeneratorForkIntegrationTest {
 
     @Test
     public void biome(Env env) {
-        var manager = env.process().instance();
-        var instance = manager.createInstanceContainer();
+        var manager = env.process().getInstanceManager();
+        var instance = manager.createInstanceContainer(env.process());
         instance.setGenerator(unit -> {
             var u = unit.fork(unit.absoluteStart(), unit.absoluteEnd().add(16, 0, 16));
             assertThrows(IllegalStateException.class, () -> u.modifier().setBiome(16, 0, 0, Biome.PLAINS));

@@ -58,31 +58,33 @@ public interface Viewable {
      *
      * @param packet the packet to send to all viewers
      */
-    default void sendPacketToViewers(@NotNull SendablePacket packet) {
+    default void sendPacketToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket packet) {
         if (packet instanceof ServerPacket serverPacket) {
-            PacketUtils.sendGroupedPacket(getViewers(), serverPacket);
+            PacketUtils.sendGroupedPacket(serverSettingsProvider, getViewers(), serverPacket);
         } else {
             getViewers().forEach(player -> player.sendPacket(packet));
         }
     }
 
-    default void sendPacketsToViewers(@NotNull Collection<SendablePacket> packets) {
-        packets.forEach(this::sendPacketToViewers);
+    default void sendPacketsToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull Collection<SendablePacket> packets) {
+        for (SendablePacket packet : packets) {
+            sendPacketToViewers(serverSettingsProvider, packet);
+        }
     }
 
-    default void sendPacketsToViewers(@NotNull SendablePacket... packets) {
-        sendPacketsToViewers(List.of(packets));
+    default void sendPacketsToViewers(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket... packets) {
+        sendPacketsToViewers(serverSettingsProvider, List.of(packets));
     }
 
     /**
      * Sends a packet to all viewers and the viewable element if it is a player.
      * <p>
-     * If 'this' isn't a player, then only {@link #sendPacketToViewers(SendablePacket)} is called.
+     * If 'this' isn't a player, then only {@link #sendPacketToViewers(ServerSettingsProvider, SendablePacket)} is called.
      *
      * @param packet the packet to send
      */
-    default void sendPacketToViewersAndSelf(@NotNull SendablePacket packet) {
-        sendPacketToViewers(packet);
+    default void sendPacketToViewersAndSelf(ServerSettingsProvider serverSettingsProvider, @NotNull SendablePacket packet) {
+        sendPacketToViewers(serverSettingsProvider, packet);
     }
 
     /**
@@ -90,8 +92,8 @@ public interface Viewable {
      *
      * @return the audience
      */
-    default @NotNull Audience getViewersAsAudience() {
-        return PacketGroupingAudience.of(this.getViewers());
+    default @NotNull Audience getViewersAsAudience(ServerSettings serverSettings) {
+        return PacketGroupingAudience.of(() -> serverSettings, this.getViewers());
     }
 
     /**

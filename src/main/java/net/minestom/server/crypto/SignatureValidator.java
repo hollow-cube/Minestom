@@ -60,8 +60,8 @@ public interface SignatureValidator {
      * @return null if the player didn't send a public key
      */
     static @Nullable SignatureValidator from(Player player) {
-        if (player.getPlayerConnection().playerPublicKey() == null) return null;
-        return from(player.getPlayerConnection().playerPublicKey().publicKey(), KeyUtils.SignatureAlgorithm.SHA256withRSA);
+        if (player.getPlayerConnection().getPlayerPublicKey() == null) return null;
+        return from(player.getPlayerConnection().getPlayerPublicKey().publicKey(), KeyUtils.SignatureAlgorithm.SHA256withRSA);
     }
 
     private static SignatureValidator createYggdrasilValidator() {

@@ -1,5 +1,7 @@
 package net.minestom.server.instance.light;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.palette.Palette;
@@ -17,7 +19,8 @@ public class BlockLightTest {
 
     @Test
     public void empty() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         var result = LightCompute.compute(palette);
         for (byte light : result.light()) {
             assertEquals(0, light);
@@ -26,7 +29,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstone() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         var result = LightCompute.compute(palette);
         assertLight(result, Map.of(
@@ -37,7 +41,8 @@ public class BlockLightTest {
 
     @Test
     public void doubleGlowstone() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
 
@@ -51,7 +56,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstoneBorder() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         var result = LightCompute.compute(palette);
         assertLight(result, Map.of(
@@ -69,7 +75,8 @@ public class BlockLightTest {
 
     @Test
     public void glowstoneBlock() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(0, 1, 0, Block.GLOWSTONE.stateId());
         palette.set(0, 1, 1, Block.STONE.stateId());
         var result = LightCompute.compute(palette);
@@ -81,7 +88,8 @@ public class BlockLightTest {
 
     @Test
     public void isolated() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
 
         palette.set(3, 1, 4, Block.STONE.stateId());
@@ -108,7 +116,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStair() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "east",
@@ -130,7 +139,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairOpposite() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "west",
@@ -157,7 +167,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairWest() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "west",
@@ -187,7 +198,8 @@ public class BlockLightTest {
 
     @Test
     public void isolatedStairSouth() {
-        var palette = Palette.blocks();
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = Palette.blocks(minecraftServer);
         palette.set(4, 1, 4, Block.GLOWSTONE.stateId());
         palette.set(3, 1, 4, Block.OAK_STAIRS.withProperties(Map.of(
                 "facing", "south",

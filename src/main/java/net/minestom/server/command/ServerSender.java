@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Sender used in {@link CommandManager#executeServerCommand(String)}.
+ * Sender used in {@link CommandManagerImpl#executeServerCommand(String)}.
  * <p>
  * Although this class implemented {@link CommandSender} and thus {@link Audience}, no
  * data can be sent to this sender because it's purpose is to process the data of

@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -18,8 +19,11 @@ import java.util.stream.Stream;
 
 public class HorseCommand extends Command {
 
-    public HorseCommand() {
+    private final MinecraftServer minecraftServer;
+
+    public HorseCommand(MinecraftServer minecraftServer) {
         super("horse");
+        this.minecraftServer = minecraftServer;
         setCondition(Conditions::playerOnly);
         setDefaultExecutor(this::defaultExecutor);
         var babyArg = ArgumentType.Boolean("baby");
@@ -59,7 +63,7 @@ public class HorseCommand extends Command {
         boolean baby = context.get("baby");
         HorseMeta.Marking marking = context.get("marking");
         HorseMeta.Color color = context.get("color");
-        var horse = new EntityCreature(EntityType.HORSE);
+        var horse = new EntityCreature(minecraftServer, EntityType.HORSE);
         var meta = (HorseMeta) horse.getEntityMeta();
         meta.setBaby(baby);
         meta.setVariant(new HorseMeta.Variant(marking, color));

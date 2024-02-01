@@ -1,5 +1,6 @@
 package net.minestom.server.command.builder;
 
+import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.condition.CommandCondition;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents a syntax in {@link Command}
@@ -61,7 +61,7 @@ public class CommandSyntax {
      * <p>
      * Be aware that changing the command condition will not automatically update players auto-completion.
      * You can create a new packet containing the changes with
-     * {@link net.minestom.server.command.CommandManager#createDeclareCommandsPacket(Player)}.
+     * {@link CommandManagerImpl#createDeclareCommandsPacket(Player)}.
      *
      * @param commandCondition the new command condition, null to remove it
      */

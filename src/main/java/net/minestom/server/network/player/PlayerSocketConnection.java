@@ -1,18 +1,21 @@
 package net.minestom.server.network.player;
 
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.adventure.MinestomAdventure;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.ListenerHandle;
 import net.minestom.server.event.player.PlayerPacketOutEvent;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.extras.mojangAuth.MojangCrypt;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.PacketProcessor;
 import net.minestom.server.network.packet.client.ClientPacket;
 import net.minestom.server.network.packet.client.handshake.ClientHandshakePacket;
 import net.minestom.server.network.packet.server.*;
 import net.minestom.server.network.packet.server.login.SetCompressionPacket;
+import net.minestom.server.network.socket.ServerProvider;
 import net.minestom.server.network.socket.Worker;
 import net.minestom.server.utils.ObjectPool;
 import net.minestom.server.utils.PacketUtils;
@@ -48,6 +51,8 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final static Logger LOGGER = LoggerFactory.getLogger(PlayerSocketConnection.class);
     private static final ObjectPool<BinaryBuffer> POOL = ObjectPool.BUFFER_POOL;
 
+    private final ExceptionHandlerProvider exceptionHandlerProvider;
+    private final ServerSettingsProvider serverSettingsProvider;
     private final Worker worker;
     private final MessagePassingQueue<Runnable> workerQueue;
     private final SocketChannel channel;
@@ -74,14 +79,22 @@ public class PlayerSocketConnection extends PlayerConnection {
     private final AtomicReference<BinaryBuffer> tickBuffer = new AtomicReference<>(POOL.get());
     private BinaryBuffer cacheBuffer;
 
-    private final ListenerHandle<PlayerPacketOutEvent> outgoing = EventDispatcher.getHandle(PlayerPacketOutEvent.class);
+    private final ListenerHandle<PlayerPacketOutEvent> outgoing;
 
-    public PlayerSocketConnection(@NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
-        super();
+    public PlayerSocketConnection(GlobalEventHandler globalEventHandler,
+                                  ServerProvider serverProvider,
+                                  ConnectionManagerProvider connectionManagerProvider,
+                                  ExceptionHandlerProvider exceptionHandlerProvider,
+                                  ServerSettingsProvider serverSettingsProvider,
+                                  @NotNull Worker worker, @NotNull SocketChannel channel, SocketAddress remoteAddress) {
+        super(serverProvider, connectionManagerProvider);
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.serverSettingsProvider = serverSettingsProvider;
         this.worker = worker;
         this.workerQueue = worker.queue();
         this.channel = channel;
         this.remoteAddress = remoteAddress;
+        this.outgoing = globalEventHandler.getHandle(PlayerPacketOutEvent.class);
     }
 
     public void processPackets(BinaryBuffer readBuffer, PacketProcessor packetProcessor) {
@@ -93,7 +106,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                 try {
                     encryptionContext.decrypt().update(input, input.duplicate());
                 } catch (ShortBufferException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                     return;
                 }
             }
@@ -109,7 +122,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                             packet = packetProcessor.process(this, id, payload);
                         } catch (Exception e) {
                             // Error while reading the packet
-                            MinecraftServer.getExceptionManager().handleException(e);
+                            exceptionHandlerProvider.getExceptionHandler().handleException(e);
                         } finally {
                             if (payload.position() != payload.limit()) {
                                 LOGGER.warn("WARNING: Packet ({}) 0x{} not fully read ({}) {}", getConnectionState(), Integer.toHexString(id), payload, packet);
@@ -117,7 +130,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                         }
                     });
         } catch (DataFormatException e) {
-            MinecraftServer.getExceptionManager().handleException(e);
+            exceptionHandlerProvider.getExceptionHandler().handleException(e);
             disconnect();
         }
     }
@@ -148,7 +161,7 @@ public class PlayerSocketConnection extends PlayerConnection {
      */
     public void startCompression() {
         Check.stateCondition(compressed, "Compression is already enabled!");
-        final int threshold = MinecraftServer.getCompressionThreshold();
+        final int threshold = serverSettingsProvider.getServerSettings().getCompressionThreshold();
         Check.stateCondition(threshold == 0, "Compression cannot be enabled because the threshold is equal to 0");
         sendPacket(new SetCompressionPacket(threshold));
         this.compressed = true;
@@ -369,7 +382,7 @@ public class PlayerSocketConnection extends PlayerConnection {
             }
         }
         try (var hold = ObjectPool.PACKET_POOL.hold()) {
-            var buffer = PacketUtils.createFramedPacket(getConnectionState(), hold.get(), serverPacket, compressed);
+            var buffer = PacketUtils.createFramedPacket(serverSettingsProvider.getServerSettings(), getConnectionState(), hold.get(), serverPacket, compressed);
             writeBufferSync(buffer, 0, buffer.limit());
         }
     }
@@ -384,7 +397,7 @@ public class PlayerSocketConnection extends PlayerConnection {
                     length = encryptionContext.encrypt().update(buffer.slice(index, length), output);
                     writeBufferSync0(output, 0, length);
                 } catch (ShortBufferException e) {
-                    MinecraftServer.getExceptionManager().handleException(e);
+                    exceptionHandlerProvider.getExceptionHandler().handleException(e);
                 }
                 return;
             }

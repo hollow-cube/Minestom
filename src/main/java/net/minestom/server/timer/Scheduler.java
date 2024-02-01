@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * <p>
  * Tasks are by default executed in the caller thread.
  */
-public sealed interface Scheduler permits SchedulerImpl, SchedulerManager {
+public interface Scheduler {
     static @NotNull Scheduler newScheduler() {
         return new SchedulerImpl();
     }

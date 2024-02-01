@@ -1,7 +1,6 @@
 package net.minestom.server.listener;
 
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.*;
 import net.minestom.server.network.packet.client.play.ClientEntityActionPacket;
 
@@ -25,9 +24,9 @@ public class EntityActionListener {
 
         if (oldState != sneaking) {
             if (sneaking) {
-                EventDispatcher.call(new PlayerStartSneakingEvent(player));
+                player.getGlobalEventHandler().call(new PlayerStartSneakingEvent(player));
             } else {
-                EventDispatcher.call(new PlayerStopSneakingEvent(player));
+                player.getGlobalEventHandler().call(new PlayerStopSneakingEvent(player));
             }
         }
     }
@@ -39,15 +38,15 @@ public class EntityActionListener {
 
         if (oldState != sprinting) {
             if (sprinting) {
-                EventDispatcher.call(new PlayerStartSprintingEvent(player));
+                player.getGlobalEventHandler().call(new PlayerStartSprintingEvent(player));
             } else {
-                EventDispatcher.call(new PlayerStopSprintingEvent(player));
+                player.getGlobalEventHandler().call(new PlayerStopSprintingEvent(player));
             }
         }
     }
 
     private static void startFlyingElytra(Player player) {
         player.setFlyingWithElytra(true);
-        EventDispatcher.call(new PlayerStartFlyingWithElytraEvent(player));
+        player.getGlobalEventHandler().call(new PlayerStartFlyingWithElytraEvent(player));
     }
 }

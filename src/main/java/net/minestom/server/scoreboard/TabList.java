@@ -1,6 +1,7 @@
 package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.PlayerListHeaderAndFooterPacket;
 import net.minestom.server.network.packet.server.play.ScoreboardObjectivePacket;
@@ -26,6 +27,7 @@ public class TabList implements Scoreboard {
 
     private final Set<Player> viewers = new CopyOnWriteArraySet<>();
     private final Set<Player> unmodifiableViewers = Collections.unmodifiableSet(viewers);
+    private final ServerSettings serverSettings;
     private final String objectiveName;
 
     private Component header = Component.empty();
@@ -33,7 +35,8 @@ public class TabList implements Scoreboard {
 
     private ScoreboardObjectivePacket.Type type;
 
-    public TabList(String name, ScoreboardObjectivePacket.Type type) {
+    public TabList(ServerSettings serverSettings, String name, ScoreboardObjectivePacket.Type type) {
+        this.serverSettings = serverSettings;
         this.objectiveName = TAB_LIST_PREFIX + name;
 
         this.type = type;
@@ -59,12 +62,12 @@ public class TabList implements Scoreboard {
 
     public void setHeader(@NotNull Component header) {
         this.header = header;
-        sendPacketToViewers(new PlayerListHeaderAndFooterPacket(header, footer));
+        sendPacketToViewers(() -> serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
     }
 
     public void setFooter(@NotNull Component footer) {
         this.footer = footer;
-        sendPacketToViewers(new PlayerListHeaderAndFooterPacket(header, footer));
+        sendPacketToViewers(() -> serverSettings, new PlayerListHeaderAndFooterPacket(header, footer));
     }
 
     @Override
@@ -96,5 +99,10 @@ public class TabList implements Scoreboard {
     @Override
     public String getObjectiveName() {
         return this.objectiveName;
+    }
+
+    @Override
+    public ServerSettings getServerSettings() {
+        return serverSettings;
     }
 }

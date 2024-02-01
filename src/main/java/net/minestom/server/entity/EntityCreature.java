@@ -1,14 +1,18 @@
 package net.minestom.server.entity;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.ai.EntityAI;
 import net.minestom.server.entity.ai.EntityAIGroup;
 import net.minestom.server.entity.pathfinding.NavigableEntity;
 import net.minestom.server.entity.pathfinding.Navigator;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityAttackEvent;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,16 +34,20 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
 
     private Entity target;
 
+    public EntityCreature(MinecraftServer minecraftServer, @NotNull EntityType entityType) {
+        this(minecraftServer, entityType, UUID.randomUUID());
+    }
+
+    public EntityCreature(MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, entityType, uuid);
+    }
+
     /**
      * Constructor which allows to specify an UUID. Only use if you know what you are doing!
      */
-    public EntityCreature(@NotNull EntityType entityType, @NotNull UUID uuid) {
-        super(entityType, uuid);
+    public EntityCreature(GlobalEventHandler globalEventHandler, ServerSettings serverSettings, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        super(globalEventHandler, serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, entityType, uuid);
         heal();
-    }
-
-    public EntityCreature(@NotNull EntityType entityType) {
-        this(entityType, UUID.randomUUID());
     }
 
     @Override
@@ -134,7 +142,7 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
         if (swingHand)
             swingMainHand();
         EntityAttackEvent attackEvent = new EntityAttackEvent(this, target);
-        EventDispatcher.call(attackEvent);
+        globalEventHandler.call(attackEvent);
     }
 
     /**

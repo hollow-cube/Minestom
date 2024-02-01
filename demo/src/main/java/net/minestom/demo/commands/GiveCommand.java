@@ -1,6 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -12,11 +13,10 @@ import net.minestom.server.utils.entity.EntityFinder;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.minestom.server.command.builder.arguments.ArgumentType.Integer;
 import static net.minestom.server.command.builder.arguments.ArgumentType.*;
 
 public class GiveCommand extends Command {
-    public GiveCommand() {
+    public GiveCommand(MinecraftServer minecraftServer) {
         super("give");
 
         setDefaultExecutor((sender, context) ->
@@ -51,7 +51,7 @@ public class GiveCommand extends Command {
 
             sender.sendMessage(Component.text("Items have been given successfully!"));
 
-        }, Entity("target").onlyPlayers(true), ItemStack("item"), Integer("count").setDefaultValue(() -> 1));
+        }, Entity("target", minecraftServer.getInstanceManager(), minecraftServer.getConnectionManager()).onlyPlayers(true), ItemStack("item"), Integer("count").setDefaultValue(() -> 1));
 
     }
 }

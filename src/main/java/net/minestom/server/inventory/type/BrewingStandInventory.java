@@ -1,6 +1,9 @@
 package net.minestom.server.inventory.type;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryProperty;
 import net.minestom.server.inventory.InventoryType;
@@ -11,12 +14,12 @@ public class BrewingStandInventory extends Inventory {
     private short brewTime;
     private short fuelTime;
 
-    public BrewingStandInventory(@NotNull Component title) {
-        super(InventoryType.BREWING_STAND, title);
+    public BrewingStandInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull Component title) {
+        super(globalEventHandler, serverSettings, InventoryType.BREWING_STAND, title);
     }
 
-    public BrewingStandInventory(@NotNull String title) {
-        super(InventoryType.BREWING_STAND, title);
+    public BrewingStandInventory(@NotNull EventNode<Event> globalEventHandler, @NotNull ServerSettings serverSettings, @NotNull String title) {
+        super(globalEventHandler, serverSettings, InventoryType.BREWING_STAND, title);
     }
 
     /**

@@ -2,12 +2,14 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManagerProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,10 +20,13 @@ import java.util.stream.StreamSupport;
  * A provider of iterable audiences.
  */
 class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Audience>> {
-    private final List<ConsoleSender> console = List.of(MinecraftServer.getCommandManager().getConsoleSender());
+    private final ConnectionManagerProvider connectionManagerProvider;
+    private final List<ConsoleSender> console;
     private final AudienceRegistry registry = new AudienceRegistry(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new);
 
-    protected IterableAudienceProvider() {
+    protected IterableAudienceProvider(ConnectionManagerProvider connectionManagerProvider, CommandManager commandManager) {
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.console = Collections.singletonList(commandManager.getConsoleSender());
     }
 
     @Override
@@ -35,12 +40,12 @@ class IterableAudienceProvider implements AudienceProvider<Iterable<? extends Au
 
     @Override
     public @NotNull Iterable<? extends Audience> players() {
-        return MinecraftServer.getConnectionManager().getOnlinePlayers();
+        return connectionManagerProvider.getConnectionManager().getOnlinePlayers();
     }
 
     @Override
     public @NotNull Iterable<? extends Audience> players(@NotNull Predicate<Player> filter) {
-        return MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
+        return connectionManagerProvider.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList();
     }
 
     @Override

@@ -2,7 +2,6 @@ package net.minestom.server.listener;
 
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.PlayerItemAnimationEvent;
 import net.minestom.server.event.player.PlayerPreEatEvent;
 import net.minestom.server.event.player.PlayerUseItemEvent;
@@ -19,7 +18,7 @@ public class UseItemListener {
         ItemStack itemStack = hand == Player.Hand.MAIN ? inventory.getItemInMainHand() : inventory.getItemInOffHand();
         //itemStack.onRightClick(player, hand);
         PlayerUseItemEvent useItemEvent = new PlayerUseItemEvent(player, hand, itemStack);
-        EventDispatcher.call(useItemEvent);
+        player.getGlobalEventHandler().call(useItemEvent);
 
         final PlayerInventory playerInventory = player.getInventory();
         if (useItemEvent.isCancelled()) {
@@ -57,7 +56,7 @@ public class UseItemListener {
 
             // Eating code, contains the eating time customisation
             PlayerPreEatEvent playerPreEatEvent = new PlayerPreEatEvent(player, itemStack, hand, player.getDefaultEatingTime());
-            EventDispatcher.callCancellable(playerPreEatEvent, () -> player.refreshEating(hand, playerPreEatEvent.getEatingTime()));
+            player.getGlobalEventHandler().callCancellable(playerPreEatEvent, () -> player.refreshEating(hand, playerPreEatEvent.getEatingTime()));
 
             if (playerPreEatEvent.isCancelled()) {
                 cancelAnimation = true;
@@ -66,9 +65,9 @@ public class UseItemListener {
 
         if (!cancelAnimation && itemAnimationType != null) {
             PlayerItemAnimationEvent playerItemAnimationEvent = new PlayerItemAnimationEvent(player, itemAnimationType, hand);
-            EventDispatcher.callCancellable(playerItemAnimationEvent, () -> {
+            player.getGlobalEventHandler().callCancellable(playerItemAnimationEvent, () -> {
                 player.refreshActiveHand(true, hand == Player.Hand.OFF, false);
-                player.sendPacketToViewers(player.getMetadataPacket());
+                player.sendPacketToViewers(player.getServerSettingsProvider(), player.getMetadataPacket());
             });
         }
     }

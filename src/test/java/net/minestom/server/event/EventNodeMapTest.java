@@ -1,6 +1,7 @@
 package net.minestom.server.event;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.item.ItemStack;
@@ -17,8 +18,9 @@ public class EventNodeMapTest {
 
     @Test
     public void uniqueMapping() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer,"main");
         var itemNode1 = node.map(item, EventFilter.ITEM);
         var itemNode2 = node.map(item, EventFilter.ITEM);
         assertNotNull(itemNode1);
@@ -32,8 +34,9 @@ public class EventNodeMapTest {
 
     @Test
     public void lazyRegistration() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all("main");
+        var node = (EventNodeImpl<Event>) EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertFalse(node.registeredMappedNode.containsKey(item));
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
@@ -43,8 +46,9 @@ public class EventNodeMapTest {
 
     @Test
     public void secondMap() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = (EventNodeImpl<Event>) EventNode.all("main");
+        var node = (EventNodeImpl<Event>) EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         assertSame(itemNode, itemNode.map(item, EventFilter.ITEM));
         assertThrows(Exception.class, () -> itemNode.map(ItemStack.AIR, EventFilter.ITEM));
@@ -52,8 +56,9 @@ public class EventNodeMapTest {
 
     @Test
     public void map() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer, "main");
 
         AtomicBoolean result = new AtomicBoolean(false);
         var itemNode = node.map(item, EventFilter.ITEM);
@@ -77,16 +82,16 @@ public class EventNodeMapTest {
 
     @Test
     public void entityLocal() {
-        var process = MinecraftServer.updateProcess();
-        var node = process.eventHandler();
-        var entity = new Entity(EntityType.ZOMBIE);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var node = minecraftServer.getGlobalEventHandler();
+        var entity = new Entity(minecraftServer, EntityType.ZOMBIE);
 
         AtomicBoolean result = new AtomicBoolean(false);
         var listener = EventListener.of(EventNodeTest.EntityTestEvent.class, event -> result.set(true));
 
         var handle = node.getHandle(EventNodeTest.EntityTestEvent.class);
         assertFalse(handle.hasListener());
-        entity.eventNode().addListener(listener);
+        entity.getEventNode().addListener(listener);
         assertTrue(handle.hasListener());
 
         assertFalse(result.get());
@@ -95,7 +100,7 @@ public class EventNodeMapTest {
         assertTrue(result.get());
 
         result.set(false);
-        entity.eventNode().removeListener(listener);
+        entity.getEventNode().removeListener(listener);
 
         handle.call(new EventNodeTest.EntityTestEvent(entity));
         assertFalse(result.get());
@@ -103,9 +108,10 @@ public class EventNodeMapTest {
 
     @Test
     public void ownerGC() {
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         // Ensure that the mapped object gets GCed
         var item = ItemStack.of(Material.DIAMOND);
-        var node = EventNode.all("main");
+        var node = EventNode.all(minecraftServer,"main");
         var itemNode = node.map(item, EventFilter.ITEM);
         itemNode.addListener(EventNodeTest.ItemTestEvent.class, event -> {
         });

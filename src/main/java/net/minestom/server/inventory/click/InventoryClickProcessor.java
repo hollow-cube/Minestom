@@ -2,7 +2,8 @@ package net.minestom.server.inventory.click;
 
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryClickEvent;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.inventory.AbstractInventory;
@@ -30,6 +31,13 @@ public final class InventoryClickProcessor {
     // Dragging maps
     private final Map<Player, List<DragData>> leftDraggingMap = new ConcurrentHashMap<>();
     private final Map<Player, List<DragData>> rightDraggingMap = new ConcurrentHashMap<>();
+
+    private final EventNode<Event> globalEventHandler;
+
+
+    public InventoryClickProcessor(EventNode<Event> globalEventHandler) {
+        this.globalEventHandler = globalEventHandler;
+    }
 
     public @NotNull InventoryClickResult leftClick(@NotNull Player player, @NotNull AbstractInventory inventory,
                                                    int slot,
@@ -427,7 +435,7 @@ public final class InventoryClickProcessor {
         {
             InventoryPreClickEvent inventoryPreClickEvent = new InventoryPreClickEvent(eventInventory, player, slot, clickType,
                     clickResult.getClicked(), clickResult.getCursor());
-            EventDispatcher.call(inventoryPreClickEvent);
+            globalEventHandler.call(inventoryPreClickEvent);
             clickResult.setCursor(inventoryPreClickEvent.getCursorItem());
             clickResult.setClicked(inventoryPreClickEvent.getClickedItem());
             if (inventoryPreClickEvent.isCancelled()) {
@@ -463,7 +471,7 @@ public final class InventoryClickProcessor {
     private void callClickEvent(@NotNull Player player, @Nullable AbstractInventory inventory, int slot,
                                 @NotNull ClickType clickType, @NotNull ItemStack clicked, @NotNull ItemStack cursor) {
         final Inventory eventInventory = inventory instanceof Inventory ? (Inventory) inventory : null;
-        EventDispatcher.call(new InventoryClickEvent(eventInventory, player, slot, clickType, clicked, cursor));
+        globalEventHandler.call(new InventoryClickEvent(eventInventory, player, slot, clickType, clicked, cursor));
     }
 
     public void clearCache(@NotNull Player player) {

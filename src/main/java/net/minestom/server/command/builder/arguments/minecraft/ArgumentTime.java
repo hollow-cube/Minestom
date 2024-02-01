@@ -2,6 +2,7 @@ package net.minestom.server.command.builder.arguments.minecraft;
 
 import it.unimi.dsi.fastutil.chars.CharArrayList;
 import it.unimi.dsi.fastutil.chars.CharList;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
@@ -24,11 +25,13 @@ public class ArgumentTime extends Argument<Duration> {
     public static final int NO_NUMBER = -3;
 
     private static final CharList SUFFIXES = new CharArrayList(new char[]{'d', 's', 't'});
+    private final ServerSettings serverSettings;
 
     private int min = 0;
 
-    public ArgumentTime(String id) {
+    public ArgumentTime(String id, ServerSettings serverSettings) {
         super(id);
+        this.serverSettings = serverSettings;
     }
 
     public @NotNull ArgumentTime min(int min) {
@@ -43,7 +46,7 @@ public class ArgumentTime extends Argument<Duration> {
 
         TemporalUnit timeUnit;
         if (Character.isDigit(lastChar))
-            timeUnit = TimeUnit.SERVER_TICK;
+            timeUnit = TimeUnit.getServerTick(serverSettings);
         else if (SUFFIXES.contains(lastChar)) {
             input = input.substring(0, input.length() - 1);
 
@@ -52,7 +55,7 @@ public class ArgumentTime extends Argument<Duration> {
             } else if (lastChar == 's') {
                 timeUnit = TimeUnit.SECOND;
             } else if (lastChar == 't') {
-                timeUnit = TimeUnit.SERVER_TICK;
+                timeUnit = TimeUnit.getServerTick(serverSettings);
             } else {
                 throw new ArgumentSyntaxException("Time needs to have the unit d, s, t, or none", input, NO_NUMBER);
             }

@@ -12,8 +12,11 @@ import net.minestom.server.utils.location.RelativeVec;
 
 public class TeleportCommand extends Command {
 
-    public TeleportCommand() {
+    private final MinecraftServer minecraftServer;
+
+    public TeleportCommand(MinecraftServer minecraftServer) {
         super("tp");
+        this.minecraftServer = minecraftServer;
 
         setDefaultExecutor((source, context) -> source.sendMessage(Component.text("Usage: /tp x y z")));
 
@@ -26,7 +29,7 @@ public class TeleportCommand extends Command {
 
     private void onPlayerTeleport(CommandSender sender, CommandContext context) {
         final String playerName = context.get("player");
-        Player pl = MinecraftServer.getConnectionManager().getOnlinePlayerByUsername(playerName);
+        Player pl = minecraftServer.getConnectionManager().getOnlinePlayerByUsername(playerName);
         if (sender instanceof Player player) {
             player.teleport(pl.getPosition());
         }

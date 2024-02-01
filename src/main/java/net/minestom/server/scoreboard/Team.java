@@ -4,10 +4,11 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.adventure.audience.PacketGroupingAudience;
 import net.minestom.server.entity.LivingEntity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.network.packet.server.play.TeamsPacket.CollisionRule;
 import net.minestom.server.network.packet.server.play.TeamsPacket.NameTagVisibility;
@@ -33,6 +34,8 @@ public class Team implements PacketGroupingAudience {
      */
     private final Set<String> members;
 
+    private final ConnectionManager connectionManager;
+    private final ServerSettings serverSettings;
     /**
      * The registry name of the team.
      */
@@ -75,12 +78,15 @@ public class Team implements PacketGroupingAudience {
     // Adventure
     private final Pointers pointers;
 
+
     /**
      * Default constructor to creates a team.
      *
      * @param teamName The registry name for the team
      */
-    protected Team(@NotNull String teamName) {
+    protected Team(ConnectionManager connectionManager, ServerSettings serverSettings, @NotNull String teamName) {
+        this.connectionManager = connectionManager;
+        this.serverSettings = serverSettings;
         this.teamName = teamName;
 
         this.teamDisplayName = Component.empty();
@@ -128,7 +134,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket addPlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.AddEntitiesToTeamAction(toAdd));
         // Sends to all online players the add player packet
-        PacketUtils.broadcastPlayPacket(addPlayerPacket);
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, addPlayerPacket);
 
         // invalidate player members
         this.isPlayerMembersUpToDate = false;
@@ -159,7 +165,7 @@ public class Team implements PacketGroupingAudience {
         final TeamsPacket removePlayerPacket = new TeamsPacket(teamName,
                 new TeamsPacket.RemoveEntitiesToTeamAction(toRemove));
         // Sends to all online player the remove player packet
-        PacketUtils.broadcastPlayPacket(removePlayerPacket);
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, removePlayerPacket);
 
         // Removes the member from the team
         this.members.removeAll(toRemove);
@@ -463,7 +469,12 @@ public class Team implements PacketGroupingAudience {
     public void sendUpdatePacket() {
         final var info = new TeamsPacket.UpdateTeamAction(teamDisplayName, friendlyFlags,
                 nameTagVisibility, collisionRule, teamColor, prefix, suffix);
-        PacketUtils.broadcastPlayPacket(new TeamsPacket(teamName, info));
+        PacketUtils.broadcastPlayPacket(connectionManager, () -> serverSettings, new TeamsPacket(teamName, info));
+    }
+
+    @Override
+    public ServerSettings getServerSettings() {
+        return serverSettings;
     }
 
     @Override
@@ -472,7 +483,7 @@ public class Team implements PacketGroupingAudience {
             this.playerMembers.clear();
 
             for (String member : this.members) {
-                Player player = MinecraftServer.getConnectionManager().getOnlinePlayerByUsername(member);
+                Player player = connectionManager.getOnlinePlayerByUsername(member);
 
                 if (player != null) {
                     this.playerMembers.add(player);

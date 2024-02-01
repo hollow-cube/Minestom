@@ -1,6 +1,7 @@
 package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.packet.server.play.ScoreboardObjectivePacket;
 import org.jetbrains.annotations.NotNull;
@@ -24,17 +25,18 @@ public class BelowNameTag implements Scoreboard {
     private final String objectiveName;
 
     private final ScoreboardObjectivePacket scoreboardObjectivePacket;
+    private final ServerSettings serverSettings;
 
     /**
      * Creates a new below name scoreboard.
      *
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
-     * @deprecated Use {@link #BelowNameTag(String, Component)}
+     * @deprecated Use {@link #BelowNameTag(ServerSettings, String, Component)}
      */
     @Deprecated
-    public BelowNameTag(String name, String value) {
-        this(name, Component.text(value));
+    public BelowNameTag(ServerSettings serverSettings, String name, String value) {
+        this(serverSettings, name, Component.text(value));
     }
 
     /**
@@ -43,7 +45,8 @@ public class BelowNameTag implements Scoreboard {
      * @param name  The objective name of the scoreboard
      * @param value The value of the scoreboard
      */
-    public BelowNameTag(String name, Component value) {
+    public BelowNameTag(ServerSettings serverSettings, String name, Component value) {
+        this.serverSettings = serverSettings;
         this.objectiveName = BELOW_NAME_TAG_PREFIX + name;
         this.scoreboardObjectivePacket = this.getCreationObjectivePacket(value, ScoreboardObjectivePacket.Type.INTEGER);
     }
@@ -78,5 +81,9 @@ public class BelowNameTag implements Scoreboard {
     @Override
     public Set<Player> getViewers() {
         return unmodifiableViewers;
+    }
+
+    public ServerSettings getServerSettings() {
+        return this.serverSettings;
     }
 }

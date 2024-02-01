@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.extras.query.event.BasicQueryEvent;
 import net.minestom.server.extras.query.event.FullQueryEvent;
 import net.minestom.server.timer.Task;
@@ -32,16 +31,18 @@ import java.util.Random;
  */
 public class Query {
     public static final Charset CHARSET = StandardCharsets.ISO_8859_1;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Query.class);
-    private static final Random RANDOM = new Random();
-    private static final Int2ObjectMap<SocketAddress> CHALLENGE_TOKENS = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
+    private final Logger LOGGER = LoggerFactory.getLogger(Query.class);
+    private final Random RANDOM = new Random();
+    private final Int2ObjectMap<SocketAddress> CHALLENGE_TOKENS = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>());
 
-    private static volatile boolean started;
-    private static volatile DatagramSocket socket;
-    private static volatile Thread thread;
-    private static volatile Task task;
+    private volatile boolean started;
+    private volatile DatagramSocket socket;
+    private volatile Thread thread;
+    private volatile Task task;
+    private final MinecraftServer minecraftServer;
 
-    private Query() {
+    public Query(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
     }
 
     /**
@@ -50,7 +51,7 @@ public class Query {
      * @return the port
      * @throws IllegalArgumentException if the system was already running
      */
-    public static int start() {
+    public int start() {
         if (socket != null) {
             throw new IllegalArgumentException("System is already running");
         } else {
@@ -66,7 +67,7 @@ public class Query {
      * @param port the port
      * @return {@code true} if the query system started successfully, {@code false} otherwise
      */
-    public static boolean start(int port) {
+    public boolean start(int port) {
         if (socket != null) {
             return false;
         } else {
@@ -77,11 +78,11 @@ public class Query {
                 return false;
             }
 
-            thread = new Thread(Query::run);
+            thread = new Thread(this::run);
             thread.start();
             started = true;
 
-            task = MinecraftServer.getSchedulerManager()
+            task = minecraftServer.getSchedulerManager()
                     .buildTask(CHALLENGE_TOKENS::clear)
                     .repeat(30, TimeUnit.SECOND)
                     .schedule();
@@ -95,7 +96,7 @@ public class Query {
      *
      * @return {@code true} if the query system was stopped, {@code false} if it was not running
      */
-    public static boolean stop() {
+    public  boolean stop() {
         if (!started) {
             return false;
         } else {
@@ -118,11 +119,11 @@ public class Query {
      *
      * @return {@code true} if it has been started, {@code false} otherwise
      */
-    public static boolean isStarted() {
+    public boolean isStarted() {
         return started;
     }
 
-    private static void run() {
+    private void run() {
         final byte[] buffer = new byte[16];
 
         while (started) {
@@ -182,12 +183,12 @@ public class Query {
                     int remaining = data.remaining();
 
                     if (remaining == 0) { // basic
-                        BasicQueryEvent event = new BasicQueryEvent(sender, sessionID);
-                        EventDispatcher.callCancellable(event, () ->
+                        BasicQueryEvent event = new BasicQueryEvent(minecraftServer, sender, sessionID);
+                        minecraftServer.getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     } else if (remaining == 5) { // full
-                        FullQueryEvent event = new FullQueryEvent(sender, sessionID);
-                        EventDispatcher.callCancellable(event, () ->
+                        FullQueryEvent event = new FullQueryEvent(minecraftServer, sender, sessionID);
+                        minecraftServer.getGlobalEventHandler().callCancellable(event, () ->
                                 sendResponse(event.getQueryResponse(), sessionID, sender));
                     }
                 }
@@ -195,7 +196,7 @@ public class Query {
         }
     }
 
-    private static void sendResponse(@NotNull Writeable queryResponse, int sessionID, @NotNull SocketAddress sender) {
+    private void sendResponse(@NotNull Writeable queryResponse, int sessionID, @NotNull SocketAddress sender) {
         // header
         BinaryWriter response = new BinaryWriter();
         response.writeByte((byte) 0);

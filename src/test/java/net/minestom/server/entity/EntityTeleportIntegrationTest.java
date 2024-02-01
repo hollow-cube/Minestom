@@ -1,11 +1,11 @@
 package net.minestom.server.entity;
 
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.network.packet.server.ServerPacket;
 import net.minestom.server.network.packet.server.play.EntityTeleportPacket;
 import net.minestom.server.network.packet.server.play.PlayerPositionAndLookPacket;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +16,7 @@ public class EntityTeleportIntegrationTest {
     @Test
     public void entityChunkTeleport(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         assertEquals(instance, entity.getInstance());
         assertEquals(new Pos(0, 42, 0), entity.getPosition());
@@ -28,7 +28,7 @@ public class EntityTeleportIntegrationTest {
     @Test
     public void entityTeleport(Env env) {
         var instance = env.createFlatInstance();
-        var entity = new Entity(EntityTypes.ZOMBIE);
+        var entity = new Entity(env.process(), EntityTypes.ZOMBIE);
         entity.setInstance(instance, new Pos(0, 42, 0)).join();
         assertEquals(instance, entity.getInstance());
         assertEquals(new Pos(0, 42, 0), entity.getPosition());

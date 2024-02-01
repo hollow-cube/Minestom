@@ -2,11 +2,9 @@ package net.minestom.server.instance;
 
 import com.extollit.gaming.ai.path.model.ColumnarOcclusionFieldList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
-import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PFBlock;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
@@ -24,8 +22,8 @@ import net.minestom.server.utils.ArrayUtils;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.ObjectPool;
 import net.minestom.server.utils.chunk.ChunkUtils;
-import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.biomes.Biome;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.nbt.NBT;
@@ -44,6 +42,7 @@ import static net.minestom.server.utils.chunk.ChunkUtils.toSectionRelativeCoordi
  */
 public class DynamicChunk extends Chunk {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicChunk.class);
+    protected final BiomeManagerProvider biomeManagerProvider;
 
     protected List<Section> sections;
 
@@ -52,13 +51,15 @@ public class DynamicChunk extends Chunk {
     protected final Int2ObjectOpenHashMap<Block> tickableMap = new Int2ObjectOpenHashMap<>(0);
 
     private long lastChange;
-    final CachedPacket chunkCache = new CachedPacket(this::createChunkPacket);
+    final CachedPacket chunkCache;
 
-    public DynamicChunk(@NotNull Instance instance, int chunkX, int chunkZ) {
+    public DynamicChunk(BiomeManagerProvider biomeManagerProvider, @NotNull Instance instance, int chunkX, int chunkZ) {
         super(instance, chunkX, chunkZ, true);
+        this.biomeManagerProvider = biomeManagerProvider;
         var sectionsTemp = new Section[maxSection - minSection];
         Arrays.setAll(sectionsTemp, value -> new Section());
         this.sections = List.of(sectionsTemp);
+        chunkCache = new CachedPacket(instance.getServerSettingsProvider(), this::createChunkPacket);
     }
 
     @Override
@@ -182,7 +183,7 @@ public class DynamicChunk extends Chunk {
         final Section section = getSectionAt(y);
         final int id = section.biomePalette()
                 .get(toSectionRelativeCoordinate(x) / 4, toSectionRelativeCoordinate(y) / 4, toSectionRelativeCoordinate(z) / 4);
-        return MinecraftServer.getBiomeManager().getById(id);
+        return biomeManagerProvider.getBiomeManager().getById(id);
     }
 
     @Override
@@ -197,7 +198,7 @@ public class DynamicChunk extends Chunk {
 
     @Override
     public @NotNull Chunk copy(@NotNull Instance instance, int chunkX, int chunkZ) {
-        DynamicChunk dynamicChunk = new DynamicChunk(instance, chunkX, chunkZ);
+        DynamicChunk dynamicChunk = new DynamicChunk(biomeManagerProvider, instance, chunkX, chunkZ);
         dynamicChunk.sections = sections.stream().map(Section::clone).toList();
         dynamicChunk.entries.putAll(entries);
         return dynamicChunk;
@@ -315,7 +316,7 @@ public class DynamicChunk extends Chunk {
             clonedSections[i] = sections.get(i).clone();
         var entities = instance.getEntityTracker().chunkEntities(chunkX, chunkZ, EntityTracker.Target.ENTITIES);
         final int[] entityIds = ArrayUtils.mapToIntArray(entities, Entity::getEntityId);
-        return new SnapshotImpl.Chunk(minSection, chunkX, chunkZ,
+        return new SnapshotImpl.Chunk(biomeManagerProvider, minSection, chunkX, chunkZ,
                 clonedSections, entries.clone(), entityIds, updater.reference(instance),
                 tagHandler().readableCopy());
     }

@@ -3,8 +3,10 @@ package net.minestom.server.network.player;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
 import net.minestom.server.entity.fakeplayer.FakePlayerController;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.packet.server.SendablePacket;
 import net.minestom.server.network.packet.server.ServerPacket;
+import net.minestom.server.network.socket.ServerProvider;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +14,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 public class FakePlayerConnection extends PlayerConnection {
+
+    public FakePlayerConnection(ServerProvider serverProvider, ConnectionManagerProvider connectionManagerProvider) {
+        super(serverProvider, connectionManagerProvider);
+    }
 
     @Override
     public void sendPacket(@NotNull SendablePacket packet) {

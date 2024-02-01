@@ -27,11 +27,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = MinecraftServer.getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSettings().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer();
+        final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.process(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -59,11 +59,11 @@ public class EntityTrackerIntegrationTest {
         final Instance instance = env.createFlatInstance();
         final Instance anotherInstance = env.createFlatInstance();
         final Pos spawnPos = new Pos(0, 41, 0);
-        final int viewDistanceInChunks = MinecraftServer.getEntityViewDistance();
+        final int viewDistanceInChunks = env.process().getServerSettings().getEntityViewDistance();
 
-        final Player viewer = createTestPlayer();
+        final Player viewer = createTestPlayer(env.process());
         final AtomicInteger viewersCount = new AtomicInteger();
-        final Entity entity = new Entity(EntityType.ZOMBIE) {
+        final Entity entity = new Entity(env.process(), EntityType.ZOMBIE) {
             @Override
             public void updateNewViewer(Player player) {
                 viewersCount.incrementAndGet();
@@ -107,7 +107,7 @@ public class EntityTrackerIntegrationTest {
     @Test
     public void viewableShared(Env env) {
         final InstanceContainer instance = (InstanceContainer) env.createFlatInstance();
-        var shared = env.process().instance().createSharedInstance(instance);
+        var shared = env.process().getInstanceManager().createSharedInstance(env.process(), instance);
         var sharedList = instance.getSharedInstances();
 
         final Pos spawnPos = new Pos(0, 41, 0);
@@ -124,13 +124,13 @@ public class EntityTrackerIntegrationTest {
         player.teleport(new Pos(10_000, 41, 0)).join();
         assertEquals(0, viewable.getViewers().size());
 
-        var shared2 = env.process().instance().createSharedInstance(instance);
+        var shared2 = env.process().getInstanceManager().createSharedInstance(env.process(), instance);
         player.setInstance(shared2, spawnPos).join();
         assertEquals(1, viewable.getViewers().size());
     }
 
-    private Player createTestPlayer() {
-        return new Player(UUID.randomUUID(), "TestPlayer", new PlayerConnection() {
+    private Player createTestPlayer(MinecraftServer minecraftServer) {
+        return new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", new PlayerConnection(minecraftServer) {
             @Override
             public void sendPacket(@NotNull SendablePacket packet) {
                 // nothing

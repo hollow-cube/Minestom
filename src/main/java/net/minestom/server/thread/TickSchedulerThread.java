@@ -2,31 +2,40 @@ package net.minestom.server.thread;
 
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.Ticker;
+import net.minestom.server.exception.ExceptionHandler;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.locks.LockSupport;
 
 @ApiStatus.Internal
 public final class TickSchedulerThread extends MinestomThread {
-    private final ServerProcess serverProcess;
 
     private final long startTickNs = System.nanoTime();
+    private final ServerSettings serverSettings;
+    private final Ticker ticker;
+    private final ServerProcess serverProcess;
+    private final ExceptionHandler exceptionHandler;
     private long tick = 1;
 
-    public TickSchedulerThread(ServerProcess serverProcess) {
+    public TickSchedulerThread(ServerSettings serverSettings, Ticker ticker, ServerProcess serverProcess, ExceptionHandler exceptionHandler) {
         super(MinecraftServer.THREAD_NAME_TICK_SCHEDULER);
+        this.serverSettings = serverSettings;
+        this.ticker = ticker;
         this.serverProcess = serverProcess;
+        this.exceptionHandler = exceptionHandler;
     }
 
     @Override
     public void run() {
-        final long tickNs = (long) (MinecraftServer.TICK_MS * 1e6);
+        final long tickNs = (long) (serverSettings.getTickMs() * 1e6);
         while (serverProcess.isAlive()) {
             final long tickStart = System.nanoTime();
             try {
-                serverProcess.ticker().tick(tickStart);
+                ticker.tick(tickStart);
             } catch (Exception e) {
-                serverProcess.exception().handleException(e);
+                exceptionHandler.handleException(e);
             }
             fixTickRate(tickNs);
         }

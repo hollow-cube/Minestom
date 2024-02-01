@@ -1,5 +1,7 @@
 package net.minestom.server.command;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -143,7 +145,8 @@ public class CommandParseTest {
     }
 
     private static CommandParser.Result parseCommand(Graph graph, String input) {
-        return CommandParser.parser().parse(new ServerSender(), graph, input);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        return CommandParser.parser().parse(new ServerSender(minecraftServer), graph, input);
     }
 
     @NotNull

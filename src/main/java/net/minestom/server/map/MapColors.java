@@ -1,7 +1,5 @@
 package net.minestom.server.map;
 
-import net.minestom.server.MinecraftServer;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -103,7 +101,7 @@ public enum MapColors {
                 reduction = Integer.parseInt(reductionStr);
             } catch (NumberFormatException e) {
                 System.err.println("Invalid integer in reduction argument: " + reductionStr);
-                MinecraftServer.getExceptionManager().handleException(e);
+                throw new RuntimeException(e);
             }
 
             if (reduction < 0 || reduction >= 255) {

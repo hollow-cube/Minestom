@@ -2,6 +2,8 @@ package net.minestom.server.scoreboard;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.network.packet.server.play.TeamsPacket.CollisionRule;
 import net.minestom.server.network.packet.server.play.TeamsPacket.NameTagVisibility;
 
@@ -13,7 +15,8 @@ public class TeamBuilder {
     /**
      * The management for the teams
      */
-    private final TeamManager teamManager;
+    private final TeamManagerImpl teamManager;
+    private final ConnectionManager connectionManager;
     /**
      * The team to create
      */
@@ -29,8 +32,8 @@ public class TeamBuilder {
      * @param name        The name of the new team
      * @param teamManager The manager for the team
      */
-    public TeamBuilder(String name, TeamManager teamManager) {
-        this(teamManager.exists(name) ? teamManager.getTeam(name) : new Team(name), teamManager);
+    public TeamBuilder(ConnectionManager connectionManager, ServerSettings serverSettings, String name, TeamManagerImpl teamManager) {
+        this(connectionManager, teamManager.exists(name) ? teamManager.getTeam(name) : new Team(connectionManager, serverSettings, name), teamManager);
     }
 
     /**
@@ -39,7 +42,8 @@ public class TeamBuilder {
      * @param team        The new team
      * @param teamManager The manager for the team
      */
-    private TeamBuilder(Team team, TeamManager teamManager) {
+    private TeamBuilder(ConnectionManager connectionManager, Team team, TeamManagerImpl teamManager) {
+        this.connectionManager = connectionManager;
         this.team = team;
         this.teamManager = teamManager;
         this.updateTeam = false;
@@ -273,7 +277,7 @@ public class TeamBuilder {
      * @return the built team
      */
     public Team build() {
-        if (!this.teamManager.exists(this.team)) this.teamManager.registerNewTeam(this.team);
+        if (!this.teamManager.exists(this.team)) this.teamManager.registerNewTeam(this.team, connectionManager);
         if (this.updateTeam) {
             this.team.sendUpdatePacket();
             this.updateTeam = false;

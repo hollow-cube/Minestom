@@ -2,8 +2,10 @@ package net.minestom.server.adventure.audience;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
-import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettingsProvider;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManagerProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -14,11 +16,22 @@ import java.util.function.Predicate;
  */
 class SingleAudienceProvider implements AudienceProvider<Audience> {
 
-    protected final IterableAudienceProvider collection = new IterableAudienceProvider();
-    protected final Audience players = PacketGroupingAudience.of(MinecraftServer.getConnectionManager().getOnlinePlayers());
-    protected final Audience server = Audience.audience(this.players, MinecraftServer.getCommandManager().getConsoleSender());
+    protected final IterableAudienceProvider collection;
+    protected final Audience players;
+    protected final Audience server;
+    private final CommandManager commandManager;
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final ConnectionManagerProvider connectionManagerProvider;
 
-    protected SingleAudienceProvider() {
+
+    protected SingleAudienceProvider(CommandManager commandManager, ServerSettingsProvider serverSettingsProvider, ConnectionManagerProvider connectionManagerProvider) {
+        this.commandManager = commandManager;
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.connectionManagerProvider = connectionManagerProvider;
+
+        this.collection = new IterableAudienceProvider(connectionManagerProvider, commandManager);
+        this.players = PacketGroupingAudience.of(serverSettingsProvider, () -> connectionManagerProvider.getConnectionManager().getOnlinePlayers());
+        this.server = Audience.audience(this.players, commandManager.getConsoleSender());
     }
 
     /**
@@ -42,12 +55,12 @@ class SingleAudienceProvider implements AudienceProvider<Audience> {
 
     @Override
     public @NotNull Audience players(@NotNull Predicate<Player> filter) {
-        return PacketGroupingAudience.of(MinecraftServer.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
+        return PacketGroupingAudience.of(serverSettingsProvider, connectionManagerProvider.getConnectionManager().getOnlinePlayers().stream().filter(filter).toList());
     }
 
     @Override
     public @NotNull Audience console() {
-        return MinecraftServer.getCommandManager().getConsoleSender();
+        return commandManager.getConsoleSender();
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minestom.demo.block.TestBlockHandler;
 import net.minestom.demo.block.placement.DripstonePlacementRule;
 import net.minestom.demo.commands.*;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
@@ -33,52 +34,53 @@ public class Main {
     public static void main(String[] args) {
         System.setProperty("minestom.experiment.pose-updates", "true");
 
-        MinecraftServer.setCompressionThreshold(0);
+        ServerSettings serverSettings = ServerSettings.builder().compressionThreshold(0).build();
 
-        MinecraftServer minecraftServer = MinecraftServer.init();
+        MinecraftServer minecraftServer = MinecraftServer.of(serverSettings);
 
-        BlockManager blockManager = MinecraftServer.getBlockManager();
+
+        BlockManager blockManager = minecraftServer.getBlockManager();
         blockManager.registerBlockPlacementRule(new DripstonePlacementRule());
         blockManager.registerHandler(TestBlockHandler.INSTANCE.getNamespaceId(), () -> TestBlockHandler.INSTANCE);
 
-        CommandManager commandManager = MinecraftServer.getCommandManager();
+        CommandManager commandManager = minecraftServer.getCommandManager();
         commandManager.register(new TestCommand());
-        commandManager.register(new EntitySelectorCommand());
+        commandManager.register(new EntitySelectorCommand(minecraftServer));
         commandManager.register(new HealthCommand());
         commandManager.register(new LegacyCommand());
-        commandManager.register(new DimensionCommand());
-        commandManager.register(new ShutdownCommand());
-        commandManager.register(new TeleportCommand());
-        commandManager.register(new PlayersCommand());
+        commandManager.register(new DimensionCommand(minecraftServer));
+        commandManager.register(new ShutdownCommand(minecraftServer));
+        commandManager.register(new TeleportCommand(minecraftServer));
+        commandManager.register(new PlayersCommand(minecraftServer));
         commandManager.register(new FindCommand());
         commandManager.register(new TitleCommand());
         commandManager.register(new BookCommand());
         commandManager.register(new ShootCommand());
-        commandManager.register(new HorseCommand());
+        commandManager.register(new HorseCommand(minecraftServer));
         commandManager.register(new EchoCommand());
-        commandManager.register(new SummonCommand());
-        commandManager.register(new RemoveCommand());
-        commandManager.register(new GiveCommand());
+        commandManager.register(new SummonCommand(minecraftServer));
+        commandManager.register(new RemoveCommand(minecraftServer));
+        commandManager.register(new GiveCommand(minecraftServer));
         commandManager.register(new SetBlockCommand());
-        commandManager.register(new AutoViewCommand());
-        commandManager.register(new SaveCommand());
-        commandManager.register(new GamemodeCommand());
-        commandManager.register(new ExecuteCommand());
+        commandManager.register(new AutoViewCommand(minecraftServer));
+        commandManager.register(new SaveCommand(minecraftServer));
+        commandManager.register(new GamemodeCommand(minecraftServer));
+        commandManager.register(new ExecuteCommand(minecraftServer));
         commandManager.register(new RedirectTestCommand());
-        commandManager.register(new DisplayCommand());
+        commandManager.register(new DisplayCommand(minecraftServer));
         commandManager.register(new NotificationCommand());
         commandManager.register(new TestCommand2());
         commandManager.register(new ConfigCommand());
-        commandManager.register(new SidebarCommand());
+        commandManager.register(new SidebarCommand(minecraftServer));
         commandManager.register(new SetEntityType());
 
         commandManager.setUnknownCommandCallback((sender, command) -> sender.sendMessage(Component.text("Unknown command", NamedTextColor.RED)));
 
-        MinecraftServer.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
+        minecraftServer.getBenchmarkManager().enable(Duration.of(10, TimeUnit.SECOND));
 
-        MinecraftServer.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
+        minecraftServer.getSchedulerManager().buildShutdownTask(() -> System.out.println("Good night"));
 
-        MinecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
+        minecraftServer.getGlobalEventHandler().addListener(ServerListPingEvent.class, event -> {
             ResponseData responseData = event.getResponseData();
             responseData.addEntry(NamedAndIdentified.named("The first line is separated from the others"));
             responseData.addEntry(NamedAndIdentified.named("Could be a name, or a message"));
@@ -126,9 +128,9 @@ public class Main {
                 return true;
             }
         };
-        MinecraftServer.getRecipeManager().addRecipe(ironBlockRecipe);
+        minecraftServer.getRecipeManager().addRecipe(ironBlockRecipe);
 
-        PlayerInit.init();
+        new PlayerInit(minecraftServer).init();
 
 //        VelocityProxy.enable("abcdef");
         //BungeeCordProxy.enable();
@@ -136,9 +138,9 @@ public class Main {
         //MojangAuth.init();
 
         // useful for testing - we don't need to worry about event calls so just set this to a long time
-        OpenToLAN.open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
+        new OpenToLAN(minecraftServer.getConnectionManager(), minecraftServer.getServer(), minecraftServer.getSchedulerManager(), minecraftServer.getGlobalEventHandler()).open(new OpenToLANConfig().eventCallDelay(Duration.of(1, TimeUnit.DAY)));
 
-        minecraftServer.start("0.0.0.0", 25565);
+        minecraftServer.getServerProcess().start("0.0.0.0", 25565);
 //        minecraftServer.start(java.net.UnixDomainSocketAddress.of("minestom-demo.sock"));
         //Runtime.getRuntime().addShutdownHook(new Thread(MinecraftServer::stopCleanly));
     }

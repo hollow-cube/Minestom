@@ -3,8 +3,8 @@ package net.minestom.server.instance;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
-import net.minestom.server.MinecraftServer;
-import net.minestom.server.ServerProcess;
+import net.minestom.server.ServerSettings;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Tickable;
 import net.minestom.server.adventure.audience.PacketGroupingAudience;
 import net.minestom.server.coordinate.Point;
@@ -13,11 +13,9 @@ import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.ExperienceOrb;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PFInstanceSpace;
-import net.minestom.server.event.EventDispatcher;
-import net.minestom.server.event.EventFilter;
-import net.minestom.server.event.EventHandler;
-import net.minestom.server.event.EventNode;
+import net.minestom.server.event.*;
 import net.minestom.server.event.instance.InstanceTickEvent;
+import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
@@ -25,13 +23,14 @@ import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.network.packet.server.play.BlockActionPacket;
 import net.minestom.server.network.packet.server.play.TimeUpdatePacket;
-import net.minestom.server.snapshot.*;
+import net.minestom.server.snapshot.InstanceSnapshot;
+import net.minestom.server.snapshot.SnapshotUpdater;
+import net.minestom.server.snapshot.Snapshotable;
 import net.minestom.server.tag.TagHandler;
 import net.minestom.server.tag.Taggable;
-import net.minestom.server.thread.ThreadDispatcher;
+import net.minestom.server.thread.ThreadDispatcherImpl;
 import net.minestom.server.timer.Schedulable;
 import net.minestom.server.timer.Scheduler;
-import net.minestom.server.utils.ArrayUtils;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.chunk.ChunkCache;
@@ -49,7 +48,6 @@ import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -60,16 +58,18 @@ import java.util.stream.Collectors;
  * chunk implementation has to be defined, see {@link InstanceContainer}.
  * <p>
  * WARNING: when making your own implementation registering the instance manually is required
- * with {@link InstanceManager#registerInstance(Instance)}, and
- * you need to be sure to signal the {@link ThreadDispatcher} of every partition/element changes.
+ * with {@link InstanceManagerImpl#registerInstance(Instance)}, and
+ * you need to be sure to signal the {@link ThreadDispatcherImpl} of every partition/element changes.
  */
-public abstract class Instance implements Block.Getter, Block.Setter,
-        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
+public abstract class Instance implements Block.Getter, Block.Setter, Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
+
+    private final ServerSettingsProvider serverSettingsProvider;
+    private final EventNode<Event> globalEventHandler;
 
     private boolean registered;
 
     private final DimensionType dimensionType;
-    private final String dimensionName;
+    private final NamespaceID dimensionName;
 
     private final WorldBorder worldBorder;
 
@@ -78,14 +78,16 @@ public abstract class Instance implements Block.Getter, Block.Setter,
 
     // The time of the instance
     private long time;
+
     private int timeRate = 1;
+
     private Duration timeUpdate = Duration.of(1, TimeUnit.SECOND);
     private long lastTimeUpdate;
 
     // Field for tick events
     private long lastTickAge = System.currentTimeMillis();
 
-    private final EntityTracker entityTracker = new EntityTrackerImpl();
+    private final EntityTracker entityTracker;
 
     private final ChunkCache blockRetriever = new ChunkCache(this, null, null);
 
@@ -112,8 +114,13 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(uniqueId, dimensionType, dimensionType.getName());
+    public Instance(
+            @NotNull GlobalEventHandler globalEventHandler,
+            @NotNull ServerSettingsProvider serverSettingsProvider,
+            @NotNull UUID uniqueId,
+            @NotNull DimensionType dimensionType
+    ) {
+        this(globalEventHandler, serverSettingsProvider, uniqueId, dimensionType, dimensionType.getName());
     }
 
     /**
@@ -122,12 +129,21 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      * @param uniqueId      the {@link UUID} of the instance
      * @param dimensionType the {@link DimensionType} of the instance
      */
-    public Instance(@NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+    public Instance(
+            @NotNull GlobalEventHandler globalEventHandler,
+            @NotNull ServerSettingsProvider serverSettingsProvider,
+
+            @NotNull UUID uniqueId,
+            @NotNull DimensionType dimensionType,
+            @NotNull NamespaceID dimensionName
+    ) {
+        this.globalEventHandler = globalEventHandler;
         Check.argCondition(!dimensionType.isRegistered(),
                 "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
+        this.serverSettingsProvider = serverSettingsProvider;
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
-        this.dimensionName = dimensionName.asString();
+        this.dimensionName = dimensionName;
 
         this.worldBorder = new WorldBorder(this);
 
@@ -135,13 +151,8 @@ public abstract class Instance implements Block.Getter, Block.Setter,
                 .withDynamic(Identity.UUID, this::getUniqueId)
                 .build();
 
-        final ServerProcess process = MinecraftServer.process();
-        if (process != null) {
-            this.eventNode = process.eventHandler().map(this, EventFilter.INSTANCE);
-        } else {
-            // Local nodes require a server process
-            this.eventNode = null;
-        }
+        this.eventNode = globalEventHandler.map(this, EventFilter.INSTANCE);
+        entityTracker = new EntityTrackerImpl(serverSettingsProvider);
     }
 
     /**
@@ -173,7 +184,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public abstract boolean placeBlock(@NotNull BlockHandler.Placement placement, boolean doBlockUpdates);
 
     /**
-     * Does call {@link net.minestom.server.event.player.PlayerBlockBreakEvent}
+     * Does call {@link PlayerBlockBreakEvent}
      * and send particle packets
      *
      * @param player        the {@link Player} who break the block
@@ -186,11 +197,11 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     }
 
     /**
-     * Does call {@link net.minestom.server.event.player.PlayerBlockBreakEvent}
+     * Does call {@link PlayerBlockBreakEvent}
      * and send particle packets
      *
-     * @param player        the {@link Player} who break the block
-     * @param blockPosition the position of the broken block
+     * @param player         the {@link Player} who break the block
+     * @param blockPosition  the position of the broken block
      * @param doBlockUpdates true to do block updates, false otherwise
      * @return true if the block has been broken, false if it has been cancelled
      */
@@ -326,6 +337,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
 
     /**
      * Gets the chunk supplier of the instance.
+     *
      * @return the chunk supplier of the instance
      */
     public abstract ChunkSupplier getChunkSupplier();
@@ -375,61 +387,6 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     public abstract boolean isInVoid(@NotNull Point point);
 
     /**
-     * Gets if the instance has been registered in {@link InstanceManager}.
-     *
-     * @return true if the instance has been registered
-     */
-    public boolean isRegistered() {
-        return registered;
-    }
-
-    /**
-     * Changes the registered field.
-     * <p>
-     * WARNING: should only be used by {@link InstanceManager}.
-     *
-     * @param registered true to mark the instance as registered
-     */
-    protected void setRegistered(boolean registered) {
-        this.registered = registered;
-    }
-
-    /**
-     * Gets the instance {@link DimensionType}.
-     *
-     * @return the dimension of the instance
-     */
-    public DimensionType getDimensionType() {
-        return dimensionType;
-    }
-
-    /**
-     * Gets the instance dimension name.
-     * @return the dimension name of the instance
-     */
-    public @NotNull String getDimensionName() {
-        return dimensionName;
-    }
-
-    /**
-     * Gets the age of this instance in tick.
-     *
-     * @return the age of this instance in tick
-     */
-    public long getWorldAge() {
-        return worldAge;
-    }
-
-    /**
-     * Gets the current time in the instance (sun/moon).
-     *
-     * @return the time in the instance
-     */
-    public long getTime() {
-        return time;
-    }
-
-    /**
      * Changes the current time in the instance, from 0 to 24000.
      * <p>
      * If the time is negative, the vanilla client will not move the sun.
@@ -447,16 +404,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
      */
     public void setTime(long time) {
         this.time = time;
-        PacketUtils.sendGroupedPacket(getPlayers(), createTimePacket());
-    }
-
-    /**
-     * Gets the rate of the time passing, it is 1 by default
-     *
-     * @return the time rate of the instance
-     */
-    public int getTimeRate() {
-        return timeRate;
+        PacketUtils.sendGroupedPacket(serverSettingsProvider, getPlayers(), createTimePacket());
     }
 
     /**
@@ -473,27 +421,6 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     }
 
     /**
-     * Gets the rate at which the client is updated with the current instance time
-     *
-     * @return the client update rate for time related packet
-     */
-    public @Nullable Duration getTimeUpdate() {
-        return timeUpdate;
-    }
-
-    /**
-     * Changes the rate at which the client is updated about the time
-     * <p>
-     * Setting it to null means that the client will never know about time change
-     * (but will still change server-side)
-     *
-     * @param timeUpdate the new update rate concerning time
-     */
-    public void setTimeUpdate(@Nullable Duration timeUpdate) {
-        this.timeUpdate = timeUpdate;
-    }
-
-    /**
      * Creates a {@link TimeUpdatePacket} with the current age and time of this instance
      *
      * @return the {@link TimeUpdatePacket} with this instance data
@@ -507,15 +434,6 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             time = time == 0 ? -24000L : -Math.abs(time);
         }
         return new TimeUpdatePacket(worldAge, time);
-    }
-
-    /**
-     * Gets the instance {@link WorldBorder};
-     *
-     * @return the {@link WorldBorder} linked to the instance
-     */
-    public @NotNull WorldBorder getWorldBorder() {
-        return worldBorder;
     }
 
     /**
@@ -607,7 +525,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         final Block block = getBlock(blockPosition);
         final Chunk chunk = getChunkAt(blockPosition);
         Check.notNull(chunk, "The chunk at {0} is not loaded!", blockPosition);
-        chunk.sendPacketToViewers(new BlockActionPacket(blockPosition, actionId, actionParam, block));
+        chunk.sendPacketToViewers(serverSettingsProvider, new BlockActionPacket(blockPosition, actionId, actionParam, block));
     }
 
     /**
@@ -631,20 +549,6 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         return getChunk(point.chunkX(), point.chunkZ());
     }
 
-    @ApiStatus.Experimental
-    public EntityTracker getEntityTracker() {
-        return entityTracker;
-    }
-
-    /**
-     * Gets the instance unique id.
-     *
-     * @return the instance unique id
-     */
-    public @NotNull UUID getUniqueId() {
-        return uniqueId;
-    }
-
     /**
      * Performs a single tick in the instance, including scheduled tasks from {@link #scheduleNextTick(Consumer)}.
      * <p>
@@ -662,7 +566,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
             this.time += timeRate;
             // time needs to be sent to players
             if (timeUpdate != null && !Cooldown.hasCooldown(time, lastTimeUpdate, timeUpdate)) {
-                PacketUtils.sendGroupedPacket(getPlayers(), createTimePacket());
+                PacketUtils.sendGroupedPacket(serverSettingsProvider, getPlayers(), createTimePacket());
                 this.lastTimeUpdate = time;
             }
 
@@ -670,7 +574,7 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         // Tick event
         {
             // Process tick events
-            EventDispatcher.call(new InstanceTickEvent(this, time, lastTickAge));
+            globalEventHandler.call(new InstanceTickEvent(this, time, lastTickAge));
             // Set last tick age
             this.lastTickAge = time;
         }
@@ -678,28 +582,13 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     }
 
     @Override
-    public @NotNull TagHandler tagHandler() {
-        return tagHandler;
-    }
-
-    @Override
-    public @NotNull Scheduler scheduler() {
-        return scheduler;
-    }
-
-    @Override
-    @ApiStatus.Experimental
-    public @NotNull EventNode<InstanceEvent> eventNode() {
-        return eventNode;
-    }
-
-    @Override
     public @NotNull InstanceSnapshot updateSnapshot(@NotNull SnapshotUpdater updater) {
-        final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
-        final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
-        return new SnapshotImpl.Instance(updater.reference(MinecraftServer.process()),
-                getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
-                tagHandler.readableCopy());
+        throw new RuntimeException("Not implemented"); // FIXME
+//        final Map<Long, AtomicReference<ChunkSnapshot>> chunksMap = updater.referencesMapLong(getChunks(), ChunkUtils::getChunkIndex);
+//        final int[] entities = ArrayUtils.mapToIntArray(entityTracker.entities(), Entity::getEntityId);
+//        return new SnapshotImpl.Instance(updater.reference(serverProcess),
+//                getDimensionType(), getWorldAge(), getTime(), chunksMap, entities,
+//                tagHandler.readableCopy());
     }
 
     /**
@@ -752,20 +641,80 @@ public abstract class Instance implements Block.Getter, Block.Setter,
         this.explosionSupplier = supplier;
     }
 
-    /**
-     * Gets the instance space.
-     * <p>
-     * Used by the pathfinder for entities.
-     *
-     * @return the instance space
-     */
-    @ApiStatus.Internal
-    public @NotNull PFInstanceSpace getInstanceSpace() {
-        return instanceSpace;
+    @Override
+    public ServerSettings getServerSettings() {
+        return serverSettingsProvider.getServerSettings();
     }
 
-    @Override
-    public @NotNull Pointers pointers() {
+    public ServerSettingsProvider getServerSettingsProvider() {
+        return this.serverSettingsProvider;
+    }
+
+    public boolean isRegistered() {
+        return this.registered;
+    }
+
+    public DimensionType getDimensionType() {
+        return this.dimensionType;
+    }
+
+    public NamespaceID getDimensionName() {
+        return this.dimensionName;
+    }
+
+    public WorldBorder getWorldBorder() {
+        return this.worldBorder;
+    }
+
+    public long getWorldAge() {
+        return this.worldAge;
+    }
+
+    public long getTime() {
+        return this.time;
+    }
+
+    public int getTimeRate() {
+        return this.timeRate;
+    }
+
+    public Duration getTimeUpdate() {
+        return this.timeUpdate;
+    }
+
+    public EntityTracker getEntityTracker() {
+        return this.entityTracker;
+    }
+
+    public UUID getUniqueId() {
+        return this.uniqueId;
+    }
+
+    public TagHandler tagHandler() {
+        return this.tagHandler;
+    }
+
+    public Scheduler getScheduler() {
+        return this.scheduler;
+    }
+
+    public EventNode<InstanceEvent> getEventNode() {
+        return this.eventNode;
+    }
+
+    public PFInstanceSpace getInstanceSpace() {
+        return this.instanceSpace;
+    }
+
+    public Pointers pointers() {
         return this.pointers;
+    }
+
+    protected void setRegistered(boolean registered) {
+        this.registered = registered;
+    }
+
+    public void setTimeUpdate(Duration timeUpdate) {
+        this.timeUpdate = timeUpdate;
     }
 }

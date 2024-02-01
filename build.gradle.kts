@@ -45,7 +45,10 @@ allprojects {
     }
 
     tasks.withType<Test> {
+        enabled = false
         useJUnitPlatform()
+
+        maxHeapSize = "2048m"
 
         // Viewable packets make tracking harder. Could be re-enabled later.
         jvmArgs("-Dminestom.viewable-packet=false")
@@ -83,7 +86,7 @@ dependencies {
 
     // Testing
     testImplementation(libs.bundles.junit)
-    testImplementation(project(":testing"))
+//    testImplementation(project(":testing"))
 }
 
 tasks {

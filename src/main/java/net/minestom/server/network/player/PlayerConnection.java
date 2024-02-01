@@ -4,8 +4,10 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.crypto.PlayerPublicKey;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
+import net.minestom.server.network.ConnectionManagerProvider;
 import net.minestom.server.network.ConnectionState;
 import net.minestom.server.network.packet.server.SendablePacket;
+import net.minestom.server.network.socket.ServerProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +21,16 @@ import java.util.List;
  * It can be extended to create a new kind of player (NPC for instance).
  */
 public abstract class PlayerConnection {
+    private final ServerProvider serverProvider;
+    private final ConnectionManagerProvider connectionManagerProvider;
     private Player player;
     private volatile ConnectionState connectionState;
     private PlayerPublicKey playerPublicKey;
     volatile boolean online;
 
-    public PlayerConnection() {
+    public PlayerConnection(ServerProvider serverProvider, ConnectionManagerProvider connectionManagerProvider) {
+        this.serverProvider = serverProvider;
+        this.connectionManagerProvider = connectionManagerProvider;
         this.online = true;
         this.connectionState = ConnectionState.HANDSHAKE;
     }
@@ -83,7 +89,7 @@ public abstract class PlayerConnection {
      * @return the server address used
      */
     public @Nullable String getServerAddress() {
-        return MinecraftServer.getServer().getAddress();
+        return serverProvider.getServer().getAddress();
     }
 
 
@@ -95,7 +101,7 @@ public abstract class PlayerConnection {
      * @return the server port used
      */
     public int getServerPort() {
-        return MinecraftServer.getServer().getPort();
+        return serverProvider.getServer().getPort();
     }
 
     /**
@@ -103,61 +109,11 @@ public abstract class PlayerConnection {
      */
     public void disconnect() {
         this.online = false;
-        MinecraftServer.getConnectionManager().removePlayer(this);
+        connectionManagerProvider.getConnectionManager().removePlayer(this);
         final Player player = getPlayer();
         if (player != null && !player.isRemoved()) {
             player.scheduleNextTick(Entity::remove);
         }
-    }
-
-    /**
-     * Gets the player linked to this connection.
-     *
-     * @return the player, can be null if not initialized yet
-     */
-    public @Nullable Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * Changes the player linked to this connection.
-     * <p>
-     * WARNING: unsafe.
-     *
-     * @param player the player
-     */
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    /**
-     * Gets if the client is still connected to the server.
-     *
-     * @return true if the player is online, false otherwise
-     */
-    public boolean isOnline() {
-        return online;
-    }
-
-    public void setConnectionState(@NotNull ConnectionState connectionState) {
-        this.connectionState = connectionState;
-    }
-
-    /**
-     * Gets the client connection state.
-     *
-     * @return the client connection state
-     */
-    public @NotNull ConnectionState getConnectionState() {
-        return connectionState;
-    }
-
-    public PlayerPublicKey playerPublicKey() {
-        return playerPublicKey;
-    }
-
-    public void setPlayerPublicKey(PlayerPublicKey playerPublicKey) {
-        this.playerPublicKey = playerPublicKey;
     }
 
     @Override
@@ -166,5 +122,33 @@ public abstract class PlayerConnection {
                 "connectionState=" + connectionState +
                 ", identifier=" + getIdentifier() +
                 '}';
+    }
+
+    public Player getPlayer() {
+        return this.player;
+    }
+
+    public ConnectionState getConnectionState() {
+        return this.connectionState;
+    }
+
+    public PlayerPublicKey getPlayerPublicKey() {
+        return this.playerPublicKey;
+    }
+
+    public boolean isOnline() {
+        return this.online;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public void setConnectionState(ConnectionState connectionState) {
+        this.connectionState = connectionState;
+    }
+
+    public void setPlayerPublicKey(PlayerPublicKey playerPublicKey) {
+        this.playerPublicKey = playerPublicKey;
     }
 }

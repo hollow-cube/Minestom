@@ -2,11 +2,17 @@ package net.minestom.server.snapshot;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minestom.server.entity.Entity;
+import net.minestom.server.instance.Instance;
+import net.minestom.server.instance.InstanceManager;
+import net.minestom.server.utils.collection.MappedCollection;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -23,6 +29,19 @@ import java.util.stream.Collectors;
  */
 @ApiStatus.Experimental
 public sealed interface SnapshotUpdater permits SnapshotUpdaterImpl {
+
+    static @NotNull ServerSnapshot updateSnapshot(@NotNull SnapshotUpdater updater, @NotNull InstanceManager instanceManager) {
+        List<AtomicReference<InstanceSnapshot>> instanceRefs = new ArrayList<>();
+        Int2ObjectOpenHashMap<AtomicReference<EntitySnapshot>> entityRefs = new Int2ObjectOpenHashMap<>();
+        for (Instance instance : instanceManager.getInstances()) {
+            instanceRefs.add(updater.reference(instance));
+            for (Entity entity : instance.getEntities()) {
+                entityRefs.put(entity.getEntityId(), updater.reference(entity));
+            }
+        }
+        return new SnapshotImpl.Server(MappedCollection.plainReferences(instanceRefs), entityRefs);
+    }
+
     /**
      * Updates the snapshot of the given snapshotable.
      * <p>

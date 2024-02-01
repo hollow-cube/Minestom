@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * Used when you want to provide your own player object instead of using the default one.
  * <p>
- * Sets with {@link ConnectionManager#setPlayerProvider(PlayerProvider)}.
+ * Sets with {@link ConnectionManagerImpl#setPlayerProvider(PlayerProvider)}.
  */
 @FunctionalInterface
 public interface PlayerProvider {

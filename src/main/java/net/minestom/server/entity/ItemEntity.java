@@ -1,11 +1,15 @@
 package net.minestom.server.entity;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
-import net.minestom.server.event.EventDispatcher;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntityItemMergeEvent;
+import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.EntityTracker;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.StackingRule;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.temporal.TemporalUnit;
+import java.util.UUID;
 
 /**
  * Represents an item on the ground.
@@ -22,7 +27,7 @@ public class ItemEntity extends Entity {
     /**
      * Used to slow down the merge check delay
      */
-    private static Duration mergeDelay = Duration.of(10, TimeUnit.SERVER_TICK);
+    private Duration mergeDelay;
 
     /**
      * The last time that this item has checked his neighbors for merge
@@ -38,10 +43,15 @@ public class ItemEntity extends Entity {
     private long spawnTime;
     private long pickupDelay;
 
-    public ItemEntity(@NotNull ItemStack itemStack) {
-        super(EntityType.ITEM);
+    public ItemEntity(MinecraftServer minecraftServer, @NotNull ItemStack itemStack) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, itemStack);
+    }
+
+    public ItemEntity(GlobalEventHandler globalEventHandler, ServerSettings serverSettings, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @NotNull ItemStack itemStack) {
+        super(globalEventHandler, () -> serverSettings, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.ITEM, UUID.randomUUID());
         setItemStack(itemStack);
         setBoundingBox(0.25f, 0.25f, 0.25f);
+        mergeDelay = Duration.of(10, TimeUnit.getServerTick(serverSettings));
     }
 
     /**
@@ -50,7 +60,7 @@ public class ItemEntity extends Entity {
      * @return the merge update option
      */
     @Nullable
-    public static Duration getMergeDelay() {
+    public Duration getMergeDelay() {
         return mergeDelay;
     }
 
@@ -60,8 +70,8 @@ public class ItemEntity extends Entity {
      *
      * @param delay the new merge delay
      */
-    public static void setMergeDelay(@Nullable Duration delay) {
-        ItemEntity.mergeDelay = delay;
+    public void setMergeDelay(@Nullable Duration delay) {
+        mergeDelay = delay;
     }
 
     @Override
@@ -85,7 +95,7 @@ public class ItemEntity extends Entity {
                         if (!stackingRule.canApply(itemStack, totalAmount)) return;
                         final ItemStack result = stackingRule.apply(itemStack, totalAmount);
                         EntityItemMergeEvent entityItemMergeEvent = new EntityItemMergeEvent(this, itemEntity, result);
-                        EventDispatcher.callCancellable(entityItemMergeEvent, () -> {
+                        globalEventHandler.callCancellable(entityItemMergeEvent, () -> {
                             setItemStack(entityItemMergeEvent.getResult());
                             itemEntity.remove();
                         });

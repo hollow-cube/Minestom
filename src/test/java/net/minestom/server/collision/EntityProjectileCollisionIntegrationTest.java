@@ -1,8 +1,5 @@
 package net.minestom.server.collision;
 
-import net.minestom.server.MinecraftServer;
-import net.minestom.testing.Env;
-import net.minestom.testing.EnvTest;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -17,6 +14,8 @@ import net.minestom.server.event.entity.projectile.ProjectileUncollideEvent;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.utils.time.TimeUnit;
+import net.minestom.testing.Env;
+import net.minestom.testing.EnvTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,10 +30,10 @@ public class EntityProjectileCollisionIntegrationTest {
         final Instance instance = env.createFlatInstance();
         instance.getWorldBorder().setDiameter(1000.0);
 
-        final Entity shooter = new Entity(EntityType.SKELETON);
+        final Entity shooter = new Entity(env.process(), EntityType.SKELETON);
         shooter.setInstance(instance, new Pos(0, 40, 0)).join();
 
-        final EntityProjectile projectile = new EntityProjectile(shooter, EntityType.ARROW);
+        final EntityProjectile projectile = new EntityProjectile(env.process(), shooter, EntityType.ARROW);
         projectile.setInstance(instance, shooter.getPosition().withY(y -> y + shooter.getEyeHeight())).join();
 
         final Point blockPosition = new Vec(5, 40, 0);
@@ -43,10 +42,10 @@ public class EntityProjectileCollisionIntegrationTest {
         projectile.shoot(blockPosition, 1, 0);
 
         final var eventRef = new AtomicReference<ProjectileCollideWithBlockEvent>();
-        MinecraftServer.getGlobalEventHandler().addListener(ProjectileCollideWithBlockEvent.class, eventRef::set);
+        env.process().getGlobalEventHandler().addListener(ProjectileCollideWithBlockEvent.class, eventRef::set);
 
-        final long tick = TimeUnit.SERVER_TICK.getDuration().toMillis();
-        for (int i = 0; i < MinecraftServer.TICK_PER_SECOND; ++i) {
+        final long tick = TimeUnit.getServerTick(env.process().getServerSettings()).getDuration().toMillis();
+        for (int i = 0; i < env.process().getServerSettings().getTickPerSecond(); ++i) {
             projectile.tick(i * tick);
         }
 
@@ -56,12 +55,12 @@ public class EntityProjectileCollisionIntegrationTest {
         assertEquals(block, event.getBlock());
 
         final var eventRef2 = new AtomicReference<ProjectileUncollideEvent>();
-        MinecraftServer.getGlobalEventHandler().addListener(ProjectileUncollideEvent.class, eventRef2::set);
+        env.process().getGlobalEventHandler().addListener(ProjectileUncollideEvent.class, eventRef2::set);
         eventRef.set(null);
         instance.setBlock(blockPosition, Block.AIR);
 
-        for (int i = 0; i < MinecraftServer.TICK_PER_SECOND; ++i) {
-            projectile.tick((MinecraftServer.TICK_PER_SECOND + i) * tick);
+        for (int i = 0; i < env.process().getServerSettings().getTickPerSecond(); ++i) {
+            projectile.tick((env.process().getServerSettings().getTickPerSecond() + i) * tick);
         }
         event = eventRef.get();
         final var event2 = eventRef2.get();
@@ -75,7 +74,7 @@ public class EntityProjectileCollisionIntegrationTest {
         final Instance instance = env.createFlatInstance();
         instance.getWorldBorder().setDiameter(1000.0);
 
-        final Entity shooter = new Entity(EntityType.SKELETON);
+        final Entity shooter = new Entity(env.process(), EntityType.SKELETON);
         shooter.setInstance(instance, new Pos(0, 40, 0)).join();
 
         for (double dx = 1; dx <= 3; dx += .2) {
@@ -88,24 +87,24 @@ public class EntityProjectileCollisionIntegrationTest {
             Entity shooter,
             final Point targetPosition
     ) {
-        final EntityProjectile projectile = new EntityProjectile(shooter, EntityType.ARROW);
+        final EntityProjectile projectile = new EntityProjectile(shooter.getServerProcess(), shooter, EntityType.ARROW);
         projectile.setInstance(instance, shooter.getPosition().withY(y -> y + shooter.getEyeHeight())).join();
 
-        final LivingEntity target = new LivingEntity(EntityType.RABBIT);
+        final LivingEntity target = new LivingEntity(shooter.getServerProcess(), EntityType.RABBIT);
         target.setInstance(instance, Pos.fromPoint(targetPosition)).join();
         projectile.shoot(targetPosition, 1, 0);
 
         final var eventRef = new AtomicReference<ProjectileCollideWithEntityEvent>();
-        final var eventNode = EventNode.all("projectile-test");
+        final var eventNode = EventNode.all(shooter.getServerProcess(), "projectile-test");
         eventNode.addListener(ProjectileCollideWithEntityEvent.class, event -> {
             event.getEntity().remove();
             eventRef.set(event);
-            MinecraftServer.getGlobalEventHandler().removeChild(eventNode);
+            shooter.getServerProcess().getGlobalEventHandler().removeChild(eventNode);
         });
-        MinecraftServer.getGlobalEventHandler().addChild(eventNode);
+        shooter.getServerProcess().getGlobalEventHandler().addChild(eventNode);
 
-        final long tick = TimeUnit.SERVER_TICK.getDuration().toMillis();
-        for (int i = 0; i < MinecraftServer.TICK_PER_SECOND; ++i) {
+        final long tick = TimeUnit.getServerTick(instance.getServerProcess().getServerSettings()).getDuration().toMillis();
+        for (int i = 0; i < instance.getServerProcess().getServerSettings().getTickPerSecond(); ++i) {
             if (!projectile.isRemoved()) {
                 projectile.tick(i * tick);
             }
@@ -123,22 +122,22 @@ public class EntityProjectileCollisionIntegrationTest {
         final Instance instance = env.createFlatInstance();
         instance.getWorldBorder().setDiameter(1000.0);
 
-        final LivingEntity shooter = new LivingEntity(EntityType.SKELETON);
+        final LivingEntity shooter = new LivingEntity(env.process(), EntityType.SKELETON);
         shooter.setInstance(instance, new Pos(0, 40, 0)).join();
 
-        final EntityProjectile projectile = new EntityProjectile(shooter, EntityType.ARROW);
+        final EntityProjectile projectile = new EntityProjectile(env.process(), shooter, EntityType.ARROW);
         projectile.setInstance(instance, shooter.getPosition().withY(y -> y + shooter.getEyeHeight())).join();
 
         projectile.shoot(new Vec(0, 60, 0), 1, 0);
 
         final var eventRef = new AtomicReference<ProjectileCollideWithEntityEvent>();
-        MinecraftServer.getGlobalEventHandler().addListener(ProjectileCollideWithEntityEvent.class, event -> {
+        env.process().getGlobalEventHandler().addListener(ProjectileCollideWithEntityEvent.class, event -> {
             event.getEntity().remove();
             eventRef.set(event);
         });
 
-        final long tick = TimeUnit.SERVER_TICK.getDuration().toMillis();
-        for (int i = 0; i < MinecraftServer.TICK_PER_SECOND * 5; ++i) {
+        final long tick = TimeUnit.getServerTick(env.process().getServerSettings()).getDuration().toMillis();
+        for (int i = 0; i < env.process().getServerSettings().getTickPerSecond() * 5; ++i) {
             if (!projectile.isRemoved()) {
                 projectile.tick(i * tick);
             }

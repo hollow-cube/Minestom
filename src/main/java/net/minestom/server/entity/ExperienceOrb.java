@@ -1,8 +1,14 @@
 package net.minestom.server.entity;
 
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.event.GlobalEventHandler;
+import net.minestom.server.exception.ExceptionHandlerProvider;
+import net.minestom.server.thread.ChunkDispatcherProvider;
 
 import java.util.Comparator;
+import java.util.UUID;
 
 public class ExperienceOrb extends Entity {
 
@@ -10,8 +16,11 @@ public class ExperienceOrb extends Entity {
     private Player target;
     private long lastTargetUpdateTick;
 
-    public ExperienceOrb(short experienceCount) {
-        super(EntityType.EXPERIENCE_ORB);
+    public ExperienceOrb(MinecraftServer minecraftServer, short experienceCount) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, experienceCount);
+    }
+    public ExperienceOrb(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, short experienceCount) {
+        super(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.EXPERIENCE_ORB, UUID.randomUUID());
         setBoundingBox(0.5f, 0.5f, 0.5f);
         //todo vanilla sets random velocity here?
         this.experienceCount = experienceCount;
