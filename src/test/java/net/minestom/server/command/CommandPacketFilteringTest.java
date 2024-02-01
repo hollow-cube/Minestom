@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @SuppressWarnings("ConstantConditions")
 public class CommandPacketFilteringTest {
-    private static final ServerFacade SERVER_FACADE = ServerFacade.of(ServerSettings.builder().build());
+    private static final MinecraftServer SERVER_FACADE = MinecraftServer.of(ServerSettings.builder().build());
     private static final Player PLAYER = new Player(SERVER_FACADE, UUID.randomUUID(), "", null);
 
     @Test

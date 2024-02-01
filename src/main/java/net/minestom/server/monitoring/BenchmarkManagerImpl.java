@@ -3,7 +3,7 @@ package net.minestom.server.monitoring;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import lombok.RequiredArgsConstructor;
-import net.minestom.server.ServerConsts;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
@@ -27,8 +27,8 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
     private static final List<String> THREADS = new ArrayList<>();
 
     static {
-        THREADS.add(ServerConsts.THREAD_NAME_TICK_SCHEDULER);
-        THREADS.add(ServerConsts.THREAD_NAME_TICK);
+        THREADS.add(MinecraftServer.THREAD_NAME_TICK_SCHEDULER);
+        THREADS.add(MinecraftServer.THREAD_NAME_TICK);
     }
 
     private final Long2LongMap lastCpuTimeMap = new Long2LongOpenHashMap();
@@ -67,7 +67,7 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
                 }
             }
             stop = false;
-        }, ServerConsts.THREAD_NAME_BENCHMARK);
+        }, MinecraftServer.THREAD_NAME_BENCHMARK);
         thread.setDaemon(true);
         thread.start();
 

@@ -43,7 +43,7 @@ import net.minestom.server.world.biomes.BiomeManager;
 import net.minestom.server.world.biomes.BiomeManagerImpl;
 
 @Getter
-final class ServerFacadeImpl implements ServerFacade {
+final class MinecraftServerImpl implements MinecraftServer {
 
     private final ExceptionHandler exceptionHandler;
     private final ConnectionManager connectionManager;
@@ -73,7 +73,7 @@ final class ServerFacadeImpl implements ServerFacade {
     private final ServerStarter serverStarter;
 
 
-    public ServerFacadeImpl(ServerSettings serverSettings) {
+    public MinecraftServerImpl(ServerSettings serverSettings) {
         this.serverSettings = serverSettings;
         this.exceptionHandler = new ExceptionHandlerImpl();
         this.globalEventHandler = new GlobalEventHandlerImpl(this);

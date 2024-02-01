@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.collision.BoundingBox;
 import net.minestom.server.coordinate.Point;
@@ -39,8 +39,8 @@ public class EntityProjectile extends Entity {
         this(shooter.globalEventHandler, shooter.serverSettingsProvider, shooter.chunkDispatcherProvider, shooter.exceptionHandlerProvider, shooter, entityType);
     }
 
-    public EntityProjectile(ServerFacade serverFacade, @Nullable Entity shooter, @NotNull EntityType entityType) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, shooter, entityType);
+    public EntityProjectile(MinecraftServer minecraftServer, @Nullable Entity shooter, @NotNull EntityType entityType) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, shooter, entityType);
     }
 
     public EntityProjectile(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @Nullable Entity shooter, @NotNull EntityType entityType) {

@@ -1,7 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -23,11 +23,11 @@ import java.time.temporal.TemporalUnit;
 
 public class DisplayCommand extends Command {
 
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
-    public DisplayCommand(ServerFacade serverFacade) {
+    public DisplayCommand(MinecraftServer minecraftServer) {
         super("display");
-        this.serverFacade = serverFacade;
+        this.minecraftServer = minecraftServer;
 
         var follow = ArgumentType.Literal("follow");
 
@@ -44,7 +44,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade, EntityType.ITEM_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.ITEM_DISPLAY);
         var meta = (ItemDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setItemStack(ItemStack.of(Material.STICK));
@@ -59,7 +59,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade, EntityType.BLOCK_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.BLOCK_DISPLAY);
         var meta = (BlockDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBlockState(Block.ORANGE_CANDLE_CAKE.stateId());
@@ -74,7 +74,7 @@ public class DisplayCommand extends Command {
         if (!(sender instanceof Player player))
             return;
 
-        var entity = new Entity(serverFacade, EntityType.TEXT_DISPLAY);
+        var entity = new Entity(minecraftServer, EntityType.TEXT_DISPLAY);
         var meta = (TextDisplayMeta) entity.getEntityMeta();
         meta.setTransformationInterpolationDuration(20);
         meta.setBillboardRenderConstraints(AbstractDisplayMeta.BillboardConstraints.CENTER);
@@ -89,8 +89,8 @@ public class DisplayCommand extends Command {
     private void startSmoothFollow(@NotNull Entity entity, @NotNull Player player) {
 //        entity.setCustomName(Component.text("MY CUSTOM NAME"));
 //        entity.setCustomNameVisible(true);
-        TemporalUnit serverTick = TimeUnit.getServerTick(serverFacade.getServerSettings());
-        serverFacade.getSchedulerManager().buildTask(() -> {
+        TemporalUnit serverTick = TimeUnit.getServerTick(minecraftServer.getServerSettings());
+        minecraftServer.getSchedulerManager().buildTask(() -> {
             var meta = (AbstractDisplayMeta) entity.getEntityMeta();
             meta.setNotifyAboutChanges(false);
             meta.setTransformationInterpolationStartDelta(1);

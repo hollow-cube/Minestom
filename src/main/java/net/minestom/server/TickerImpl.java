@@ -24,8 +24,8 @@ public final class TickerImpl implements Ticker {
     private final InstanceManagerProvider instanceManagerProvider;
     private final ChunkDispatcherProvider chunkDispatcherProvider;
 
-    public TickerImpl(ServerFacade serverFacade) {
-        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    public TickerImpl(MinecraftServer minecraftServer) {
+        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     @Override

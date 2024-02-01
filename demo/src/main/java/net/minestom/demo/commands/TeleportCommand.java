@@ -1,7 +1,7 @@
 package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -12,11 +12,11 @@ import net.minestom.server.utils.location.RelativeVec;
 
 public class TeleportCommand extends Command {
 
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
-    public TeleportCommand(ServerFacade serverFacade) {
+    public TeleportCommand(MinecraftServer minecraftServer) {
         super("tp");
-        this.serverFacade = serverFacade;
+        this.minecraftServer = minecraftServer;
 
         setDefaultExecutor((source, context) -> source.sendMessage(Component.text("Usage: /tp x y z")));
 
@@ -29,7 +29,7 @@ public class TeleportCommand extends Command {
 
     private void onPlayerTeleport(CommandSender sender, CommandContext context) {
         final String playerName = context.get("player");
-        Player pl = serverFacade.getConnectionManager().getOnlinePlayerByUsername(playerName);
+        Player pl = minecraftServer.getConnectionManager().getOnlinePlayerByUsername(playerName);
         if (sender instanceof Player player) {
             player.teleport(pl.getPosition());
         }

@@ -5,7 +5,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
-import net.minestom.server.ServerConsts;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.network.ConnectionManager;
@@ -41,8 +41,8 @@ public class ResponseData {
     public ResponseData(ConnectionManager connectionManager, Server server) {
         this.server = server;
         this.entries = new ArrayList<>();
-        this.version = ServerConsts.VERSION_NAME;
-        this.protocol = ServerConsts.PROTOCOL_VERSION;
+        this.version = MinecraftServer.VERSION_NAME;
+        this.protocol = MinecraftServer.PROTOCOL_VERSION;
         this.online = connectionManager.getOnlinePlayerCount();
         this.maxPlayer = this.online + 1;
         this.description = DEFAULT_DESCRIPTION;

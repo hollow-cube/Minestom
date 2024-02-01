@@ -1,6 +1,6 @@
 package net.minestom.server.extras.query.event;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.extras.query.response.FullQueryResponse;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,11 +14,11 @@ public class FullQueryEvent extends QueryEvent<FullQueryResponse> {
     /**
      * Creates a new full query event.
      *
-     * @param serverFacade
+     * @param minecraftServer
      * @param sender          the sender
      * @param sessionID       the sessionID
      */
-    public FullQueryEvent(ServerFacade serverFacade, @NotNull SocketAddress sender, int sessionID) {
-        super(sender, sessionID, new FullQueryResponse(serverFacade));
+    public FullQueryEvent(MinecraftServer minecraftServer, @NotNull SocketAddress sender, int sessionID) {
+        super(sender, sessionID, new FullQueryResponse(minecraftServer));
     }
 }

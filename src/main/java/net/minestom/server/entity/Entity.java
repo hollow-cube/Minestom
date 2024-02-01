@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Tickable;
 import net.minestom.server.Viewable;
@@ -189,12 +189,12 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     private final Acquirable<Entity> acquirable = Acquirable.of(this);
 
-    public Entity(@NotNull ServerFacade serverFacade, @NotNull EntityType entityType) {
-        this(serverFacade, entityType, UUID.randomUUID());
+    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType) {
+        this(minecraftServer, entityType, UUID.randomUUID());
     }
 
-    public Entity(@NotNull ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, entityType, uuid);
+    public Entity(@NotNull MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, entityType, uuid);
     }
 
     public Entity(

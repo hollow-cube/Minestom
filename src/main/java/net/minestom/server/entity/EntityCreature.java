@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.ai.EntityAI;
@@ -34,12 +34,12 @@ public class EntityCreature extends LivingEntity implements NavigableEntity, Ent
 
     private Entity target;
 
-    public EntityCreature(ServerFacade serverFacade, @NotNull EntityType entityType) {
-        this(serverFacade, entityType, UUID.randomUUID());
+    public EntityCreature(MinecraftServer minecraftServer, @NotNull EntityType entityType) {
+        this(minecraftServer, entityType, UUID.randomUUID());
     }
 
-    public EntityCreature(ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, entityType, uuid);
+    public EntityCreature(MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, entityType, uuid);
     }
 
     /**

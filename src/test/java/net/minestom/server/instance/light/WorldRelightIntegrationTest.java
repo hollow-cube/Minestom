@@ -1,6 +1,6 @@
 package net.minestom.server.instance.light;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.LightingChunk;
@@ -17,7 +17,7 @@ import static net.minestom.server.instance.BlockLightMergeIntegrationTest.assert
 
 @EnvTest
 public class WorldRelightIntegrationTest {
-    private @NotNull Instance createLightingInstance(@NotNull ServerFacade process) {
+    private @NotNull Instance createLightingInstance(@NotNull MinecraftServer process) {
         var instance = process.getInstanceManager().createInstanceContainer(process);
         instance.setGenerator(unit -> {
             unit.modifier().fillHeight(39, 40, Block.STONE);

@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,8 @@ public class SubcommandTest {
 
     @Test
     public void testSubCommands() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var manager = new CommandManagerImpl(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         var parent = new Command("parent");
         var child = new Command("child");
@@ -37,8 +37,8 @@ public class SubcommandTest {
 
     @Test
     public void testSubCommandConditions() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var manager = new CommandManagerImpl(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var manager = new CommandManagerImpl(minecraftServer);
 
         var parent = new Command("parent");
         var child = new Command("child");

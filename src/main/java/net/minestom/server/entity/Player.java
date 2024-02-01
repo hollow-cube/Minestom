@@ -20,7 +20,7 @@ import net.kyori.adventure.text.event.HoverEvent.ShowEntity;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.TitlePart;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.advancements.AdvancementTab;
@@ -263,8 +263,8 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     // The future is non-null when a resource pack is in-flight, and completed when all statuses have been received.
     private CompletableFuture<Void> resourcePackFuture = null;
 
-    public Player(ServerFacade serverFacade, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, uuid, username, playerConnection);
+    public Player(MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username, @NotNull PlayerConnection playerConnection) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, uuid, username, playerConnection);
     }
 
     public Player(

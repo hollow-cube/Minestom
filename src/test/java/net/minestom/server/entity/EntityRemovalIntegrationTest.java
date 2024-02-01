@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.event.entity.EntityTickEvent;
 import net.minestom.server.network.packet.server.play.DestroyEntitiesPacket;
@@ -98,8 +98,8 @@ public class EntityRemovalIntegrationTest {
     }
 
     static final class TestEntity extends Entity {
-        public TestEntity(ServerFacade serverFacade, long delay, TemporalUnit unit) {
-            super(serverFacade, EntityType.ZOMBIE);
+        public TestEntity(MinecraftServer minecraftServer, long delay, TemporalUnit unit) {
+            super(minecraftServer, EntityType.ZOMBIE);
             scheduleRemove(delay, unit);
         }
     }

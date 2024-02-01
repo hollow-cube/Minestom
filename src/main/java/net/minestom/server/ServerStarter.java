@@ -30,8 +30,8 @@ public class ServerStarter {
     private final ChunkDispatcherProvider chunkDispatcherProvider;
     private final TickerProvider tickerProvider;
 
-    public ServerStarter(ServerFacade serverFacade) {
-        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    public ServerStarter(MinecraftServer minecraftServer) {
+        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     private final AtomicBoolean started = new AtomicBoolean();

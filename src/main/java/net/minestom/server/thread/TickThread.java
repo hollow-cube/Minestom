@@ -1,6 +1,6 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.ServerConsts;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.Tickable;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.exception.ExceptionHandlerProvider;
@@ -33,7 +33,7 @@ public final class TickThread extends MinestomThread {
     private final List<ThreadDispatcherImpl.Partition> entries = new ArrayList<>();
 
     public TickThread(ExceptionHandlerProvider exceptionHandlerProvider, int number) {
-        super(ServerConsts.THREAD_NAME_TICK + "-" + number);
+        super(MinecraftServer.THREAD_NAME_TICK + "-" + number);
         this.exceptionHandlerProvider = exceptionHandlerProvider;
     }
 

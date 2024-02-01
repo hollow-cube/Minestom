@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.event.GlobalEventHandler;
@@ -16,8 +16,8 @@ public class ExperienceOrb extends Entity {
     private Player target;
     private long lastTargetUpdateTick;
 
-    public ExperienceOrb(ServerFacade serverFacade, short experienceCount) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, experienceCount);
+    public ExperienceOrb(MinecraftServer minecraftServer, short experienceCount) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, experienceCount);
     }
     public ExperienceOrb(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, short experienceCount) {
         super(globalEventHandler, serverSettingsProvider, chunkDispatcherProvider, exceptionHandlerProvider, EntityType.EXPERIENCE_ORB, UUID.randomUUID());

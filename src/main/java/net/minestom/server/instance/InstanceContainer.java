@@ -1,7 +1,7 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -94,21 +94,21 @@ public class InstanceContainer extends Instance {
     protected InstanceContainer srcInstance; // only present if this instance has been created using a copy
     private long lastBlockChangeTime; // Time at which the last block change happened (#setBlock)
 
-    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
-        this(serverFacade, uniqueId, dimensionType, null, dimensionType.getName());
+    public InstanceContainer(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType) {
+        this(minecraftServer, uniqueId, dimensionType, null, dimensionType.getName());
     }
 
-    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
-        this(serverFacade, uniqueId, dimensionType, null, dimensionName);
+    public InstanceContainer(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @NotNull NamespaceID dimensionName) {
+        this(minecraftServer, uniqueId, dimensionType, null, dimensionName);
     }
 
     @ApiStatus.Experimental
-    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        this(serverFacade, uniqueId, dimensionType, loader, dimensionType.getName());
+    public InstanceContainer(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
+        this(minecraftServer, uniqueId, dimensionType, loader, dimensionType.getName());
     }
 
-    public InstanceContainer(ServerFacade serverFacade, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, uniqueId, dimensionType, loader, dimensionName);
+    public InstanceContainer(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, uniqueId, dimensionType, loader, dimensionName);
     }
 
     @ApiStatus.Experimental

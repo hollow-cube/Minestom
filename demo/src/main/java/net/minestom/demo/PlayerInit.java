@@ -1,7 +1,7 @@
 package net.minestom.demo;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.advancements.FrameType;
 import net.minestom.server.advancements.notifications.Notification;
 import net.minestom.server.advancements.notifications.NotificationCenter;
@@ -47,15 +47,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PlayerInit {
 
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
-    public PlayerInit(ServerFacade serverFacade) {
-        this.serverFacade = serverFacade;
-        InstanceManager instanceManager = serverFacade.getInstanceManager();
+    public PlayerInit(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+        InstanceManager instanceManager = minecraftServer.getInstanceManager();
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
         instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
-        instanceContainer.setChunkSupplier((instance, chunkX, chunkZ) -> new LightingChunk(serverFacade, instance, chunkX, chunkZ));
+        instanceContainer.setChunkSupplier((instance, chunkX, chunkZ) -> new LightingChunk(minecraftServer, instance, chunkX, chunkZ));
 
 //        var i2 = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, null, NamespaceID.from("minestom:demo"));
 //        instanceManager.registerInstance(i2);
@@ -71,10 +71,10 @@ public class PlayerInit {
         //     System.out.println("load end");
         // });
 
-        inventory = new Inventory(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
+        inventory = new Inventory(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), InventoryType.CHEST_1_ROW, Component.text("Test inventory"));
         inventory.setItemStack(3, ItemStack.of(Material.DIAMOND, 34));
 
-        DEMO_NODE = EventNode.all(serverFacade, "demo")
+        DEMO_NODE = EventNode.all(minecraftServer, "demo")
                 .addListener(EntityAttackEvent.class, event -> {
                     final Entity source = event.getEntity();
                     final Entity entity = event.getTarget();
@@ -104,13 +104,13 @@ public class PlayerInit {
                     ItemStack droppedItem = event.getItemStack();
 
                     Pos playerPos = player.getPosition();
-                    ItemEntity itemEntity = new ItemEntity(serverFacade, droppedItem);
+                    ItemEntity itemEntity = new ItemEntity(minecraftServer, droppedItem);
                     itemEntity.setPickupDelay(Duration.of(500, TimeUnit.MILLISECOND));
                     itemEntity.setInstance(player.getInstance(), playerPos.withY(y -> y + 1.5));
                     Vec velocity = playerPos.direction().mul(6);
                     itemEntity.setVelocity(velocity);
 
-                    new FakePlayer(serverFacade, UUID.randomUUID(), "fake123", new FakePlayerOption(), fp -> {
+                    new FakePlayer(minecraftServer, UUID.randomUUID(), "fake123", new FakePlayerOption(), fp -> {
                         System.out.println("fp = " + fp);
                     });
                 })
@@ -118,7 +118,7 @@ public class PlayerInit {
                 .addListener(AsyncPlayerConfigurationEvent.class, event -> {
                     final Player player = event.getPlayer();
 
-                    var instances = serverFacade.getInstanceManager().getInstances();
+                    var instances = minecraftServer.getInstanceManager().getInstances();
                     Instance instance = instances.stream().skip(new Random().nextInt(instances.size())).findFirst().orElse(null);
                     event.setSpawningInstance(instance);
                     int x = Math.abs(ThreadLocalRandom.current().nextInt()) % 500 - 250;
@@ -199,7 +199,7 @@ public class PlayerInit {
     private final AtomicReference<TickMonitor> LAST_TICK = new AtomicReference<>();
 
     public void init() {
-        var eventHandler = serverFacade.getGlobalEventHandler();
+        var eventHandler = minecraftServer.getGlobalEventHandler();
         eventHandler.addChild(DEMO_NODE);
 
         MinestomAdventure.AUTOMATIC_COMPONENT_TRANSLATION = true;
@@ -207,9 +207,9 @@ public class PlayerInit {
 
         eventHandler.addListener(ServerTickMonitorEvent.class, event -> LAST_TICK.set(event.getTickMonitor()));
 
-        BenchmarkManager benchmarkManager = serverFacade.getBenchmarkManager();
-        serverFacade.getSchedulerManager().buildTask(() -> {
-            if (serverFacade.getConnectionManager().getOnlinePlayerCount() != 0)
+        BenchmarkManager benchmarkManager = minecraftServer.getBenchmarkManager();
+        minecraftServer.getSchedulerManager().buildTask(() -> {
+            if (minecraftServer.getConnectionManager().getOnlinePlayerCount() != 0)
                 return;
 
             long ramUsage = benchmarkManager.getUsedMemory();
@@ -222,7 +222,7 @@ public class PlayerInit {
                     .append(Component.newline())
                     .append(Component.text("ACQ TIME: " + MathUtils.round(tickMonitor.getAcquisitionTime(), 2) + "ms"));
             final Component footer = BenchmarkManager.getCpuMonitoringMessage(benchmarkManager);
-            serverFacade.getAudienceManager().players().sendPlayerListHeaderAndFooter(header, footer);
-        }).repeat(10, TimeUnit.getServerTick(serverFacade.getServerSettings())); //.schedule();
+            minecraftServer.getAudienceManager().players().sendPlayerListHeaderAndFooter(header, footer);
+        }).repeat(10, TimeUnit.getServerTick(minecraftServer.getServerSettings())); //.schedule();
     }
 }

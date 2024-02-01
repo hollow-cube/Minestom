@@ -1,6 +1,6 @@
 package net.minestom.server.instance.palette;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.network.NetworkBuffer;
 import org.junit.jupiter.api.Test;
@@ -14,24 +14,24 @@ public class PaletteOptimizationTest {
 
     @Test
     public void empty() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var palette = createPalette(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = createPalette(minecraftServer);
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
     @Test
     public void single() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var palette = createPalette(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = createPalette(minecraftServer);
         palette.set(0, 0, 0, 1);
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
     @Test
     public void random() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var random = new Random(12345);
-        var palette = createPalette(serverFacade);
+        var palette = createPalette(minecraftServer);
         palette.setAll((x, y, z) -> random.nextInt(256));
         paletteEquals(palette.palette, palette.optimizedPalette());
         palette.setAll((x, y, z) -> random.nextInt(2));
@@ -40,8 +40,8 @@ public class PaletteOptimizationTest {
 
     @Test
     public void manualFill() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var palette = createPalette(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var palette = createPalette(minecraftServer);
         palette.setAll((x, y, z) -> 1);
         paletteEquals(palette.palette, palette.optimizedPalette());
         palette.setAll((x, y, z) -> 2);
@@ -50,8 +50,8 @@ public class PaletteOptimizationTest {
         paletteEquals(palette.palette, palette.optimizedPalette());
     }
 
-    AdaptivePalette createPalette(ServerFacade serverFacade) {
-        return (AdaptivePalette) Palette.blocks(serverFacade);
+    AdaptivePalette createPalette(MinecraftServer minecraftServer) {
+        return (AdaptivePalette) Palette.blocks(minecraftServer);
     }
 
     void paletteEquals(Palette palette, Palette optimized) {

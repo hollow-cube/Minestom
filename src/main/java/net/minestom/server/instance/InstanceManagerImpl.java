@@ -1,7 +1,7 @@
 package net.minestom.server.instance;
 
 import lombok.RequiredArgsConstructor;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.instance.InstanceRegisterEvent;
@@ -31,8 +31,8 @@ public final class InstanceManagerImpl implements InstanceManager {
     private final BlockManagerProvider blockManagerProvider;
     private final BiomeManagerProvider biomeManagerProvider;
 
-    public InstanceManagerImpl(ServerFacade serverFacade) {
-        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    public InstanceManagerImpl(MinecraftServer minecraftServer) {
+        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();

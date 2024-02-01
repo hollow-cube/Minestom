@@ -1,6 +1,6 @@
 package net.minestom.server.command;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.Argument;
@@ -17,9 +17,9 @@ public class ArgumentTest {
 
     @Test
     public void testParseSelf() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        assertEquals("example", Argument.parse(new ServerSender(serverFacade), ArgumentType.String("example")));
-        assertEquals(55, Argument.parse(new ServerSender(serverFacade), ArgumentType.Integer("55")));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        assertEquals("example", Argument.parse(new ServerSender(minecraftServer), ArgumentType.String("example")));
+        assertEquals(55, Argument.parse(new ServerSender(minecraftServer), ArgumentType.Integer("55")));
     }
 
     @Test
@@ -34,18 +34,18 @@ public class ArgumentTest {
 
     @Test
     public void testDefaultValue() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var arg = ArgumentType.String("id");
 
         assertFalse(arg.isOptional());
         arg.setDefaultValue("default value");
         assertTrue(arg.isOptional());
-        assertEquals("default value", arg.getDefaultValue().apply(new ServerSender(serverFacade)));
+        assertEquals("default value", arg.getDefaultValue().apply(new ServerSender(minecraftServer)));
     }
 
     @Test
     public void testSuggestionCallback() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         var arg = ArgumentType.String("id");
 
         assertFalse(arg.hasSuggestion());
@@ -54,7 +54,7 @@ public class ArgumentTest {
         assertTrue(arg.hasSuggestion());
 
         Suggestion suggestion = new Suggestion("input", 2, 4);
-        arg.getSuggestionCallback().apply(new ServerSender(serverFacade), new CommandContext("input"), suggestion);
+        arg.getSuggestionCallback().apply(new ServerSender(minecraftServer), new CommandContext("input"), suggestion);
 
         assertEquals(suggestion.getEntries(), List.of(new SuggestionEntry("entry")));
     }

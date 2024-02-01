@@ -1,6 +1,6 @@
 package net.minestom.demo.commands;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -11,15 +11,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ShutdownCommand extends Command {
 
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
-    public ShutdownCommand(ServerFacade serverFacade) {
+    public ShutdownCommand(MinecraftServer minecraftServer) {
         super("shutdown");
-        this.serverFacade = serverFacade;
+        this.minecraftServer = minecraftServer;
         addSyntax(this::execute);
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        serverFacade.getServerStarter().stop();
+        minecraftServer.getServerStarter().stop();
     }
 }

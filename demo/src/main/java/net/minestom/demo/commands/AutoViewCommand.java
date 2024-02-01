@@ -1,6 +1,6 @@
 package net.minestom.demo.commands;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -11,7 +11,7 @@ import java.util.List;
 import static net.minestom.server.command.builder.arguments.ArgumentType.*;
 
 public class AutoViewCommand extends Command {
-    public AutoViewCommand(ServerFacade serverFacade) {
+    public AutoViewCommand(MinecraftServer minecraftServer) {
         super("autoview");
 
         // Modify viewable
@@ -37,7 +37,7 @@ public class AutoViewCommand extends Command {
             final List<Entity> entities = finder.find(sender);
             player.updateViewableRule(entities::contains);
             player.sendMessage("Viewable rule updated to see " + entities.size() + " players");
-        }, Literal("rule-viewable"), Entity("targets", serverFacade.getInstanceManager(), serverFacade.getConnectionManager()).onlyPlayers(true));
+        }, Literal("rule-viewable"), Entity("targets", minecraftServer.getInstanceManager(), minecraftServer.getConnectionManager()).onlyPlayers(true));
 
         // Modify viewer rule
         addSyntax((sender, context) -> {
@@ -46,7 +46,7 @@ public class AutoViewCommand extends Command {
             final List<Entity> entities = finder.find(sender);
             player.updateViewerRule(entities::contains);
             player.sendMessage("Viewer rule updated to see " + entities.size() + " entities");
-        }, Literal("rule-viewer"), Entity("targets", serverFacade.getInstanceManager(), serverFacade.getConnectionManager()));
+        }, Literal("rule-viewer"), Entity("targets", minecraftServer.getInstanceManager(), minecraftServer.getConnectionManager()));
 
         // Remove viewable rule
         addSyntax((sender, context) -> {

@@ -2,7 +2,7 @@ package net.minestom.server.network.player;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.minestom.server.ServerConsts;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.crypto.PlayerPublicKey;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.Player;
@@ -87,7 +87,7 @@ public abstract class PlayerConnection {
      * @return the protocol version
      */
     public int getProtocolVersion() {
-        return ServerConsts.PROTOCOL_VERSION;
+        return MinecraftServer.PROTOCOL_VERSION;
     }
 
     /**

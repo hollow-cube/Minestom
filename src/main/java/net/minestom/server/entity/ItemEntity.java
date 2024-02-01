@@ -1,6 +1,6 @@
 package net.minestom.server.entity;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.metadata.item.ItemEntityMeta;
 import net.minestom.server.event.GlobalEventHandler;
@@ -43,8 +43,8 @@ public class ItemEntity extends Entity {
     private long spawnTime;
     private long pickupDelay;
 
-    public ItemEntity(ServerFacade serverFacade, @NotNull ItemStack itemStack) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, itemStack);
+    public ItemEntity(MinecraftServer minecraftServer, @NotNull ItemStack itemStack) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, itemStack);
     }
 
     public ItemEntity(GlobalEventHandler globalEventHandler, ServerSettings serverSettings, ChunkDispatcherProvider chunkDispatcherProvider, ExceptionHandlerProvider exceptionHandlerProvider, @NotNull ItemStack itemStack) {

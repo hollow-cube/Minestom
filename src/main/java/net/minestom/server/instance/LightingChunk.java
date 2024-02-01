@@ -2,7 +2,7 @@ package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.collision.Shape;
 import net.minestom.server.coordinate.Point;
@@ -82,8 +82,8 @@ public class LightingChunk extends DynamicChunk {
             Block.LAVA.namespace()
     );
 
-    public LightingChunk(ServerFacade serverFacade, @NotNull Instance instance, int chunkX, int chunkZ) {
-        this(serverFacade, serverFacade, serverFacade, instance, chunkX, chunkZ);
+    public LightingChunk(MinecraftServer minecraftServer, @NotNull Instance instance, int chunkX, int chunkZ) {
+        this(minecraftServer, minecraftServer, minecraftServer, instance, chunkX, chunkZ);
     }
 
     public LightingChunk(BiomeManagerProvider biomeManagerProvider, ServerSettingsProvider serverSettingsProvider, SchedulerManagerProvider schedulerManagerProvider, @NotNull Instance instance, int chunkX, int chunkZ) {

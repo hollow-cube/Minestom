@@ -1,6 +1,6 @@
 package net.minestom.server.network.socket;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.exception.ExceptionHandlerProvider;
@@ -36,8 +36,8 @@ public final class ServerImpl implements Server {
     private String address;
     private int port;
 
-    public ServerImpl(ServerSettings serverSettings, ServerFacade serverFacade) {
-        this(serverSettings, serverFacade, serverFacade, serverFacade, serverFacade);
+    public ServerImpl(ServerSettings serverSettings, MinecraftServer minecraftServer) {
+        this(serverSettings, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     public ServerImpl(ServerSettings serverSettings, ConnectionManagerProvider connectionManagerProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, PacketProcessorProvider packetProcessorProvider) {

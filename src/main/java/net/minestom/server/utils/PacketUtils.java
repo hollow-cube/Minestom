@@ -10,7 +10,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
@@ -83,16 +83,16 @@ public final class PacketUtils {
      * @param packet   the packet
      */
     @SuppressWarnings("OverrideOnly") // we need to access the audiences inside ForwardingAudience
-    public static void sendPacket(ServerFacade serverFacade, @NotNull Audience audience, @NotNull ServerPacket packet) {
+    public static void sendPacket(MinecraftServer minecraftServer, @NotNull Audience audience, @NotNull ServerPacket packet) {
         if (audience instanceof Player player) {
             player.sendPacket(packet);
         } else if (audience instanceof PacketGroupingAudience groupingAudience) {
-            PacketUtils.sendGroupedPacket(serverFacade, groupingAudience.getPlayers(), packet);
+            PacketUtils.sendGroupedPacket(minecraftServer, groupingAudience.getPlayers(), packet);
         } else if (audience instanceof ForwardingAudience.Single singleAudience) {
-            PacketUtils.sendPacket(serverFacade, singleAudience.audience(), packet);
+            PacketUtils.sendPacket(minecraftServer, singleAudience.audience(), packet);
         } else if (audience instanceof ForwardingAudience forwardingAudience) {
             for (Audience member : forwardingAudience.audiences()) {
-                PacketUtils.sendPacket(serverFacade, member, packet);
+                PacketUtils.sendPacket(minecraftServer, member, packet);
             }
         }
     }

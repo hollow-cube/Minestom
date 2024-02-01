@@ -1,6 +1,6 @@
 package net.minestom.server.extras.query.response;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.extras.query.Query;
 import net.minestom.server.utils.binary.BinaryWriter;
 import net.minestom.server.utils.binary.Writeable;
@@ -13,18 +13,18 @@ import java.util.Objects;
  */
 public class BasicQueryResponse implements Writeable {
     @NotNull
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
     private String motd, gametype, map, numPlayers, maxPlayers;
 
     /**
      * Creates a new basic query response with pre-filled default values.
      */
-    public BasicQueryResponse(ServerFacade serverFacade) {
-        this.serverFacade = serverFacade;
+    public BasicQueryResponse(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         this.motd = "A Minestom Server";
         this.gametype = "SMP";
         this.map = "world";
-        this.numPlayers = String.valueOf(serverFacade.getConnectionManager().getOnlinePlayerCount());
+        this.numPlayers = String.valueOf(minecraftServer.getConnectionManager().getOnlinePlayerCount());
         this.maxPlayers = String.valueOf(Integer.parseInt(this.numPlayers) + 1);
     }
 
@@ -145,7 +145,7 @@ public class BasicQueryResponse implements Writeable {
         writer.writeNullTerminatedString(this.map, Query.CHARSET);
         writer.writeNullTerminatedString(this.numPlayers, Query.CHARSET);
         writer.writeNullTerminatedString(this.maxPlayers, Query.CHARSET);
-        writer.writeShort((short) serverFacade.getServer().getPort()); // TODO little endian?
-        writer.writeNullTerminatedString(Objects.requireNonNullElse(serverFacade.getServer().getAddress(), ""), Query.CHARSET);
+        writer.writeShort((short) minecraftServer.getServer().getPort()); // TODO little endian?
+        writer.writeNullTerminatedString(Objects.requireNonNullElse(minecraftServer.getServer().getAddress(), ""), Query.CHARSET);
     }
 }

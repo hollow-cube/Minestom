@@ -1,6 +1,6 @@
 package net.minestom.server.listener.manager;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.player.PlayerPacketEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
@@ -45,8 +45,8 @@ public final class PacketListenerManagerImpl implements PacketListenerManager {
     private final GlobalEventHandlerProvider globalEventHandlerProvider;
     private final ExceptionHandlerProvider exceptionHandlerProvider;
 
-    public PacketListenerManagerImpl(ServerFacade serverFacade) {
-        this(serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    public PacketListenerManagerImpl(MinecraftServer minecraftServer) {
+        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     public PacketListenerManagerImpl(GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, MojangAuthProvider mojangAuthProvider, ConnectionManagerProvider connectionManagerProvider, SchedulerManagerProvider schedulerManagerProvider, ServerProvider serverProvider) {

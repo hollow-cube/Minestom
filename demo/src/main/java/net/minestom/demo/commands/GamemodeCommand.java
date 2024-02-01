@@ -2,7 +2,7 @@ package net.minestom.demo.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public class GamemodeCommand extends Command {
 
-    public GamemodeCommand(ServerFacade serverFacade) {
+    public GamemodeCommand(MinecraftServer minecraftServer) {
         super("gamemode", "gm");
 
         //GameMode parameter
@@ -36,7 +36,7 @@ public class GamemodeCommand extends Command {
                             .append(Component.text("!")));
         });
 
-        ArgumentEntity player = ArgumentType.Entity("targets", serverFacade.getInstanceManager(), serverFacade.getConnectionManager()).onlyPlayers(true);
+        ArgumentEntity player = ArgumentType.Entity("targets", minecraftServer.getInstanceManager(), minecraftServer.getConnectionManager()).onlyPlayers(true);
 
         //Upon invalid usage, print the correct usage of the command to the sender
         setDefaultExecutor((sender, context) -> {

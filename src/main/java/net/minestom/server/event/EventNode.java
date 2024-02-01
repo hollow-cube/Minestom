@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.tag.Tag;
@@ -34,9 +34,9 @@ public interface EventNode<T extends Event> {
      * @return An event node with no filtering
      */
     @Contract(value = "_, _ -> new", pure = true)
-    static @NotNull EventNode<Event> all(@NotNull ServerFacade serverFacade,
+    static @NotNull EventNode<Event> all(@NotNull MinecraftServer minecraftServer,
                                          @NotNull String name) {
-        return type(serverFacade, name, EventFilter.ALL);
+        return type(minecraftServer, name, EventFilter.ALL);
     }
 
     /**
@@ -54,10 +54,10 @@ public interface EventNode<T extends Event> {
      * @return A node with just an event type filter
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerFacade serverFacade,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull MinecraftServer minecraftServer,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter) {
-        return create(serverFacade, name, filter, null);
+        return create(minecraftServer, name, filter, null);
     }
 
     /**
@@ -80,11 +80,11 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull ServerFacade serverFacade,
+    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull MinecraftServer minecraftServer,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<E> predicate) {
-        return create(serverFacade, name, filter, (e, h) -> predicate.test(e));
+        return create(minecraftServer, name, filter, (e, h) -> predicate.test(e));
     }
 
     /**
@@ -109,11 +109,11 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull ServerFacade serverFacade,
+    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull MinecraftServer minecraftServer,
                                                            @NotNull String name,
                                                            @NotNull EventFilter<E, V> filter,
                                                            @NotNull BiPredicate<E, V> predicate) {
-        return create(serverFacade, name, filter, predicate);
+        return create(minecraftServer, name, filter, predicate);
     }
 
     /**
@@ -135,11 +135,11 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull ServerFacade serverFacade,
+    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull MinecraftServer minecraftServer,
                                                             @NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<V> predicate) {
-        return create(serverFacade, name, filter, (e, h) -> predicate.test(h));
+        return create(minecraftServer, name, filter, (e, h) -> predicate.test(h));
     }
 
     /**
@@ -155,11 +155,11 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a handler with the provided tag
      */
     @Contract(value = "_, _, _, _ -> new", pure = true)
-    static <E extends Event> @NotNull EventNode<E> tag(@NotNull ServerFacade serverFacade,
+    static <E extends Event> @NotNull EventNode<E> tag(@NotNull MinecraftServer minecraftServer,
                                                        @NotNull String name,
                                                        @NotNull EventFilter<E, ? extends TagReadable> filter,
                                                        @NotNull Tag<?> tag) {
-        return create(serverFacade, name, filter, (e, h) -> h.hasTag(tag));
+        return create(minecraftServer, name, filter, (e, h) -> h.hasTag(tag));
     }
 
     /**

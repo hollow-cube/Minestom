@@ -23,7 +23,7 @@ import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.world.DimensionTypeManagerProvider;
 import net.minestom.server.world.biomes.BiomeManagerProvider;
 
-public interface ServerFacade extends
+public interface MinecraftServer extends
         ExceptionHandlerProvider,
         ConnectionManagerProvider,
         PacketListenerManagerProvider,
@@ -49,8 +49,16 @@ public interface ServerFacade extends
         MojangAuthProvider,
         ServerStarterProvider
 {
-    ComponentLogger LOGGER = ComponentLogger.logger(ServerFacade.class);
-    static ServerFacade of(ServerSettings serverSettings) {
-        return new ServerFacadeImpl(serverSettings);
+    ComponentLogger LOGGER = ComponentLogger.logger(MinecraftServer.class);
+    String VERSION_NAME = "1.20.4";
+    int PROTOCOL_VERSION = 765;
+
+    // Threads
+    String THREAD_NAME_BENCHMARK = "Ms-Benchmark";
+
+    String THREAD_NAME_TICK_SCHEDULER = "Ms-TickScheduler";
+    String THREAD_NAME_TICK = "Ms-Tick";
+    static MinecraftServer of(ServerSettings serverSettings) {
+        return new MinecraftServerImpl(serverSettings);
     }
 }

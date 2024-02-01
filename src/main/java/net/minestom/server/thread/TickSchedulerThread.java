@@ -1,6 +1,6 @@
 package net.minestom.server.thread;
 
-import net.minestom.server.ServerConsts;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.ServerStarter;
 import net.minestom.server.Ticker;
@@ -20,7 +20,7 @@ public final class TickSchedulerThread extends MinestomThread {
     private long tick = 1;
 
     public TickSchedulerThread(ServerSettings serverSettings, Ticker ticker, ServerStarter serverStarter, ExceptionHandler exceptionHandler) {
-        super(ServerConsts.THREAD_NAME_TICK_SCHEDULER);
+        super(MinecraftServer.THREAD_NAME_TICK_SCHEDULER);
         this.serverSettings = serverSettings;
         this.ticker = ticker;
         this.serverStarter = serverStarter;

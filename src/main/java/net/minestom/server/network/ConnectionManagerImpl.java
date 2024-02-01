@@ -2,7 +2,7 @@ package net.minestom.server.network;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.adventure.bossbar.BossBarManagerProvider;
 import net.minestom.server.command.CommandManagerProvider;
@@ -92,8 +92,8 @@ public final class ConnectionManagerImpl implements ConnectionManager {
     private final PlayerProvider defaultPlayerProvider;
     private volatile PlayerProvider playerProvider;
 
-    public ConnectionManagerImpl(TagManager tagManager, ServerFacade serverFacade) {
-        this(tagManager, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade);
+    public ConnectionManagerImpl(TagManager tagManager, MinecraftServer minecraftServer) {
+        this(tagManager, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     public ConnectionManagerImpl(

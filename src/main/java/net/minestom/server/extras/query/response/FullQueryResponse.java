@@ -1,8 +1,7 @@
 package net.minestom.server.extras.query.response;
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.minestom.server.ServerConsts;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.extras.query.Query;
 import net.minestom.server.utils.binary.BinaryWriter;
 import net.minestom.server.utils.binary.Writeable;
@@ -17,7 +16,7 @@ public class FullQueryResponse implements Writeable {
     private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
     private static final byte[] PADDING_10 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
             PADDING_11 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
     private Map<String, String> kv;
     private List<String> players;
@@ -25,16 +24,16 @@ public class FullQueryResponse implements Writeable {
     /**
      * Creates a new full query response with default values set.
      */
-    public FullQueryResponse(ServerFacade serverFacade) {
-        this.serverFacade = serverFacade;
+    public FullQueryResponse(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
         this.kv = new HashMap<>();
 
         // populate defaults
         for (QueryKey key : QueryKey.VALUES) {
-            this.kv.put(key.getKey(), key.getValue(serverFacade));
+            this.kv.put(key.getKey(), key.getValue(minecraftServer));
         }
 
-        this.players = serverFacade.getConnectionManager().getOnlinePlayers()
+        this.players = minecraftServer.getConnectionManager().getOnlinePlayers()
                 .stream()
                 .map(player -> PLAIN.serialize(player.getName()))
                 .toList();
@@ -120,10 +119,10 @@ public class FullQueryResponse implements Writeable {
      *
      * @return the string result
      */
-    public static String generatePluginsValue(ServerFacade serverFacade) {
-        StringBuilder builder = new StringBuilder(serverFacade.getServerSettings().getBrandName())
+    public static String generatePluginsValue(MinecraftServer minecraftServer) {
+        StringBuilder builder = new StringBuilder(minecraftServer.getServerSettings().getBrandName())
                 .append(' ')
-                .append(ServerConsts.VERSION_NAME);
+                .append(MinecraftServer.VERSION_NAME);
 
         return builder.toString();
     }

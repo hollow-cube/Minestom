@@ -1,7 +1,7 @@
 package net.minestom.server.entity;
 
 import net.kyori.adventure.sound.Sound.Source;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.attribute.Attribute;
 import net.minestom.server.attribute.AttributeInstance;
@@ -87,12 +87,12 @@ public class LivingEntity extends Entity implements EquipmentHandler {
     private ItemStack leggings;
     private ItemStack boots;
 
-    public LivingEntity(ServerFacade serverFacade, @NotNull EntityType entityType) {
-        this(serverFacade, entityType, UUID.randomUUID());
+    public LivingEntity(MinecraftServer minecraftServer, @NotNull EntityType entityType) {
+        this(minecraftServer, entityType, UUID.randomUUID());
     }
 
-    public LivingEntity(ServerFacade serverFacade, @NotNull EntityType entityType, @NotNull UUID uuid) {
-        this(serverFacade.getGlobalEventHandler(), serverFacade.getServerSettings(), serverFacade, serverFacade, entityType, uuid);
+    public LivingEntity(MinecraftServer minecraftServer, @NotNull EntityType entityType, @NotNull UUID uuid) {
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer.getServerSettings(), minecraftServer, minecraftServer, entityType, uuid);
     }
 
     /**

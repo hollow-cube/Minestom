@@ -1,7 +1,7 @@
 package net.minestom.server.entity.fakeplayer;
 
 import com.extollit.gaming.ai.path.HydrazinePathFinder;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.adventure.bossbar.BossBarManagerProvider;
 import net.minestom.server.command.CommandManagerProvider;
@@ -52,11 +52,11 @@ public class FakePlayer extends Player implements NavigableEntity {
     private EventListener<PlayerSpawnEvent> spawnListener;
     private final SchedulerManagerProvider schedulerManagerProvider;
 
-    public FakePlayer(ServerFacade serverFacade, @NotNull UUID uuid, @NotNull String username, @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
+    public FakePlayer(MinecraftServer minecraftServer, @NotNull UUID uuid, @NotNull String username, @NotNull FakePlayerOption option, @Nullable Consumer<FakePlayer> spawnCallback) {
         this(
-                serverFacade.getGlobalEventHandler(),
-                serverFacade.getServerSettings(),
-                serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade, serverFacade,
+                minecraftServer.getGlobalEventHandler(),
+                minecraftServer.getServerSettings(),
+                minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer,
                 uuid, username, option, spawnCallback
         );
     }

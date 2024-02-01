@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.exception.ExceptionHandler;
 import net.minestom.server.extras.MojangAuth;
@@ -101,14 +101,14 @@ public final class LoginListener {
                     mojangAuth.getMojangCrypt().decryptUsingKey(mojangAuth.getKeyPair().getPrivate(), packet.encryptedVerifyToken()));
 
             if (verificationFailed) {
-                ServerFacade.LOGGER.error("Encryption failed for {}", loginUsername);
+                MinecraftServer.LOGGER.error("Encryption failed for {}", loginUsername);
                 return;
             }
 
             final byte[] digestedData = mojangAuth.getMojangCrypt().digestData("", mojangAuth.getKeyPair().getPublic(), getSecretKey(mojangAuth, packet.sharedSecret()));
             if (digestedData == null) {
                 // Incorrect key, probably because of the client
-                ServerFacade.LOGGER.error("Connection {} failed initializing encryption.", socketConnection.getRemoteAddress());
+                MinecraftServer.LOGGER.error("Connection {} failed initializing encryption.", socketConnection.getRemoteAddress());
                 connection.disconnect();
                 return;
             }
@@ -142,7 +142,7 @@ public final class LoginListener {
                             .replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
                     final String profileName = gameProfile.get("name").getAsString();
 
-                    ServerFacade.LOGGER.info("UUID of player {} is {}", loginUsername, profileUUID);
+                    MinecraftServer.LOGGER.info("UUID of player {} is {}", loginUsername, profileUUID);
                     connectionManager.createPlayer(connection, profileUUID, profileName);
                     List<GameProfile.Property> propertyList = new ArrayList<>();
                     for (JsonElement element : gameProfile.get("properties").getAsJsonArray()) {

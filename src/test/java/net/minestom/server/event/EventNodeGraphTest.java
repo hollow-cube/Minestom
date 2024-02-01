@@ -1,6 +1,6 @@
 package net.minestom.server.event;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import org.junit.jupiter.api.Test;
 
@@ -12,16 +12,16 @@ public class EventNodeGraphTest {
 
     @Test
     public void single() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        EventNode<Event> node = EventNode.all(serverFacade,"main");
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        EventNode<Event> node = EventNode.all(minecraftServer,"main");
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0, List.of()));
     }
 
     @Test
     public void singleChild() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        EventNode<Event> node = EventNode.all(serverFacade,"main");
-        node.addChild(EventNode.all(serverFacade,"child"));
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        EventNode<Event> node = EventNode.all(minecraftServer,"main");
+        node.addChild(EventNode.all(minecraftServer,"child"));
         verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                 List.of(new EventNodeImpl.Graph("child", "Event", 0, List.of())
                 )));
@@ -29,20 +29,20 @@ public class EventNodeGraphTest {
 
     @Test
     public void childrenPriority() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
         {
-            EventNode<Event> node = EventNode.all(serverFacade,"main");
-            node.addChild(EventNode.all(serverFacade,"child1").setPriority(5));
-            node.addChild(EventNode.all(serverFacade,"child2").setPriority(10));
+            EventNode<Event> node = EventNode.all(minecraftServer,"main");
+            node.addChild(EventNode.all(minecraftServer,"child1").setPriority(5));
+            node.addChild(EventNode.all(minecraftServer,"child2").setPriority(10));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())
                     )));
         }
         {
-            EventNode<Event> node = EventNode.all(serverFacade, "main");
-            node.addChild(EventNode.all(serverFacade,"child2").setPriority(10));
-            node.addChild(EventNode.all(serverFacade,"child1").setPriority(5));
+            EventNode<Event> node = EventNode.all(minecraftServer, "main");
+            node.addChild(EventNode.all(minecraftServer,"child2").setPriority(10));
+            node.addChild(EventNode.all(minecraftServer,"child1").setPriority(5));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
                     List.of(new EventNodeImpl.Graph("child1", "Event", 5, List.of()),
                             new EventNodeImpl.Graph("child2", "Event", 10, List.of())

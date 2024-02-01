@@ -1,6 +1,6 @@
 package net.minestom.demo.commands;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
@@ -19,11 +19,11 @@ public class SummonCommand extends Command {
     private final ArgumentEntityType entity;
     private final Argument<RelativeVec> pos;
     private final Argument<EntityClass> entityClass;
-    private final ServerFacade serverFacade;
+    private final MinecraftServer minecraftServer;
 
-    public SummonCommand(ServerFacade serverFacade) {
+    public SummonCommand(MinecraftServer minecraftServer) {
         super("summon");
-        this.serverFacade = serverFacade;
+        this.minecraftServer = minecraftServer;
         setCondition(Conditions::playerOnly);
 
         entity = ArgumentType.EntityType("entity type");
@@ -40,7 +40,7 @@ public class SummonCommand extends Command {
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        final Entity entity = commandContext.get(entityClass).instantiate(serverFacade, commandContext.get(this.entity));
+        final Entity entity = commandContext.get(entityClass).instantiate(minecraftServer, commandContext.get(this.entity));
         //noinspection ConstantConditions - One couldn't possibly execute a command without being in an instance
         entity.setInstance(((Player) commandSender).getInstance(), commandContext.get(pos).fromSender(commandSender));
     }
@@ -56,12 +56,12 @@ public class SummonCommand extends Command {
             this.factory = factory;
         }
 
-        public Entity instantiate(ServerFacade serverFacade, EntityType type) {
-            return factory.newInstance(serverFacade, type);
+        public Entity instantiate(MinecraftServer minecraftServer, EntityType type) {
+            return factory.newInstance(minecraftServer, type);
         }
     }
 
     interface EntityFactory {
-        Entity newInstance(ServerFacade serverFacade, EntityType type);
+        Entity newInstance(MinecraftServer minecraftServer, EntityType type);
     }
 }

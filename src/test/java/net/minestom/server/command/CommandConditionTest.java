@@ -1,7 +1,7 @@
 package net.minestom.server.command;
 
 import net.kyori.adventure.identity.Identity;
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandDispatcher;
@@ -19,8 +19,8 @@ public class CommandConditionTest {
 
     @Test
     public void mainCondition() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var dispatcher = new CommandDispatcher(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -43,8 +43,8 @@ public class CommandConditionTest {
 
     @Test
     public void subCondition() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var dispatcher = new CommandDispatcher(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -88,8 +88,8 @@ public class CommandConditionTest {
 
     @Test
     public void subConditionOverride() {
-        ServerFacade serverFacade = ServerFacade.of(ServerSettings.builder().build());
-        var dispatcher = new CommandDispatcher(serverFacade);
+        MinecraftServer minecraftServer = MinecraftServer.of(ServerSettings.builder().build());
+        var dispatcher = new CommandDispatcher(minecraftServer);
         assertNull(dispatcher.findCommand("name"));
         var sender = new Sender();
         var sender2 = new Sender();
@@ -147,7 +147,7 @@ public class CommandConditionTest {
         }
 
         @Override
-        public ServerFacade getServerProcess() {
+        public MinecraftServer getServerProcess() {
             return null;
         }
     }

@@ -1,6 +1,6 @@
 package net.minestom.server.instance;
 
-import net.minestom.server.ServerFacade;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
@@ -129,8 +129,8 @@ public class EntityTrackerIntegrationTest {
         assertEquals(1, viewable.getViewers().size());
     }
 
-    private Player createTestPlayer(ServerFacade serverFacade) {
-        return new Player(serverFacade, UUID.randomUUID(), "TestPlayer", new PlayerConnection(serverFacade) {
+    private Player createTestPlayer(MinecraftServer minecraftServer) {
+        return new Player(minecraftServer, UUID.randomUUID(), "TestPlayer", new PlayerConnection(minecraftServer) {
             @Override
             public void sendPacket(@NotNull SendablePacket packet) {
                 // nothing
