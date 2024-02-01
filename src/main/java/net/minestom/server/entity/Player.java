@@ -185,7 +185,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     private final AtomicInteger teleportId = new AtomicInteger();
 
-    private int lastReceivedTeleportId;
+    private int receivedTeleportId;
 
     private final MessagePassingQueue<ClientPacket> packets = new MpscUnboundedXaddArrayQueue<>(32);
     private final boolean levelFlat;
@@ -1211,6 +1211,16 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     /**
+     * Gets the player skin.
+     *
+     * @return the player skin object,
+     * null means that the player has his {@link #getUuid()} default skin
+     */
+    public @Nullable PlayerSkin getSkin() {
+        return skin;
+    }
+
+    /**
      * Changes the player skin.
      * <p>
      * This does remove the player for all viewers to spawn it again with the correct new skin.
@@ -1512,6 +1522,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         sendPacket(new SetExperiencePacket(exp, level, 0));
     }
 
+    public int getPortalCooldown() {
+        return portalCooldown;
+    }
+
+    public void setPortalCooldown(int portalCooldown) {
+        this.portalCooldown = portalCooldown;
+    }
+
     /**
      * Shortcut for {@link PlayerConnection#sendPacket(SendablePacket)}.
      *
@@ -1539,6 +1557,47 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      */
     public boolean isOnline() {
         return playerConnection.isOnline();
+    }
+
+    /**
+     * Gets the player settings.
+     *
+     * @return the player settings
+     */
+    public @NotNull PlayerSettings getSettings() {
+        return settings;
+    }
+
+    /**
+     * Gets the player dimension.
+     *
+     * @return the player current dimension
+     */
+    public DimensionType getDimensionType() {
+        return dimensionType;
+    }
+
+    public @NotNull PlayerInventory getInventory() {
+        return inventory;
+    }
+
+    /**
+     * Used to get the player latency,
+     * computed by seeing how long it takes the client to answer the {@link KeepAlivePacket} packet.
+     *
+     * @return the player latency
+     */
+    public int getLatency() {
+        return latency;
+    }
+
+    /**
+     * Gets the player {@link GameMode}.
+     *
+     * @return the player current gamemode
+     */
+    public GameMode getGameMode() {
+        return gameMode;
     }
 
     /**
@@ -1653,6 +1712,15 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         Check.argCondition(!MathUtils.isBetween(slot, 0, 8), "Slot has to be between 0 and 8");
         refreshHeldSlot(slot);
         sendPacket(new HeldItemChangePacket(slot));
+    }
+
+    /**
+     * Gets the player held slot (0-8).
+     *
+     * @return the current held slot for the player
+     */
+    public byte getHeldSlot() {
+        return heldSlot;
     }
 
     /**
@@ -1782,6 +1850,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         return teleportId.get();
     }
 
+    public int getLastReceivedTeleportId() {
+        return receivedTeleportId;
+    }
+
+    public void refreshReceivedTeleportId(int receivedTeleportId) {
+        this.receivedTeleportId = receivedTeleportId;
+    }
+
     /**
      * @see Entity#synchronizePosition(boolean)
      */
@@ -1792,6 +1868,15 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
             sendPacket(new PlayerPositionAndLookPacket(position, (byte) 0x00, getNextTeleportId()));
         }
         super.synchronizePosition(includeSelf);
+    }
+
+    /**
+     * Gets the player permission level.
+     *
+     * @return the player permission level
+     */
+    public int getPermissionLevel() {
+        return permissionLevel;
     }
 
     /**
@@ -2137,6 +2222,15 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.vehicleInformation.refresh(sideways, forward, jump, unmount);
     }
 
+    /**
+     * Gets the last sent keep alive id.
+     *
+     * @return the last keep alive id sent to the player
+     */
+    public long getLastKeepAlive() {
+        return lastKeepAlive;
+    }
+
     @Override
     public @NotNull HoverEvent<ShowEntity> asHoverEvent(@NotNull UnaryOperator<ShowEntity> op) {
         return HoverEvent.showEntity(ShowEntity.showEntity(EntityType.PLAYER, this.uuid, this.displayName));
@@ -2318,10 +2412,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         return super.teleport(position, chunks);
     }
 
-    public long getLastKeepAlive() {
-        return this.lastKeepAlive;
-    }
-
     public ConnectionManagerProvider getConnectionManagerProvider() {
         return this.connectionManagerProvider;
     }
@@ -2336,54 +2426,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     public PlayerConnection getPlayerConnection() {
         return this.playerConnection;
-    }
-
-    public int getLatency() {
-        return this.latency;
-    }
-
-    public PlayerSkin getSkin() {
-        return this.skin;
-    }
-
-    public DimensionType getDimensionType() {
-        return this.dimensionType;
-    }
-
-    public GameMode getGameMode() {
-        return this.gameMode;
-    }
-
-    public int getLastReceivedTeleportId() {
-        return this.lastReceivedTeleportId;
-    }
-
-    public PlayerSettings getSettings() {
-        return this.settings;
-    }
-
-    public int getPortalCooldown() {
-        return this.portalCooldown;
-    }
-
-    public PlayerInventory getInventory() {
-        return this.inventory;
-    }
-
-    public byte getHeldSlot() {
-        return this.heldSlot;
-    }
-
-    public int getPermissionLevel() {
-        return this.permissionLevel;
-    }
-
-    public void setLastReceivedTeleportId(int lastReceivedTeleportId) {
-        this.lastReceivedTeleportId = lastReceivedTeleportId;
-    }
-
-    public void setPortalCooldown(int portalCooldown) {
-        this.portalCooldown = portalCooldown;
     }
 
     /**

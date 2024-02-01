@@ -28,7 +28,7 @@ public class PlayerPositionListener {
     }
 
     public static void teleportConfirmListener(ClientTeleportConfirmPacket packet, Player player) {
-        player.setLastReceivedTeleportId(packet.teleportId());
+        player.refreshReceivedTeleportId(packet.teleportId());
     }
 
     private static void processMovement(@NotNull Player player, @NotNull Pos packetPosition, boolean onGround) {
