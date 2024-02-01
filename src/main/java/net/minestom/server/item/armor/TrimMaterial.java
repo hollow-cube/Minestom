@@ -33,7 +33,7 @@ public interface TrimMaterial extends ProtocolObject {
         return registry().itemModelIndex();
     }
 
-    default @NotNull Map<String,NamespaceID> overrideArmorMaterials() {
+    default @NotNull Map<String,String> overrideArmorMaterials() {
         return registry().overrideArmorMaterials();
     }
     default @NotNull Component description() {

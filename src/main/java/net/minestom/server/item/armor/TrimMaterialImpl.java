@@ -37,7 +37,7 @@ record TrimMaterialImpl(Registry.TrimMaterialEntry registry, int id) implements 
             nbt.set("override_armor_materials",NBT.Compound(overrideArmorMaterials().entrySet().stream()
                             .collect(Collectors.toMap(
                                     Map.Entry::getKey,
-                                    entry -> NBT.String(entry.getValue().asString())
+                                    entry -> NBT.String(entry.getValue())
                             ))
             ));
             nbt.set("description", NbtComponentSerializer.nbt().serialize(description()));
