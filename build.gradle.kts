@@ -7,7 +7,6 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.nexuspublish)
-    id("io.freefair.lombok") version "8.4"
 }
 
 // Read env vars (used for publishing generally)

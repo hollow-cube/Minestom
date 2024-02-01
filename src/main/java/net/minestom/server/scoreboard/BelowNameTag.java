@@ -1,6 +1,5 @@
 package net.minestom.server.scoreboard;
 
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.entity.Player;
@@ -26,7 +25,6 @@ public class BelowNameTag implements Scoreboard {
     private final String objectiveName;
 
     private final ScoreboardObjectivePacket scoreboardObjectivePacket;
-    @Getter
     private final ServerSettings serverSettings;
 
     /**
@@ -83,5 +81,9 @@ public class BelowNameTag implements Scoreboard {
     @Override
     public Set<Player> getViewers() {
         return unmodifiableViewers;
+    }
+
+    public ServerSettings getServerSettings() {
+        return this.serverSettings;
     }
 }

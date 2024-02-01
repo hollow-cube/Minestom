@@ -1,6 +1,5 @@
 package net.minestom.server.entity;
 
-import lombok.Getter;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -96,11 +95,9 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
     private static final AtomicInteger LAST_ENTITY_ID = new AtomicInteger();
 
     private final CachedPacket destroyPacketCache;
-    @Getter // FIXME bad shit
     protected final ServerSettingsProvider serverSettingsProvider;
     protected final ChunkDispatcherProvider chunkDispatcherProvider;
     protected final ExceptionHandlerProvider exceptionHandlerProvider;
-    @Getter // FIXME bad shit
     protected final GlobalEventHandler globalEventHandler;
 
     protected Instance instance;
@@ -1847,6 +1844,14 @@ public class Entity implements Viewable, Tickable, Schedulable, Snapshotable, Ev
 
     public boolean hasCollision() {
         return hasCollision;
+    }
+
+    public ServerSettingsProvider getServerSettingsProvider() {
+        return this.serverSettingsProvider;
+    }
+
+    public GlobalEventHandler getGlobalEventHandler() {
+        return this.globalEventHandler;
     }
 
     public enum Pose {

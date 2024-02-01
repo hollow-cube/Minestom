@@ -2,7 +2,6 @@ package net.minestom.server.command.builder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandManagerImpl;
 import net.minestom.server.command.CommandParser;
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Class responsible for parsing {@link Command}.
  */
-@RequiredArgsConstructor
 public class CommandDispatcher {
     private final CommandManager manager;
 
@@ -28,6 +26,10 @@ public class CommandDispatcher {
 
     public CommandDispatcher(ExceptionHandlerProvider exceptionHandlerProvider, GlobalEventHandlerProvider globalEventHandlerProvider) {
         this(new CommandManagerImpl(exceptionHandlerProvider, globalEventHandlerProvider));
+    }
+
+    public CommandDispatcher(CommandManager manager) {
+        this.manager = manager;
     }
 
     /**

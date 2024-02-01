@@ -1,6 +1,5 @@
 package net.minestom.server.instance;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.event.GlobalEventHandlerProvider;
@@ -22,7 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@RequiredArgsConstructor
 public final class InstanceManagerImpl implements InstanceManager {
     private final ChunkDispatcherProvider chunkDispatcherProvider;
     private final GlobalEventHandlerProvider globalEventHandlerProvider;
@@ -36,6 +34,15 @@ public final class InstanceManagerImpl implements InstanceManager {
     }
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
+
+    public InstanceManagerImpl(ChunkDispatcherProvider chunkDispatcherProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ServerSettingsProvider serverSettingsProvider, ExceptionHandlerProvider exceptionHandlerProvider, BlockManagerProvider blockManagerProvider, BiomeManagerProvider biomeManagerProvider) {
+        this.chunkDispatcherProvider = chunkDispatcherProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.blockManagerProvider = blockManagerProvider;
+        this.biomeManagerProvider = biomeManagerProvider;
+    }
 
     @Override
     public void registerInstance(@NotNull Instance instance) {

@@ -89,6 +89,7 @@ public sealed interface EntityTracker permits EntityTrackerImpl {
      */
     @ApiStatus.NonExtendable
     interface Target<E extends Entity> {
+
         Target<Entity> ENTITIES = create(Entity.class);
         Target<Player> PLAYERS = create(Player.class);
         Target<ItemEntity> ITEMS = create(ItemEntity.class);
@@ -114,12 +115,14 @@ public sealed interface EntityTracker permits EntityTrackerImpl {
                 }
             };
         }
+
     }
 
     /**
      * Callback to know the newly visible entities and those to remove.
      */
     interface Update<E extends Entity> {
+
         void add(@NotNull E entity);
 
         void remove(@NotNull E entity);
@@ -127,5 +130,6 @@ public sealed interface EntityTracker permits EntityTrackerImpl {
         default void referenceUpdate(@NotNull Point point, @Nullable EntityTracker tracker) {
             // Empty
         }
+
     }
 }

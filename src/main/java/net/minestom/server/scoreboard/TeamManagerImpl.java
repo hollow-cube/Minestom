@@ -1,6 +1,5 @@
 package net.minestom.server.scoreboard;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.network.ConnectionManager;
 import net.minestom.server.utils.PacketUtils;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-@RequiredArgsConstructor
 public final class TeamManagerImpl implements TeamManager {
 
     /**
@@ -21,6 +19,10 @@ public final class TeamManagerImpl implements TeamManager {
     private final Set<Team> teams = new CopyOnWriteArraySet<>();
 
     private final ServerSettings serverSettings;
+
+    public TeamManagerImpl(ServerSettings serverSettings) {
+        this.serverSettings = serverSettings;
+    }
 
     /**
      * Registers a new {@link Team}

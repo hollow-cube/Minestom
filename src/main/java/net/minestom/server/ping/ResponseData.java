@@ -1,7 +1,6 @@
 package net.minestom.server.ping;
 
 import com.google.gson.JsonObject;
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
@@ -24,7 +23,6 @@ public class ResponseData {
     private static final Component DEFAULT_DESCRIPTION = Component.text("Minestom Server");
 
     private final List<NamedAndIdentified> entries;
-    @Getter
     private final Server server;
 
     private String version;
@@ -328,6 +326,10 @@ public class ResponseData {
     @Deprecated
     public @NotNull JsonObject build() {
         return ServerListPingType.getModernPingResponse(this, true);
+    }
+
+    public Server getServer() {
+        return this.server;
     }
 
     /**

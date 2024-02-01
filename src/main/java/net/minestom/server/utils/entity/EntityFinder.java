@@ -2,7 +2,6 @@ package net.minestom.server.utils.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanMaps;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Vec;
@@ -28,7 +27,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * Represents a query which can be call to find one or multiple entities.
  * It is based on the target selectors used in commands.
  */
-@RequiredArgsConstructor
 public class EntityFinder {
     private final InstanceManager instanceManager;
     private final ConnectionManager connectionManager;
@@ -54,6 +52,11 @@ public class EntityFinder {
     // Players specific
     private final ToggleableMap<GameMode> gameModes = new ToggleableMap<>();
     private IntRange level;
+
+    public EntityFinder(InstanceManager instanceManager, ConnectionManager connectionManager) {
+        this.instanceManager = instanceManager;
+        this.connectionManager = connectionManager;
+    }
 
     public EntityFinder setTargetSelector(@NotNull TargetSelector targetSelector) {
         this.targetSelector = targetSelector;
@@ -310,8 +313,8 @@ public class EntityFinder {
     }
 
     private @NotNull List<@NotNull Entity> findTarget(@Nullable Instance instance,
-                                                             @NotNull TargetSelector targetSelector,
-                                                             @NotNull Point startPosition, @Nullable Entity self) {
+                                                      @NotNull TargetSelector targetSelector,
+                                                      @NotNull Point startPosition, @Nullable Entity self) {
         final var players = instance != null ? instance.getPlayers() : connectionManager.getOnlinePlayers();
         if (targetSelector == TargetSelector.NEAREST_PLAYER) {
             return players.stream()

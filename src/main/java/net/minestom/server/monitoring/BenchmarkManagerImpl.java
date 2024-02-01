@@ -2,7 +2,6 @@ package net.minestom.server.monitoring;
 
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.utils.validate.Check;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@RequiredArgsConstructor
 public final class BenchmarkManagerImpl implements BenchmarkManager {
     private final static Logger LOGGER = LoggerFactory.getLogger(BenchmarkManagerImpl.class);
     private static final ThreadMXBean THREAD_MX_BEAN = ManagementFactory.getThreadMXBean();
@@ -37,11 +35,14 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
     private final Long2LongMap lastBlockedMap = new Long2LongOpenHashMap();
     private final Map<String, ThreadResult> resultMap = new ConcurrentHashMap<>();
 
-    @lombok.Getter
     private boolean enabled = false;
     private volatile boolean stop = false;
     private long time;
     private final ExceptionHandlerProvider exceptionHandlerProvider;
+
+    public BenchmarkManagerImpl(ExceptionHandlerProvider exceptionHandlerProvider) {
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+    }
 
     @Override
     public void enable(@NotNull Duration duration) {
@@ -132,5 +133,9 @@ public final class BenchmarkManagerImpl implements BenchmarkManager {
             ThreadResult threadResult = new ThreadResult(cpuPercentage, userPercentage, waitedPercentage, blockedPercentage);
             resultMap.put(name, threadResult);
         }
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
     }
 }

@@ -1,6 +1,5 @@
 package net.minestom.server;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.monitoring.BenchmarkManagerProvider;
 import net.minestom.server.network.ConnectionManagerProvider;
@@ -17,7 +16,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@RequiredArgsConstructor
 public class ServerStarter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerStarter.class);
 
@@ -36,6 +34,18 @@ public class ServerStarter {
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
+
+    public ServerStarter(ServerSettingsProvider serverSettingsProvider, ServerProvider serverProvider, ExceptionHandlerProvider exceptionHandlerProvider, SchedulerManagerProvider schedulerManagerProvider, ConnectionManagerProvider connectionManagerProvider, BenchmarkManagerProvider benchmarkManagerProvider, ChunkDispatcherProvider chunkDispatcherProvider, TickerProvider tickerProvider) {
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.serverProvider = serverProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.schedulerManagerProvider = schedulerManagerProvider;
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.benchmarkManagerProvider = benchmarkManagerProvider;
+        this.chunkDispatcherProvider = chunkDispatcherProvider;
+        this.tickerProvider = tickerProvider;
+    }
+
     public void start(@NotNull SocketAddress socketAddress) {
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Server already started");
@@ -57,7 +67,8 @@ public class ServerStarter {
         LOGGER.info(serverSettingsProvider.getServerSettings().getBrandName() + " server started successfully.");
 
         // Stop the server on SIGINT
-        if (serverSettingsProvider.getServerSettings().isShutdownOnSignal()) Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+        if (serverSettingsProvider.getServerSettings().isShutdownOnSignal())
+            Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
 
         new TickSchedulerThread(serverSettingsProvider.getServerSettings(), tickerProvider.getTicker(), this, exceptionHandlerProvider.getExceptionHandler()).start();
     }

@@ -2,7 +2,6 @@ package net.minestom.server.entity;
 
 import it.unimi.dsi.fastutil.longs.LongArrayPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
-import lombok.Getter;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.identity.Identified;
@@ -142,36 +141,27 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     public static final boolean EXPERIMENT_PERFORM_POSE_UPDATES = Boolean.getBoolean("minestom.experiment.pose-updates");
 
-    @Getter
     private long lastKeepAlive;
     private boolean answerKeepAlive;
-    @Getter // FIXME bad shit
 
     protected final ConnectionManagerProvider connectionManagerProvider;
     protected final TeamManagerProvider teamManagerProvider;
     protected final RecipeManagerProvider recipeManagerProvider;
-    @Getter // FIXME bad shit
     private final CommandManagerProvider commandManagerProvider;
     private final BossBarManagerProvider bossBarManagerProvider;
     private final SchedulerManagerProvider schedulerManagerProvider;
     private final PacketListenerManagerProvider packetListenerManagerProvider;
-    @Getter // FIXME bad shit
     private final BlockManagerProvider blockManagerProvider;
     private String username;
     private Component usernameComponent;
-    @Getter
     protected final PlayerConnection playerConnection;
 
-    @Getter
     private int latency;
     private Component displayName;
-    @Getter
     private PlayerSkin skin;
 
     private Instance pendingInstance = null;
-    @Getter
     private DimensionType dimensionType;
-    @Getter
     private GameMode gameMode;
     private DeathLocation deathLocation;
 
@@ -194,27 +184,22 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     final IntegerBiConsumer chunkRemover;
 
     private final AtomicInteger teleportId = new AtomicInteger();
-    @lombok.Setter
-    @Getter
+
     private int lastReceivedTeleportId;
 
     private final MessagePassingQueue<ClientPacket> packets = new MpscUnboundedXaddArrayQueue<>(32);
     private final boolean levelFlat;
-    @Getter
+
     private final PlayerSettings settings;
     private float exp;
     private int level;
-    @Getter
-    @lombok.Setter
     private int portalCooldown = 0;
 
-    @Getter
     protected PlayerInventory inventory;
     private Inventory openInventory;
     // Used internally to allow the closing of inventory within the inventory listener
     private boolean didCloseInventory;
 
-    @Getter
     private byte heldSlot;
 
     private Pos respawnPoint;
@@ -235,7 +220,6 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     private BelowNameTag belowNameTag;
 
-    @Getter
     private int permissionLevel;
 
     private boolean reducedDebugScreenInformation;
@@ -2332,6 +2316,74 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     public @NotNull CompletableFuture<Void> teleport(@NotNull Pos position, long @Nullable [] chunks) {
         chunkUpdateLimitChecker.clearHistory();
         return super.teleport(position, chunks);
+    }
+
+    public long getLastKeepAlive() {
+        return this.lastKeepAlive;
+    }
+
+    public ConnectionManagerProvider getConnectionManagerProvider() {
+        return this.connectionManagerProvider;
+    }
+
+    public CommandManagerProvider getCommandManagerProvider() {
+        return this.commandManagerProvider;
+    }
+
+    public BlockManagerProvider getBlockManagerProvider() {
+        return this.blockManagerProvider;
+    }
+
+    public PlayerConnection getPlayerConnection() {
+        return this.playerConnection;
+    }
+
+    public int getLatency() {
+        return this.latency;
+    }
+
+    public PlayerSkin getSkin() {
+        return this.skin;
+    }
+
+    public DimensionType getDimensionType() {
+        return this.dimensionType;
+    }
+
+    public GameMode getGameMode() {
+        return this.gameMode;
+    }
+
+    public int getLastReceivedTeleportId() {
+        return this.lastReceivedTeleportId;
+    }
+
+    public PlayerSettings getSettings() {
+        return this.settings;
+    }
+
+    public int getPortalCooldown() {
+        return this.portalCooldown;
+    }
+
+    public PlayerInventory getInventory() {
+        return this.inventory;
+    }
+
+    public byte getHeldSlot() {
+        return this.heldSlot;
+    }
+
+    public int getPermissionLevel() {
+        return this.permissionLevel;
+    }
+
+    public void setLastReceivedTeleportId(int lastReceivedTeleportId) {
+        this.lastReceivedTeleportId = lastReceivedTeleportId;
+    }
+
+    public void setPortalCooldown(int portalCooldown) {
+        this.portalCooldown = portalCooldown;
     }
 
     /**

@@ -1,7 +1,6 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.ServerSettingsProvider;
 import net.minestom.server.Viewable;
 import net.minestom.server.coordinate.Point;
@@ -27,9 +26,8 @@ import static net.minestom.server.instance.Chunk.CHUNK_SIZE_X;
 import static net.minestom.server.instance.Chunk.CHUNK_SIZE_Z;
 import static net.minestom.server.utils.chunk.ChunkUtils.*;
 
-@RequiredArgsConstructor
 final class EntityTrackerImpl implements EntityTracker {
-    
+
     private final ServerSettingsProvider serverSettingsProvider;
 
     static final AtomicInteger TARGET_COUNTER = new AtomicInteger();
@@ -39,7 +37,9 @@ final class EntityTrackerImpl implements EntityTracker {
     final TargetEntry<Entity>[] entries = EntityTracker.Target.TARGETS.stream().map((Function<Target<?>, TargetEntry>) TargetEntry::new).toArray(TargetEntry[]::new);
     private final Int2ObjectSyncMap<Point> entityPositions = Int2ObjectSyncMap.hashmap();
 
-
+    public EntityTrackerImpl(ServerSettingsProvider serverSettingsProvider) {
+        this.serverSettingsProvider = serverSettingsProvider;
+    }
 
     @Override
     public <T extends Entity> void register(@NotNull Entity entity, @NotNull Point point,

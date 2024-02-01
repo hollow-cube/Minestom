@@ -1,6 +1,5 @@
 package net.minestom.server.adventure.bossbar;
 
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -17,12 +16,16 @@ import java.util.function.Consumer;
  * {@link Audience}, instead you should use {@link BossBarManagerImpl} to manage boss bars
  * for players.
  */
-@RequiredArgsConstructor
 class BossBarListener implements BossBar.Listener {
 
     private final ServerSettingsProvider serverSettingsProvider;
 
     private final BossBarManagerImpl manager;
+
+    public BossBarListener(ServerSettingsProvider serverSettingsProvider, BossBarManagerImpl manager) {
+        this.serverSettingsProvider = serverSettingsProvider;
+        this.manager = manager;
+    }
 
     @Override
     public void bossBarNameChanged(@NotNull BossBar bar, @NotNull Component oldName, @NotNull Component newName) {

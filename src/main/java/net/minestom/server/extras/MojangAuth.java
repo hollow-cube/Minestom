@@ -1,6 +1,5 @@
 package net.minestom.server.extras;
 
-import lombok.Getter;
 import net.minestom.server.ServerStarterProvider;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.extras.mojangAuth.MojangCrypt;
@@ -10,12 +9,9 @@ import java.security.KeyPair;
 
 public final class MojangAuth {
     public final String AUTH_URL = System.getProperty("minestom.auth.url", "https://sessionserver.mojang.com/session/minecraft/hasJoined").concat("?username=%s&serverId=%s");
-    @Getter
     private volatile boolean enabled = false;
-    @Getter
     private volatile KeyPair keyPair;
     private final ServerStarterProvider serverStarterProvider;
-    @Getter
     private final MojangCrypt mojangCrypt;
 
     public MojangAuth(ServerStarterProvider serverStarterProvider, ExceptionHandlerProvider exceptionHandlerProvider) {
@@ -34,5 +30,17 @@ public final class MojangAuth {
         enabled = true;
         // Generate necessary fields...
         keyPair = mojangCrypt.generateKeyPair();
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public KeyPair getKeyPair() {
+        return this.keyPair;
+    }
+
+    public MojangCrypt getMojangCrypt() {
+        return this.mojangCrypt;
     }
 }

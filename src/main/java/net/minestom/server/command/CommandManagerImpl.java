@@ -1,6 +1,5 @@
 package net.minestom.server.command;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandDispatcher;
 import net.minestom.server.command.builder.CommandResult;
@@ -19,7 +18,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-@RequiredArgsConstructor
 public final class CommandManagerImpl implements CommandManager {
 
     private final ExceptionHandlerProvider exceptionHandlerProvider;
@@ -35,6 +33,11 @@ public final class CommandManagerImpl implements CommandManager {
     private final Set<Command> commands = new HashSet<>();
 
     private CommandCallback unknownCommandCallback;
+
+    public CommandManagerImpl(ExceptionHandlerProvider exceptionHandlerProvider, GlobalEventHandlerProvider globalEventHandlerProvider) {
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+    }
 
     @Override
     public synchronized void register(@NotNull Command command) {

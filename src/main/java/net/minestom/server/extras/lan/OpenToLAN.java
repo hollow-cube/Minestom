@@ -1,6 +1,5 @@
 package net.minestom.server.extras.lan;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.network.ConnectionManager;
@@ -31,7 +30,6 @@ import static net.minestom.server.ping.ServerListPingType.OPEN_TO_LAN;
  *
  * @see <a href="https://wiki.vg/Server_List_Ping#Ping_via_LAN_.28Open_to_LAN_in_Singleplayer.29">wiki.vg</a>
  */
-@RequiredArgsConstructor
 public class OpenToLAN {
     private final InetSocketAddress PING_ADDRESS = new InetSocketAddress("224.0.2.60", 4445);
 
@@ -46,6 +44,13 @@ public class OpenToLAN {
     private final Server server;
     private final SchedulerManager schedulerManager;
     private final GlobalEventHandler globalEventHandler;
+
+    public OpenToLAN(ConnectionManager connectionManager, Server server, SchedulerManager schedulerManager, GlobalEventHandler globalEventHandler) {
+        this.connectionManager = connectionManager;
+        this.server = server;
+        this.schedulerManager = schedulerManager;
+        this.globalEventHandler = globalEventHandler;
+    }
 
     /**
      * Opens the server to LAN with the default config.

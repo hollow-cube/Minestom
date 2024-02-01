@@ -1,9 +1,6 @@
 package net.minestom.server.instance;
 
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.pointer.Pointers;
 import net.minestom.server.ServerSettings;
@@ -64,71 +61,51 @@ import java.util.stream.Collectors;
  * with {@link InstanceManagerImpl#registerInstance(Instance)}, and
  * you need to be sure to signal the {@link ThreadDispatcherImpl} of every partition/element changes.
  */
-public abstract class Instance implements Block.Getter, Block.Setter,
-        Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
+public abstract class Instance implements Block.Getter, Block.Setter, Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
 
-    @Getter // FIXME bad shit
     private final ServerSettingsProvider serverSettingsProvider;
     private final EventNode<Event> globalEventHandler;
-    @Getter
-    @Setter(lombok.AccessLevel.PROTECTED)
+
     private boolean registered;
 
-
-    @Getter
     private final DimensionType dimensionType;
-    @Getter
     private final NamespaceID dimensionName;
 
-    @Getter
     private final WorldBorder worldBorder;
 
-
     // Tick since the creation of the instance
-    @Getter
     private long worldAge;
 
     // The time of the instance
-    @Getter
     private long time;
-    @Getter
+
     private int timeRate = 1;
-    @Setter
-    @Getter
+
     private Duration timeUpdate = Duration.of(1, TimeUnit.SECOND);
     private long lastTimeUpdate;
 
     // Field for tick events
     private long lastTickAge = System.currentTimeMillis();
 
-    @Getter
     private final EntityTracker entityTracker;
 
     private final ChunkCache blockRetriever = new ChunkCache(this, null, null);
 
     // the uuid of this instance
-    @Getter
     protected UUID uniqueId;
 
     // instance custom data
-    @Getter
-    @Accessors(fluent = true)
     protected TagHandler tagHandler = TagHandler.newHandler();
-    @Getter
     private final Scheduler scheduler = Scheduler.newScheduler();
-    @Getter
     private final EventNode<InstanceEvent> eventNode;
 
     // the explosion supplier
     private ExplosionSupplier explosionSupplier;
 
     // Pathfinder
-    @Getter
     private final PFInstanceSpace instanceSpace = new PFInstanceSpace(this);
 
     // Adventure
-    @Getter
-    @Accessors(fluent = true)
     private final Pointers pointers;
 
     /**
@@ -667,5 +644,77 @@ public abstract class Instance implements Block.Getter, Block.Setter,
     @Override
     public ServerSettings getServerSettings() {
         return serverSettingsProvider.getServerSettings();
+    }
+
+    public ServerSettingsProvider getServerSettingsProvider() {
+        return this.serverSettingsProvider;
+    }
+
+    public boolean isRegistered() {
+        return this.registered;
+    }
+
+    public DimensionType getDimensionType() {
+        return this.dimensionType;
+    }
+
+    public NamespaceID getDimensionName() {
+        return this.dimensionName;
+    }
+
+    public WorldBorder getWorldBorder() {
+        return this.worldBorder;
+    }
+
+    public long getWorldAge() {
+        return this.worldAge;
+    }
+
+    public long getTime() {
+        return this.time;
+    }
+
+    public int getTimeRate() {
+        return this.timeRate;
+    }
+
+    public Duration getTimeUpdate() {
+        return this.timeUpdate;
+    }
+
+    public EntityTracker getEntityTracker() {
+        return this.entityTracker;
+    }
+
+    public UUID getUniqueId() {
+        return this.uniqueId;
+    }
+
+    public TagHandler tagHandler() {
+        return this.tagHandler;
+    }
+
+    public Scheduler getScheduler() {
+        return this.scheduler;
+    }
+
+    public EventNode<InstanceEvent> getEventNode() {
+        return this.eventNode;
+    }
+
+    public PFInstanceSpace getInstanceSpace() {
+        return this.instanceSpace;
+    }
+
+    public Pointers pointers() {
+        return this.pointers;
+    }
+
+    protected void setRegistered(boolean registered) {
+        this.registered = registered;
+    }
+
+    public void setTimeUpdate(Duration timeUpdate) {
+        this.timeUpdate = timeUpdate;
     }
 }

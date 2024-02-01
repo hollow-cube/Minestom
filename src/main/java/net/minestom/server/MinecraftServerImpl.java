@@ -1,6 +1,5 @@
 package net.minestom.server;
 
-import lombok.Getter;
 import net.minestom.server.advancements.AdvancementManager;
 import net.minestom.server.advancements.AdvancementManagerImpl;
 import net.minestom.server.adventure.audience.AudienceManager;
@@ -42,7 +41,6 @@ import net.minestom.server.world.DimensionTypeManagerImpl;
 import net.minestom.server.world.biomes.BiomeManager;
 import net.minestom.server.world.biomes.BiomeManagerImpl;
 
-@Getter
 final class MinecraftServerImpl implements MinecraftServer {
 
     private final ExceptionHandler exceptionHandler;
@@ -100,5 +98,101 @@ final class MinecraftServerImpl implements MinecraftServer {
         this.ticker = new TickerImpl(this);
         this.serverStarter = new ServerStarter(this);
         this.mojangAuth = new MojangAuth(this, this);
+    }
+
+    public ExceptionHandler getExceptionHandler() {
+        return this.exceptionHandler;
+    }
+
+    public ConnectionManager getConnectionManager() {
+        return this.connectionManager;
+    }
+
+    public PacketListenerManager getPacketListenerManager() {
+        return this.packetListenerManager;
+    }
+
+    public PacketProcessor getPacketProcessor() {
+        return this.packetProcessor;
+    }
+
+    public InstanceManager getInstanceManager() {
+        return this.instanceManager;
+    }
+
+    public BlockManager getBlockManager() {
+        return this.blockManager;
+    }
+
+    public CommandManager getCommandManager() {
+        return this.commandManager;
+    }
+
+    public RecipeManager getRecipeManager() {
+        return this.recipeManager;
+    }
+
+    public TeamManager getTeamManager() {
+        return this.teamManager;
+    }
+
+    public GlobalEventHandler getGlobalEventHandler() {
+        return this.globalEventHandler;
+    }
+
+    public SchedulerManager getSchedulerManager() {
+        return this.schedulerManager;
+    }
+
+    public BenchmarkManager getBenchmarkManager() {
+        return this.benchmarkManager;
+    }
+
+    public DimensionTypeManager getDimensionTypeManager() {
+        return this.dimensionTypeManager;
+    }
+
+    public BiomeManager getBiomeManager() {
+        return this.biomeManager;
+    }
+
+    public AdvancementManager getAdvancementManager() {
+        return this.advancementManager;
+    }
+
+    public BossBarManager getBossBarManager() {
+        return this.bossBarManager;
+    }
+
+    public TagManager getTagManager() {
+        return this.tagManager;
+    }
+
+    public Server getServer() {
+        return this.server;
+    }
+
+    public ChunkDispatcher getChunkDispatcher() {
+        return this.chunkDispatcher;
+    }
+
+    public Ticker getTicker() {
+        return this.ticker;
+    }
+
+    public ServerSettings getServerSettings() {
+        return this.serverSettings;
+    }
+
+    public AudienceManager getAudienceManager() {
+        return this.audienceManager;
+    }
+
+    public MojangAuth getMojangAuth() {
+        return this.mojangAuth;
+    }
+
+    public ServerStarter getServerStarter() {
+        return this.serverStarter;
     }
 }

@@ -1,6 +1,5 @@
 package net.minestom.server;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.event.GlobalEventHandlerProvider;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
@@ -14,7 +13,6 @@ import net.minestom.server.thread.ChunkDispatcherProvider;
 import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.PacketUtils;
 
-@RequiredArgsConstructor
 public final class TickerImpl implements Ticker {
     private final ConnectionManagerProvider connectionManagerProvider;
     private final SchedulerManagerProvider schedulerManagerProvider;
@@ -26,6 +24,16 @@ public final class TickerImpl implements Ticker {
 
     public TickerImpl(MinecraftServer minecraftServer) {
         this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
+    }
+
+    public TickerImpl(ConnectionManagerProvider connectionManagerProvider, SchedulerManagerProvider schedulerManagerProvider, ServerProvider serverProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ExceptionHandlerProvider exceptionHandlerProvider, InstanceManagerProvider instanceManagerProvider, ChunkDispatcherProvider chunkDispatcherProvider) {
+        this.connectionManagerProvider = connectionManagerProvider;
+        this.schedulerManagerProvider = schedulerManagerProvider;
+        this.serverProvider = serverProvider;
+        this.globalEventHandlerProvider = globalEventHandlerProvider;
+        this.exceptionHandlerProvider = exceptionHandlerProvider;
+        this.instanceManagerProvider = instanceManagerProvider;
+        this.chunkDispatcherProvider = chunkDispatcherProvider;
     }
 
     @Override

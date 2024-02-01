@@ -1,6 +1,5 @@
 package net.minestom.server.advancements;
 
-import lombok.RequiredArgsConstructor;
 import net.minestom.server.ServerSettings;
 import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
@@ -10,12 +9,15 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@RequiredArgsConstructor
 public class AdvancementManagerImpl implements AdvancementManager {
     private final ServerSettings serverSettings;
 
     // root identifier = its advancement tab
     private final Map<String, AdvancementTab> advancementTabMap = new ConcurrentHashMap<>();
+
+    public AdvancementManagerImpl(ServerSettings serverSettings) {
+        this.serverSettings = serverSettings;
+    }
 
     @Override
     @NotNull

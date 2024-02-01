@@ -1,7 +1,5 @@
 package net.minestom.server.network.player;
 
-import lombok.Getter;
-import lombok.Setter;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.crypto.PlayerPublicKey;
 import net.minestom.server.entity.Entity;
@@ -25,16 +23,9 @@ import java.util.List;
 public abstract class PlayerConnection {
     private final ServerProvider serverProvider;
     private final ConnectionManagerProvider connectionManagerProvider;
-    @Setter
-    @Getter
     private Player player;
-    @Setter
-    @Getter
     private volatile ConnectionState connectionState;
-    @Getter
-    @Setter
     private PlayerPublicKey playerPublicKey;
-    @Getter
     volatile boolean online;
 
     public PlayerConnection(ServerProvider serverProvider, ConnectionManagerProvider connectionManagerProvider) {
@@ -131,5 +122,33 @@ public abstract class PlayerConnection {
                 "connectionState=" + connectionState +
                 ", identifier=" + getIdentifier() +
                 '}';
+    }
+
+    public Player getPlayer() {
+        return this.player;
+    }
+
+    public ConnectionState getConnectionState() {
+        return this.connectionState;
+    }
+
+    public PlayerPublicKey getPlayerPublicKey() {
+        return this.playerPublicKey;
+    }
+
+    public boolean isOnline() {
+        return this.online;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public void setConnectionState(ConnectionState connectionState) {
+        this.connectionState = connectionState;
+    }
+
+    public void setPlayerPublicKey(PlayerPublicKey playerPublicKey) {
+        this.playerPublicKey = playerPublicKey;
     }
 }
