@@ -20,6 +20,6 @@ public class ShutdownCommand extends Command {
     }
 
     private void execute(@NotNull CommandSender commandSender, @NotNull CommandContext commandContext) {
-        minecraftServer.getServerStarter().stop();
+        minecraftServer.getServerProcess().stop();
     }
 }

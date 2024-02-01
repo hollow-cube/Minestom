@@ -68,7 +68,7 @@ final class MinecraftServerImpl implements MinecraftServer {
     private final ServerSettings serverSettings;
     private final AudienceManager audienceManager;
     private final MojangAuth mojangAuth;
-    private final ServerStarter serverStarter;
+    private final ServerProcess serverProcess;
 
 
     public MinecraftServerImpl(ServerSettings serverSettings) {
@@ -96,7 +96,7 @@ final class MinecraftServerImpl implements MinecraftServer {
         this.server = new ServerImpl(serverSettings, this);
         this.audienceManager = new AudienceManagerImpl(commandManager, this, this);
         this.ticker = new TickerImpl(this);
-        this.serverStarter = new ServerStarter(this);
+        this.serverProcess = new ServerProcessImpl(this);
         this.mojangAuth = new MojangAuth(this, this);
     }
 
@@ -192,7 +192,7 @@ final class MinecraftServerImpl implements MinecraftServer {
         return this.mojangAuth;
     }
 
-    public ServerStarter getServerStarter() {
-        return this.serverStarter;
+    public ServerProcess getServerProcess() {
+        return this.serverProcess;
     }
 }

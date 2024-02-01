@@ -12,12 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ServerStarter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerStarter.class);
+public class ServerProcessImpl implements ServerProcess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerProcessImpl.class);
 
     private final ServerSettingsProvider serverSettingsProvider;
     private final ServerProvider serverProvider;
@@ -28,14 +27,14 @@ public class ServerStarter {
     private final ChunkDispatcherProvider chunkDispatcherProvider;
     private final TickerProvider tickerProvider;
 
-    public ServerStarter(MinecraftServer minecraftServer) {
+    public ServerProcessImpl(MinecraftServer minecraftServer) {
         this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
 
-    public ServerStarter(ServerSettingsProvider serverSettingsProvider, ServerProvider serverProvider, ExceptionHandlerProvider exceptionHandlerProvider, SchedulerManagerProvider schedulerManagerProvider, ConnectionManagerProvider connectionManagerProvider, BenchmarkManagerProvider benchmarkManagerProvider, ChunkDispatcherProvider chunkDispatcherProvider, TickerProvider tickerProvider) {
+    public ServerProcessImpl(ServerSettingsProvider serverSettingsProvider, ServerProvider serverProvider, ExceptionHandlerProvider exceptionHandlerProvider, SchedulerManagerProvider schedulerManagerProvider, ConnectionManagerProvider connectionManagerProvider, BenchmarkManagerProvider benchmarkManagerProvider, ChunkDispatcherProvider chunkDispatcherProvider, TickerProvider tickerProvider) {
         this.serverSettingsProvider = serverSettingsProvider;
         this.serverProvider = serverProvider;
         this.exceptionHandlerProvider = exceptionHandlerProvider;
@@ -46,6 +45,7 @@ public class ServerStarter {
         this.tickerProvider = tickerProvider;
     }
 
+    @Override
     public void start(@NotNull SocketAddress socketAddress) {
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Server already started");
@@ -73,10 +73,7 @@ public class ServerStarter {
         new TickSchedulerThread(serverSettingsProvider.getServerSettings(), tickerProvider.getTicker(), this, exceptionHandlerProvider.getExceptionHandler()).start();
     }
 
-    public void start(@NotNull String hostname, int port) {
-        start(new InetSocketAddress(hostname, port));
-    }
-
+    @Override
     public void stop() {
         if (!stopped.compareAndSet(false, true))
             return;
@@ -90,6 +87,7 @@ public class ServerStarter {
         LOGGER.info(serverSettingsProvider.getServerSettings().getBrandName() + " server stopped successfully.");
     }
 
+    @Override
     public boolean isAlive() {
         return started.get() && !stopped.get();
     }

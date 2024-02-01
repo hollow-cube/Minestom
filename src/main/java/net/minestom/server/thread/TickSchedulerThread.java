@@ -1,8 +1,8 @@
 package net.minestom.server.thread;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.ServerProcess;
 import net.minestom.server.ServerSettings;
-import net.minestom.server.ServerStarter;
 import net.minestom.server.Ticker;
 import net.minestom.server.exception.ExceptionHandler;
 import org.jetbrains.annotations.ApiStatus;
@@ -15,22 +15,22 @@ public final class TickSchedulerThread extends MinestomThread {
     private final long startTickNs = System.nanoTime();
     private final ServerSettings serverSettings;
     private final Ticker ticker;
-    private final ServerStarter serverStarter;
+    private final ServerProcess serverProcess;
     private final ExceptionHandler exceptionHandler;
     private long tick = 1;
 
-    public TickSchedulerThread(ServerSettings serverSettings, Ticker ticker, ServerStarter serverStarter, ExceptionHandler exceptionHandler) {
+    public TickSchedulerThread(ServerSettings serverSettings, Ticker ticker, ServerProcess serverProcess, ExceptionHandler exceptionHandler) {
         super(MinecraftServer.THREAD_NAME_TICK_SCHEDULER);
         this.serverSettings = serverSettings;
         this.ticker = ticker;
-        this.serverStarter = serverStarter;
+        this.serverProcess = serverProcess;
         this.exceptionHandler = exceptionHandler;
     }
 
     @Override
     public void run() {
         final long tickNs = (long) (serverSettings.getTickMs() * 1e6);
-        while (serverStarter.isAlive()) {
+        while (serverProcess.isAlive()) {
             final long tickStart = System.nanoTime();
             try {
                 ticker.tick(tickStart);

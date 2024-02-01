@@ -47,7 +47,7 @@ public interface MinecraftServer extends
         ServerSettingsProvider,
         AudienceManagerProvider,
         MojangAuthProvider,
-        ServerStarterProvider
+        ServerProcessProvider
 {
     ComponentLogger LOGGER = ComponentLogger.logger(MinecraftServer.class);
     String VERSION_NAME = "1.20.4";
