@@ -9,6 +9,8 @@ import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.AsyncPlayerPreLoginEvent;
 import net.minestom.server.instance.Instance;
+import net.minestom.server.item.armor.TrimMaterial;
+import net.minestom.server.item.armor.TrimPattern;
 import net.minestom.server.message.Messenger;
 import net.minestom.server.network.packet.client.login.ClientLoginStartPacket;
 import net.minestom.server.network.packet.server.common.KeepAlivePacket;
@@ -278,6 +280,8 @@ public final class ConnectionManager {
                 registry.put("minecraft:dimension_type", MinecraftServer.getDimensionTypeManager().toNBT());
                 registry.put("minecraft:worldgen/biome", MinecraftServer.getBiomeManager().toNBT());
                 registry.put("minecraft:damage_type", DamageType.getNBT());
+                registry.put("minecraft:trim_material", TrimMaterial.getNBT());
+                registry.put("minecraft:trim_pattern", TrimPattern.getNBT());
                 player.sendPacket(new RegistryDataPacket(NBT.Compound(registry)));
 
                 player.sendPacket(TagsPacket.DEFAULT_TAGS);
