@@ -9,9 +9,31 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 
+import java.util.Collection;
+
 public interface TrimPattern extends ProtocolObject {
     @Contract(pure = true)
     @NotNull Registry.TrimPatternEntry registry();
+
+    static @NotNull TrimPattern create(@NotNull NamespaceID namespace,
+                                       @NotNull NamespaceID assetID,
+                                       @NotNull Material template,
+                                       @NotNull Component description,
+                                       boolean decal,
+                                       @NotNull Registry.Properties custom) {
+        return new TrimPatternImpl(
+                new Registry.TrimPatternEntry(namespace,assetID, template, description, decal, custom)
+        );
+    }
+    static @NotNull TrimPattern create(@NotNull NamespaceID namespace,
+                                       @NotNull NamespaceID assetID,
+                                       @NotNull Material template,
+                                       @NotNull Component description,
+                                       boolean decal) {
+        return new TrimPatternImpl(
+                new Registry.TrimPatternEntry(namespace,assetID, template, description, decal, null)
+        );
+    }
 
     @Override
     default @NotNull NamespaceID namespace() {
@@ -34,13 +56,10 @@ public interface TrimPattern extends ProtocolObject {
         return registry().decal();
     }
 
-    NBTCompound asNBT();
-    static NBTCompound getNBT() {
-        return TrimPatternImpl.getNBT();
+    static Collection<TrimPattern> values() {
+        return TrimPatternImpl.values();
     }
 
-    static TrimPattern fromTemplate(Material material) {
-        return TrimPatternImpl.fromTemplate(material);
-    }
+    NBTCompound asNBT();
 
 }

@@ -471,7 +471,7 @@ public final class Registry {
                                    @NotNull Material template,
                                    @NotNull Component description,
                                    boolean decal,
-                                   @NotNull Properties custom) implements Entry {
+                                   Properties custom) implements Entry {
         public TrimPatternEntry(@NotNull String namespace, @NotNull Properties main, Properties custom) {
             this(
                     NamespaceID.from(namespace),
@@ -613,9 +613,7 @@ public final class Registry {
         @Override
         public String toString() {
             AtomicReference<String> string = new AtomicReference<>("{ ");
-            this.map.forEach((s, object) -> {
-                string.set(string.get() + " , " + "\"" + s + "\"" + " : " + "\"" + object.toString() + "\"");
-            });
+            this.map.forEach((s, object) -> string.set(string.get() + " , " + "\"" + s + "\"" + " : " + "\"" + object.toString() + "\""));
             return string.updateAndGet(s -> s.replaceFirst(" , ","") + "}");
         }
 

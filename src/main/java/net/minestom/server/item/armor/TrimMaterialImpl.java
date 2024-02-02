@@ -6,7 +6,6 @@ import net.minestom.server.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
-import org.jglrxavpok.hephaistos.nbt.NBTType;
 
 import java.util.Collection;
 import java.util.Map;
@@ -15,12 +14,16 @@ import java.util.stream.Collectors;
 
 record TrimMaterialImpl(Registry.TrimMaterialEntry registry, int id) implements TrimMaterial {
     private static final Registry.Container<TrimMaterial> CONTAINER;
-
+    static final AtomicInteger i = new AtomicInteger();
     static {
-        AtomicInteger i = new AtomicInteger();
         CONTAINER = Registry.createContainer(Registry.Resource.TRIM_MATERIALS,
-                (namespace, properties) -> new TrimMaterialImpl(Registry.trimMaterial(namespace, properties), i.getAndIncrement()));
+                (namespace, properties) -> new TrimMaterialImpl(Registry.trimMaterial(namespace, properties)));
     }
+
+    public TrimMaterialImpl(Registry.TrimMaterialEntry registry) {
+        this(registry, i.getAndIncrement());
+    }
+
     public static TrimMaterial get(String namespace) {
         return CONTAINER.get(namespace);
     }
@@ -42,25 +45,6 @@ record TrimMaterialImpl(Registry.TrimMaterialEntry registry, int id) implements 
             ));
             nbt.set("description", NbtComponentSerializer.nbt().serialize(description()));
         });
-    }
-    private static NBTCompound lazyNbt = null;
-
-    static NBTCompound getNBT() {
-        if (lazyNbt == null) {
-            var trimMaterials = values().stream()
-                    .map((trimMaterial) -> NBT.Compound(Map.of(
-                            "id", NBT.Int(trimMaterial.id()),
-                            "name", NBT.String(trimMaterial.name()),
-                            "element", trimMaterial.asNBT()
-                    )))
-                    .toList();
-
-            lazyNbt = NBT.Compound(Map.of(
-                    "type", NBT.String("minecraft:trim_material"),
-                    "value", NBT.List(NBTType.TAG_Compound, trimMaterials)
-            ));
-        }
-        return lazyNbt;
     }
 
     public static @Nullable TrimMaterial fromIngredient(Material ingredient) {
