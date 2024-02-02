@@ -1,5 +1,7 @@
 package net.minestom.server.item.armor;
 
+import net.minestom.server.item.Material;
+import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.nbt.NBT;
 import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import org.jglrxavpok.hephaistos.nbt.NBTType;
@@ -13,10 +15,20 @@ public class TrimManager {
     private final Set<TrimPattern> trimPatterns;
     private NBTCompound trimMaterialCache = null;
     private NBTCompound trimPatternCache = null;
+
     public TrimManager() {
         this.trimMaterials = new HashSet<>();
         this.trimPatterns = new HashSet<>();
     }
+
+    public @Nullable TrimMaterial fromIngredient(Material ingredient) {
+        return this.trimMaterials.stream().filter(trimMaterial -> trimMaterial.ingredient().equals(ingredient)).findFirst().orElse(null);
+    }
+
+    public @Nullable TrimPattern fromTemplate(Material material) {
+        return this.trimPatterns.stream().filter(trimPattern -> trimPattern.template().equals(material)).findFirst().orElse(null);
+    }
+
 
     public NBTCompound getTrimMaterialNBT() {
         if (trimMaterialCache == null) {
@@ -35,6 +47,7 @@ public class TrimManager {
         }
         return trimMaterialCache;
     }
+
     public NBTCompound getTrimPatternNBT() {
         if (trimPatternCache == null) {
             var trimPatterns = this.trimPatterns.stream()
@@ -87,7 +100,7 @@ public class TrimManager {
         return this.trimPatterns.add(trimPattern);
     }
 
-    public boolean removePattern(TrimPattern trimPattern) {
+    public boolean removeTrimPattern(TrimPattern trimPattern) {
         this.trimMaterialCache = null;
         return this.trimPatterns.remove(trimPattern);
     }

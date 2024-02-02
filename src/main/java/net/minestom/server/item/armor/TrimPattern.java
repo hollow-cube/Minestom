@@ -12,9 +12,6 @@ import org.jglrxavpok.hephaistos.nbt.NBTCompound;
 import java.util.Collection;
 
 public interface TrimPattern extends ProtocolObject {
-    @Contract(pure = true)
-    @NotNull Registry.TrimPatternEntry registry();
-
     static @NotNull TrimPattern create(@NotNull NamespaceID namespace,
                                        @NotNull NamespaceID assetID,
                                        @NotNull Material template,
@@ -22,18 +19,26 @@ public interface TrimPattern extends ProtocolObject {
                                        boolean decal,
                                        @NotNull Registry.Properties custom) {
         return new TrimPatternImpl(
-                new Registry.TrimPatternEntry(namespace,assetID, template, description, decal, custom)
+                new Registry.TrimPatternEntry(namespace, assetID, template, description, decal, custom)
         );
     }
+
     static @NotNull TrimPattern create(@NotNull NamespaceID namespace,
                                        @NotNull NamespaceID assetID,
                                        @NotNull Material template,
                                        @NotNull Component description,
                                        boolean decal) {
         return new TrimPatternImpl(
-                new Registry.TrimPatternEntry(namespace,assetID, template, description, decal, null)
+                new Registry.TrimPatternEntry(namespace, assetID, template, description, decal, null)
         );
     }
+
+    static Collection<TrimPattern> values() {
+        return TrimPatternImpl.values();
+    }
+
+    @Contract(pure = true)
+    @NotNull Registry.TrimPatternEntry registry();
 
     @Override
     default @NotNull NamespaceID namespace() {
@@ -54,10 +59,6 @@ public interface TrimPattern extends ProtocolObject {
 
     default boolean decal() {
         return registry().decal();
-    }
-
-    static Collection<TrimPattern> values() {
-        return TrimPatternImpl.values();
     }
 
     NBTCompound asNBT();
