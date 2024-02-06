@@ -1,6 +1,9 @@
 package net.bytemc.minestom.server.instance;
 
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.instance.AnvilLoader;
 import net.minestom.server.instance.Instance;
@@ -12,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class InstanceHandler {
@@ -20,7 +24,10 @@ public final class InstanceHandler {
 
     public InstanceHandler() {
         this.instances = new ConcurrentHashMap<>();
-        this.spawnInstance = create("Default", Generators.FLAT_GENERATOR);
+
+        this.create("Default", Generators.FLAT_GENERATOR).thenAccept(instanceContainer -> {
+            this.spawnInstance = instanceContainer;
+        });
 
         MinecraftServer.getGlobalEventHandler().addListener(AsyncPlayerConfigurationEvent.class, event ->
                 event.setSpawningInstance(spawnInstance));
@@ -34,20 +41,36 @@ public final class InstanceHandler {
         this.spawnInstance = spawnInstance;
     }
 
-    public InstanceContainer create(String name, Generator generator) {
+    public CompletableFuture<InstanceContainer> create(String name, Generator generator) {
+        return this.create(name, generator, new Vec(0, 100, 0));
+    }
+
+    public CompletableFuture<InstanceContainer> create(String name, Generator generator, Point point) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
         byteInstance.setGenerator(generator);
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
-        return byteInstance;
+
+        CompletableFuture<InstanceContainer> future = new CompletableFuture<>();
+        byteInstance.loadChunk(point).thenAccept(chunk -> future.complete(byteInstance));
+
+        return future;
     }
 
-    public InstanceContainer load(String name) {
+    public CompletableFuture<InstanceContainer> load(String name) {
+        return this.load(name, new Vec(0, 100, 0));
+    }
+
+    public CompletableFuture<InstanceContainer> load(String name, Point point) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
         byteInstance.setChunkLoader(new AnvilLoader("./" + name));
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
-        return byteInstance;
+
+        CompletableFuture<InstanceContainer> future = new CompletableFuture<>();
+        byteInstance.loadChunk(point).thenAccept(chunk -> future.complete(byteInstance));
+
+        return future;
     }
 
     public void unregister(String name) {
