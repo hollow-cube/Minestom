@@ -39,11 +39,11 @@ public final class InstanceHandler {
     }
 
     public InstanceContainer create(String name, Generator generator) {
-        return this.create(name, generator, 9);
+        return this.create(name, generator, 5);
     }
 
     public InstanceContainer create(String name, Generator generator, NamespaceID namespaceID) {
-        return this.create(name, generator, namespaceID, 9);
+        return this.create(name, generator, namespaceID, 5);
     }
 
     public InstanceContainer create(String name, Generator generator, int chunkLoadDistance) {
@@ -66,11 +66,11 @@ public final class InstanceHandler {
     }
 
     public InstanceContainer load(String name) {
-        return this.load(name, 9);
+        return this.load(name, 5);
     }
 
     public InstanceContainer load(String name, NamespaceID namespaceID) {
-        return this.load(name, namespaceID, 9);
+        return this.load(name, namespaceID, 5);
     }
 
     public InstanceContainer load(String name, int chunkLoadDistance) {
