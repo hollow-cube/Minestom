@@ -42,33 +42,43 @@ public final class InstanceHandler {
     }
 
     public CompletableFuture<InstanceContainer> create(String name, Generator generator) {
-        return this.create(name, generator, new Vec(0, 100, 0));
+        return this.create(name, generator, 9);
     }
 
-    public CompletableFuture<InstanceContainer> create(String name, Generator generator, Point point) {
+    public CompletableFuture<InstanceContainer> create(String name, Generator generator, int chunkLoadDistance) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
         byteInstance.setGenerator(generator);
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
 
         CompletableFuture<InstanceContainer> future = new CompletableFuture<>();
-        byteInstance.loadChunk(point).thenAccept(chunk -> future.complete(byteInstance));
+
+        for (int x = -chunkLoadDistance; x <= chunkLoadDistance; x++) {
+            for (int y = -chunkLoadDistance; y <= chunkLoadDistance; y++) {
+                byteInstance.loadChunk(x, y);
+            }
+        }
 
         return future;
     }
 
     public CompletableFuture<InstanceContainer> load(String name) {
-        return this.load(name, new Vec(0, 100, 0));
+        return this.load(name, 9);
     }
 
-    public CompletableFuture<InstanceContainer> load(String name, Point point) {
+    public CompletableFuture<InstanceContainer> load(String name, int chunkLoadDistance) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
         byteInstance.setChunkLoader(new AnvilLoader("./" + name));
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
 
         CompletableFuture<InstanceContainer> future = new CompletableFuture<>();
-        byteInstance.loadChunk(point).thenAccept(chunk -> future.complete(byteInstance));
+
+        for (int x = -chunkLoadDistance; x <= chunkLoadDistance; x++) {
+            for (int y = -chunkLoadDistance; y <= chunkLoadDistance; y++) {
+                byteInstance.loadChunk(x, y);
+            }
+        }
 
         return future;
     }
