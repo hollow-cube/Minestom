@@ -19,7 +19,7 @@ public class BytePositionPair {
                 this.bytePosition.getYaw(),
                 this.bytePosition.getPitch());
 
-        Instance minestomInstance = ByteServer.getInstance().getInstanceHandler().getOrNull(this.bytePosition.getInstanceName());
+        Instance minestomInstance = ByteServer.getInstance().getInstanceHandler().getInstanceFromName(this.bytePosition.getInstanceName());
 
         if (minestomInstance != null) {
             this.instance = minestomInstance;
@@ -38,9 +38,15 @@ public class BytePositionPair {
                 entity.setInstance(this.instance, this.position);
             }
         } else {
-            MinecraftServer.LOGGER.warn("The saved instance of the position '" + this.bytePosition.getName() +
-                    "' is not registered, the entity might be in a different instance then the one saved in the database: '" +
-                    this.bytePosition.getInstanceName() + "'");
+            Instance minestomInstance = ByteServer.getInstance().getInstanceHandler().getInstanceFromName(this.bytePosition.getInstanceName());
+
+            if (minestomInstance != null) {
+                setInstance(minestomInstance);
+            } else {
+                MinecraftServer.LOGGER.warn("The saved instance of the position '" + this.bytePosition.getName() +
+                        "' is not registered, the entity might be in a different instance then the one saved in the database: '" +
+                        this.bytePosition.getInstanceName() + "'");
+            }
 
             entity.teleport(this.position);
         }

@@ -309,6 +309,8 @@ public class ExtensionManager {
             }
         }
 
+        System.out.println("Suessfully loaded extension " + discoveredExtension.getName() + "!");
+
         // add to a linked hash map, as they preserve order
         extensions.put(extensionName.toLowerCase(), extension);
 
