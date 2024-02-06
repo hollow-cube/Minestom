@@ -10,6 +10,7 @@ import net.minestom.server.instance.Instance;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.instance.generator.Generators;
+import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.world.DimensionType;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,16 +42,16 @@ public final class InstanceHandler {
         return this.create(name, generator, 9);
     }
 
-    public InstanceContainer create(String name, Generator generator, DimensionType dimensionType) {
-        return this.create(name, generator, dimensionType, 9);
+    public InstanceContainer create(String name, Generator generator, NamespaceID namespaceID) {
+        return this.create(name, generator, namespaceID, 9);
     }
 
     public InstanceContainer create(String name, Generator generator, int chunkLoadDistance) {
-        return this.create(name, generator, DimensionType.OVERWORLD, chunkLoadDistance);
+        return this.create(name, generator, DimensionType.OVERWORLD.getName(), chunkLoadDistance);
     }
 
-    public InstanceContainer create(String name, Generator generator, DimensionType dimensionType, int chunkLoadDistance) {
-        var byteInstance = new InstanceContainer(UUID.randomUUID(), dimensionType);
+    public InstanceContainer create(String name, Generator generator, NamespaceID namespaceID, int chunkLoadDistance) {
+        var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, namespaceID);
         byteInstance.setGenerator(generator);
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
@@ -68,16 +69,16 @@ public final class InstanceHandler {
         return this.load(name, 9);
     }
 
-    public InstanceContainer load(String name, DimensionType dimensionType) {
-        return this.load(name, dimensionType, 9);
+    public InstanceContainer load(String name, NamespaceID namespaceID) {
+        return this.load(name, namespaceID, 9);
     }
 
     public InstanceContainer load(String name, int chunkLoadDistance) {
-        return this.load(name, DimensionType.OVERWORLD, chunkLoadDistance);
+        return this.load(name, DimensionType.OVERWORLD.getName(), chunkLoadDistance);
     }
 
-    public InstanceContainer load(String name, DimensionType dimensionType, int chunkLoadDistance) {
-        var byteInstance = new InstanceContainer(UUID.randomUUID(), dimensionType);
+    public InstanceContainer load(String name, NamespaceID namespaceID, int chunkLoadDistance) {
+        var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, namespaceID);
         byteInstance.setChunkLoader(new AnvilLoader("./" + name));
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
