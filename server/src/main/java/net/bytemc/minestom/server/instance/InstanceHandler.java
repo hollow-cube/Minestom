@@ -52,9 +52,9 @@ public final class InstanceHandler {
 
     public InstanceContainer create(String name, Generator generator, NamespaceID namespaceID, int chunkLoadDistance) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, namespaceID);
+        instances.put(name, byteInstance);
         byteInstance.setGenerator(generator);
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
-        instances.put(name, byteInstance);
 
         for (int x = -chunkLoadDistance; x <= chunkLoadDistance; x++) {
             for (int y = -chunkLoadDistance; y <= chunkLoadDistance; y++) {
@@ -80,8 +80,8 @@ public final class InstanceHandler {
     public InstanceContainer load(String name, NamespaceID namespaceID, int chunkLoadDistance) {
         var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, namespaceID);
         byteInstance.setChunkLoader(new AnvilLoader("./" + name));
-        MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
+        MinecraftServer.getInstanceManager().registerInstance(byteInstance);
 
         for (int x = -chunkLoadDistance; x <= chunkLoadDistance; x++) {
             for (int y = -chunkLoadDistance; y <= chunkLoadDistance; y++) {
@@ -93,13 +93,13 @@ public final class InstanceHandler {
     }
 
     public void unregister(String name) {
-        instances.remove(name);
         MinecraftServer.getInstanceManager().unregisterInstance(getInstanceFromName(name));
+        instances.remove(name);
     }
 
     public void unregister(Instance instance) {
-        instances.remove(getNameFromInstance(instance));
         MinecraftServer.getInstanceManager().unregisterInstance(instance);
+        instances.remove(getNameFromInstance(instance));
     }
 
     @Nullable
