@@ -41,8 +41,16 @@ public final class InstanceHandler {
         return this.create(name, generator, 9);
     }
 
+    public InstanceContainer create(String name, Generator generator, DimensionType dimensionType) {
+        return this.create(name, generator, dimensionType, 9);
+    }
+
     public InstanceContainer create(String name, Generator generator, int chunkLoadDistance) {
-        var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
+        return this.create(name, generator, DimensionType.OVERWORLD, chunkLoadDistance);
+    }
+
+    public InstanceContainer create(String name, Generator generator, DimensionType dimensionType, int chunkLoadDistance) {
+        var byteInstance = new InstanceContainer(UUID.randomUUID(), dimensionType);
         byteInstance.setGenerator(generator);
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
@@ -60,8 +68,16 @@ public final class InstanceHandler {
         return this.load(name, 9);
     }
 
+    public InstanceContainer load(String name, DimensionType dimensionType) {
+        return this.load(name, dimensionType, 9);
+    }
+
     public InstanceContainer load(String name, int chunkLoadDistance) {
-        var byteInstance = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD);
+        return this.load(name, DimensionType.OVERWORLD, chunkLoadDistance);
+    }
+
+    public InstanceContainer load(String name, DimensionType dimensionType, int chunkLoadDistance) {
+        var byteInstance = new InstanceContainer(UUID.randomUUID(), dimensionType);
         byteInstance.setChunkLoader(new AnvilLoader("./" + name));
         MinecraftServer.getInstanceManager().registerInstance(byteInstance);
         instances.put(name, byteInstance);
