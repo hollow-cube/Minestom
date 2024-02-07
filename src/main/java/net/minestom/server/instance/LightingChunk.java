@@ -366,8 +366,8 @@ public class LightingChunk extends DynamicChunk {
 
                 for (int y = point.blockY() - 1; y <= point.blockY() + 1; y++) {
                     Point sectionPosition = new Vec(x, y, z);
-                    // int sectionHeight = instance.getDimensionType().getMinY() + 16 * y;
-                    // if ((sectionHeight + 16) > highestRegionPoint && type == LightType.SKY) continue;
+                    int sectionHeight = instance.getDimensionType().getMinY() + 16 * y;
+                    if ((sectionHeight + 16) > highestRegionPoint && type == LightType.SKY) continue;
 
                     if (sectionPosition.blockY() < chunkCheck.getMaxSection() && sectionPosition.blockY() >= chunkCheck.getMinSection()) {
                         Section s = chunkCheck.getSection(sectionPosition.blockY());
