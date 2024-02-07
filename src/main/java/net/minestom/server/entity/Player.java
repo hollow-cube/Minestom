@@ -31,6 +31,7 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.effects.Effects;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.entity.fakeplayer.FakePlayer;
+import net.minestom.server.entity.metadata.LivingEntityMeta;
 import net.minestom.server.entity.metadata.PlayerMeta;
 import net.minestom.server.entity.vehicle.PlayerVehicleInformation;
 import net.minestom.server.event.EventDispatcher;
@@ -203,6 +204,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     private int permissionLevel;
 
     private boolean reducedDebugScreenInformation;
+    private boolean hardcore;
 
     // Abilities
     private boolean flying;
@@ -262,10 +264,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
     }
 
     @ApiStatus.Internal
-    public void setPendingInstance(@NotNull Instance pendingInstance) {
+    public void setPendingOptions(@NotNull Instance pendingInstance, boolean hardcore) {
         // I(mattw) am not a big fan of this function, but somehow we need to store
         // the instance and i didn't like a record in ConnectionManager either.
         this.pendingInstance = pendingInstance;
+        this.hardcore = hardcore;
     }
 
     /**
@@ -284,7 +287,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         this.dimensionType = spawnInstance.getDimensionType();
 
         final JoinGamePacket joinGamePacket = new JoinGamePacket(
-                getEntityId(), false, List.of(), 0,
+                getEntityId(), this.hardcore, List.of(), 0,
                 MinecraftServer.getChunkViewDistance(), MinecraftServer.getChunkViewDistance(),
                 false, true, false, dimensionType.toString(), spawnInstance.getDimensionName(),
                 0, gameMode, null, false, levelFlat, deathLocation, portalCooldown);
@@ -543,6 +546,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * Sends necessary packets to synchronize player data after a {@link RespawnPacket}
      */
     private void refreshClientStateAfterRespawn() {
+        sendPacket(new ChangeGameStatePacket(ChangeGameStatePacket.Reason.LEVEL_CHUNKS_LOAD_START, 0));
         sendPacket(new ServerDifficultyPacket(MinecraftServer.getDifficulty(), false));
         sendPacket(new UpdateHealthPacket(this.getHealth(), food, foodSaturation));
         sendPacket(new SetExperiencePacket(exp, level, 0));
@@ -766,6 +770,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
 
     /**
      * Queues the given chunk to be sent to the player.
+     *
      * @param chunk The chunk to send
      */
     public void sendChunk(@NotNull Chunk chunk) {
@@ -816,14 +821,14 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         Pose newPose;
 
         // Figure out their expected state
-        var meta = Objects.requireNonNull(getLivingEntityMeta());
+        var meta = getEntityMeta();
         if (meta.isFlyingWithElytra()) {
             newPose = Pose.FALL_FLYING;
         } else if (false) { // When should they be sleeping? We don't have any in-bed state...
             newPose = Pose.SLEEPING;
         } else if (meta.isSwimming()) {
             newPose = Pose.SWIMMING;
-        } else if (meta.isInRiptideSpinAttack()) {
+        } else if (meta instanceof LivingEntityMeta livingMeta && livingMeta.isInRiptideSpinAttack()) {
             newPose = Pose.SPIN_ATTACK;
         } else if (isSneaking() && !isFlying()) {
             newPose = Pose.SNEAKING;
@@ -1010,27 +1015,39 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
         sendPacket(new UpdateHealthPacket(health, food, foodSaturation));
     }
 
-    @Override
-    public @NotNull PlayerMeta getEntityMeta() {
+    /**
+     * Gets the entity meta for the player.
+     *
+     * <p>Note that this method will throw an exception if the player's entity type has
+     * been changed with {@link #switchEntityType(EntityType)}. It is wise to check
+     * {@link #getEntityType()} first.</p>
+     */
+    public @NotNull PlayerMeta getPlayerMeta() {
         return (PlayerMeta) super.getEntityMeta();
     }
 
     /**
      * Gets the player additional hearts.
      *
+     * <p>Note that this function is uncallable if the player has their entity type switched
+     * with {@link #switchEntityType(EntityType)}.</p>
+     *
      * @return the player additional hearts
      */
     public float getAdditionalHearts() {
-        return getEntityMeta().getAdditionalHearts();
+        return getPlayerMeta().getAdditionalHearts();
     }
 
     /**
      * Changes the amount of additional hearts shown.
      *
+     * <p>Note that this function is uncallable if the player has their entity type switched
+     * with {@link #switchEntityType(EntityType)}.</p>
+     *
      * @param additionalHearts the count of additional hearts
      */
     public void setAdditionalHearts(float additionalHearts) {
-        getEntityMeta().setAdditionalHearts(additionalHearts);
+        getPlayerMeta().setAdditionalHearts(additionalHearts);
     }
 
     /**
@@ -1721,6 +1738,11 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
      * It closes the player inventory (when opened) if {@link #getOpenInventory()} returns null.
      */
     public void closeInventory() {
+        closeInventory(false);
+    }
+
+    @ApiStatus.Internal
+    public void closeInventory(boolean fromClient) {
         Inventory openInventory = getOpenInventory();
 
         // Drop cursor item when closing inventory
@@ -1748,7 +1770,7 @@ public class Player extends LivingEntity implements CommandSender, Localizable, 
                 openInventory.removeViewer(this); // Clear cache
                 this.openInventory = null;
             }
-            sendPacket(closeWindowPacket);
+            if (!fromClient) sendPacket(closeWindowPacket);
             inventory.update();
             this.didCloseInventory = true;
         }
