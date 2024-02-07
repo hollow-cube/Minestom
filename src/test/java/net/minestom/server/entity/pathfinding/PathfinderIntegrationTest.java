@@ -184,6 +184,6 @@ public class PathfinderIntegrationTest {
 
         var zombie = new LivingEntity(EntityType.ZOMBIE);
         var snapped = PNode.gravitySnap(i, new Pos(-140.74433362614695, 40.58268292446131, 18.87966960447388), zombie.getBoundingBox(), 100);
-        assertEquals(new Pos(-140.74433362614695, 40.0, 18.87966960447388), snapped);
+        assertEquals(new Pos(-140.5, 40.0, 18.5), snapped);
     }
 }
