@@ -24,6 +24,7 @@ import net.minestom.server.network.packet.server.play.BlockEntityDataPacket;
 import net.minestom.server.network.packet.server.play.EffectPacket;
 import net.minestom.server.network.packet.server.play.UnloadChunkPacket;
 import net.minestom.server.thread.ChunkDispatcherProvider;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.async.AsyncUtils;
@@ -70,6 +71,7 @@ public class InstanceContainer extends Instance {
     private final ServerSettingsProvider serverSettingsProvider;
     private final GlobalEventHandler globalEventHandler;
     private final ChunkDispatcherProvider chunkDispatcherProvider;
+    private final SchedulerManagerProvider schedulerManagerProvider;
 
     // the chunk generator used, can be null
     private volatile Generator generator;
@@ -108,7 +110,7 @@ public class InstanceContainer extends Instance {
     }
 
     public InstanceContainer(MinecraftServer minecraftServer, @NotNull UUID uniqueId, @NotNull DimensionType dimensionType, @Nullable IChunkLoader loader, @NotNull NamespaceID dimensionName) {
-        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, uniqueId, dimensionType, loader, dimensionName);
+        this(minecraftServer.getGlobalEventHandler(), minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, uniqueId, dimensionType, loader, dimensionName);
     }
 
     @ApiStatus.Experimental
@@ -120,20 +122,22 @@ public class InstanceContainer extends Instance {
             @NotNull BiomeManagerProvider biomeManagerProvider,
             @NotNull ServerSettingsProvider serverSettingsProvider,
             @NotNull ChunkDispatcherProvider chunkDispatcherProvider,
+            @NotNull SchedulerManagerProvider schedulerManagerProvider,
 
             @NotNull UUID uniqueId,
             @NotNull DimensionType dimensionType,
             @Nullable IChunkLoader loader,
             @NotNull NamespaceID dimensionName
     ) {
-        super(globalEventHandler, serverSettingsProvider, uniqueId, dimensionType, dimensionName);
+        super(globalEventHandler, serverSettingsProvider, schedulerManagerProvider, biomeManagerProvider, uniqueId, dimensionType, dimensionName);
         this.exceptionHandlerProvider = exceptionHandlerProvider;
         this.blockManagerProvider = blockManagerProvider;
         this.biomeManagerProvider = biomeManagerProvider;
         this.serverSettingsProvider = serverSettingsProvider;
         this.globalEventHandler = globalEventHandler;
         this.chunkDispatcherProvider = chunkDispatcherProvider;
-        setChunkSupplier((instance, chunkX, chunkZ) -> new DynamicChunk(biomeManagerProvider, instance, chunkX, chunkZ));
+        this.schedulerManagerProvider = schedulerManagerProvider;
+        setChunkSupplier((instance, chunkX, chunkZ) -> new DynamicChunk(instance, chunkX, chunkZ));
         setChunkLoader(Objects.requireNonNullElseGet(loader, () -> new AnvilLoader(exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, "world")));
         this.chunkLoader.loadInstance(this);
     }
@@ -551,6 +555,7 @@ public class InstanceContainer extends Instance {
                 biomeManagerProvider,
                 serverSettingsProvider,
                 chunkDispatcherProvider,
+                schedulerManagerProvider,
                 UUID.randomUUID(), getDimensionType(), null, getDimensionName());
         copiedInstance.srcInstance = this;
         copiedInstance.tagHandler = this.tagHandler.copy();

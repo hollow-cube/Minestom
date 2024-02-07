@@ -13,7 +13,10 @@ import net.minestom.server.entity.EntityCreature;
 import net.minestom.server.entity.ExperienceOrb;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.pathfinding.PFInstanceSpace;
-import net.minestom.server.event.*;
+import net.minestom.server.event.EventFilter;
+import net.minestom.server.event.EventHandler;
+import net.minestom.server.event.EventNode;
+import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.player.PlayerBlockBreakEvent;
 import net.minestom.server.event.trait.InstanceEvent;
@@ -31,6 +34,8 @@ import net.minestom.server.tag.Taggable;
 import net.minestom.server.thread.ThreadDispatcherImpl;
 import net.minestom.server.timer.Schedulable;
 import net.minestom.server.timer.Scheduler;
+import net.minestom.server.timer.SchedulerManager;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.PacketUtils;
 import net.minestom.server.utils.chunk.ChunkCache;
@@ -40,6 +45,8 @@ import net.minestom.server.utils.time.Cooldown;
 import net.minestom.server.utils.time.TimeUnit;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
+import net.minestom.server.world.biomes.BiomeManager;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +71,9 @@ import java.util.stream.Collectors;
 public abstract class Instance implements Block.Getter, Block.Setter, Tickable, Schedulable, Snapshotable, EventHandler<InstanceEvent>, Taggable, PacketGroupingAudience {
 
     private final ServerSettingsProvider serverSettingsProvider;
-    private final EventNode<Event> globalEventHandler;
+    private final SchedulerManagerProvider schedulerManagerProvider;
+    private final BiomeManagerProvider biomeManagerProvider;
+    private final GlobalEventHandler globalEventHandler;
 
     private boolean registered;
 
@@ -117,10 +126,13 @@ public abstract class Instance implements Block.Getter, Block.Setter, Tickable, 
     public Instance(
             @NotNull GlobalEventHandler globalEventHandler,
             @NotNull ServerSettingsProvider serverSettingsProvider,
+            @NotNull SchedulerManagerProvider schedulerManagerProvider,
+            @NotNull BiomeManagerProvider biomeManagerProvider,
+
             @NotNull UUID uniqueId,
             @NotNull DimensionType dimensionType
     ) {
-        this(globalEventHandler, serverSettingsProvider, uniqueId, dimensionType, dimensionType.getName());
+        this(globalEventHandler, serverSettingsProvider, schedulerManagerProvider, biomeManagerProvider, uniqueId, dimensionType, dimensionType.getName());
     }
 
     /**
@@ -132,15 +144,19 @@ public abstract class Instance implements Block.Getter, Block.Setter, Tickable, 
     public Instance(
             @NotNull GlobalEventHandler globalEventHandler,
             @NotNull ServerSettingsProvider serverSettingsProvider,
+            @NotNull SchedulerManagerProvider schedulerManagerProvider,
+            @NotNull BiomeManagerProvider biomeManagerProvider,
 
             @NotNull UUID uniqueId,
             @NotNull DimensionType dimensionType,
             @NotNull NamespaceID dimensionName
     ) {
+        Check.argCondition(!dimensionType.isRegistered(), "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
         this.globalEventHandler = globalEventHandler;
-        Check.argCondition(!dimensionType.isRegistered(),
-                "The dimension " + dimensionType.getName() + " is not registered! Please use DimensionTypeManager#addDimension");
         this.serverSettingsProvider = serverSettingsProvider;
+        this.schedulerManagerProvider = schedulerManagerProvider;
+        this.biomeManagerProvider = biomeManagerProvider;
+
         this.uniqueId = uniqueId;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
@@ -646,8 +662,16 @@ public abstract class Instance implements Block.Getter, Block.Setter, Tickable, 
         return serverSettingsProvider.getServerSettings();
     }
 
-    public ServerSettingsProvider getServerSettingsProvider() {
-        return this.serverSettingsProvider;
+    public BiomeManager getBiomeManager() {
+        return biomeManagerProvider.getBiomeManager();
+    }
+
+    public GlobalEventHandler getGlobalEventHandler() {
+        return globalEventHandler;
+    }
+
+    public SchedulerManager getSchedulerManager() {
+        return schedulerManagerProvider.getSchedulerManager();
     }
 
     public boolean isRegistered() {

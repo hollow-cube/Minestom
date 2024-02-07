@@ -55,7 +55,7 @@ public class PlayerInit {
 
         InstanceContainer instanceContainer = instanceManager.createInstanceContainer(DimensionType.OVERWORLD);
         instanceContainer.setGenerator(unit -> unit.modifier().fillHeight(0, 40, Block.STONE));
-        instanceContainer.setChunkSupplier((instance, chunkX, chunkZ) -> new LightingChunk(minecraftServer, instance, chunkX, chunkZ));
+        instanceContainer.setChunkSupplier(LightingChunk::new);
 
 //        var i2 = new InstanceContainer(UUID.randomUUID(), DimensionType.OVERWORLD, null, NamespaceID.from("minestom:demo"));
 //        instanceManager.registerInstance(i2);

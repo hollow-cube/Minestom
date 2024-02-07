@@ -9,7 +9,9 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockFace;
 import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.instance.generator.Generator;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.chunk.ChunkSupplier;
+import net.minestom.server.world.biomes.BiomeManagerProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,8 +26,8 @@ import java.util.concurrent.CompletableFuture;
 public class SharedInstance extends Instance {
     private final InstanceContainer instanceContainer;
 
-    public SharedInstance(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, @NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
-        super(globalEventHandler, serverSettingsProvider, uniqueId, instanceContainer.getDimensionType());
+    public SharedInstance(GlobalEventHandler globalEventHandler, ServerSettingsProvider serverSettingsProvider, SchedulerManagerProvider schedulerManagerProvider, BiomeManagerProvider biomeManagerProvider, @NotNull UUID uniqueId, @NotNull InstanceContainer instanceContainer) {
+        super(globalEventHandler, serverSettingsProvider, schedulerManagerProvider, biomeManagerProvider, uniqueId, instanceContainer.getDimensionType());
         this.instanceContainer = instanceContainer;
     }
 

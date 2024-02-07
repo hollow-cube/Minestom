@@ -8,6 +8,7 @@ import net.minestom.server.event.instance.InstanceUnregisterEvent;
 import net.minestom.server.exception.ExceptionHandlerProvider;
 import net.minestom.server.instance.block.BlockManagerProvider;
 import net.minestom.server.thread.ChunkDispatcherProvider;
+import net.minestom.server.timer.SchedulerManagerProvider;
 import net.minestom.server.utils.validate.Check;
 import net.minestom.server.world.DimensionType;
 import net.minestom.server.world.biomes.BiomeManagerProvider;
@@ -28,20 +29,30 @@ public final class InstanceManagerImpl implements InstanceManager {
     private final ExceptionHandlerProvider exceptionHandlerProvider;
     private final BlockManagerProvider blockManagerProvider;
     private final BiomeManagerProvider biomeManagerProvider;
+    private final SchedulerManagerProvider schedulerManagerProvider;
 
     public InstanceManagerImpl(MinecraftServer minecraftServer) {
-        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
+        this(minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer, minecraftServer);
     }
 
     private final Set<Instance> instances = new CopyOnWriteArraySet<>();
 
-    public InstanceManagerImpl(ChunkDispatcherProvider chunkDispatcherProvider, GlobalEventHandlerProvider globalEventHandlerProvider, ServerSettingsProvider serverSettingsProvider, ExceptionHandlerProvider exceptionHandlerProvider, BlockManagerProvider blockManagerProvider, BiomeManagerProvider biomeManagerProvider) {
+    public InstanceManagerImpl(
+            ChunkDispatcherProvider chunkDispatcherProvider,
+            GlobalEventHandlerProvider globalEventHandlerProvider,
+            ServerSettingsProvider serverSettingsProvider,
+            ExceptionHandlerProvider exceptionHandlerProvider,
+            BlockManagerProvider blockManagerProvider,
+            BiomeManagerProvider biomeManagerProvider,
+            SchedulerManagerProvider schedulerManagerProvider
+    ) {
         this.chunkDispatcherProvider = chunkDispatcherProvider;
         this.globalEventHandlerProvider = globalEventHandlerProvider;
         this.serverSettingsProvider = serverSettingsProvider;
         this.exceptionHandlerProvider = exceptionHandlerProvider;
         this.blockManagerProvider = blockManagerProvider;
         this.biomeManagerProvider = biomeManagerProvider;
+        this.schedulerManagerProvider = schedulerManagerProvider;
     }
 
     @Override
@@ -53,7 +64,7 @@ public final class InstanceManagerImpl implements InstanceManager {
     @Override
     @ApiStatus.Experimental
     public @NotNull InstanceContainer createInstanceContainer(@NotNull DimensionType dimensionType, @Nullable IChunkLoader loader) {
-        final InstanceContainer instanceContainer = new InstanceContainer(globalEventHandlerProvider.getGlobalEventHandler(), exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, serverSettingsProvider, chunkDispatcherProvider, UUID.randomUUID(), dimensionType, loader, dimensionType.getName());
+        final InstanceContainer instanceContainer = new InstanceContainer(globalEventHandlerProvider.getGlobalEventHandler(), exceptionHandlerProvider, blockManagerProvider, biomeManagerProvider, serverSettingsProvider, chunkDispatcherProvider, schedulerManagerProvider, UUID.randomUUID(), dimensionType, loader, dimensionType.getName());
         registerInstance(instanceContainer);
         return instanceContainer;
     }
@@ -73,7 +84,7 @@ public final class InstanceManagerImpl implements InstanceManager {
         Check.notNull(instanceContainer, "Instance container cannot be null when creating a SharedInstance!");
         Check.stateCondition(!instanceContainer.isRegistered(), "The container needs to be register in the InstanceManager");
 
-        final SharedInstance sharedInstance = new SharedInstance(globalEventHandlerProvider.getGlobalEventHandler(), serverSettingsProvider, UUID.randomUUID(), instanceContainer);
+        final SharedInstance sharedInstance = new SharedInstance(globalEventHandlerProvider.getGlobalEventHandler(), serverSettingsProvider, schedulerManagerProvider, biomeManagerProvider, UUID.randomUUID(), instanceContainer);
         return registerSharedInstance(sharedInstance);
     }
 
