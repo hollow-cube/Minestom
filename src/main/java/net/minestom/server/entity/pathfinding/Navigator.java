@@ -19,9 +19,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.SQLOutput;
 import java.util.List;
-import java.util.function.Consumer;
 
 // TODO all pathfinding requests could be processed in another thread
 
@@ -238,15 +236,16 @@ public final class Navigator {
         // drawPath(path);
         moveTowards(currentTarget, movementSpeed, path.capabilities(), nextIsRepath ? currentTarget : nextTarget);
 
+        if (entity.getPosition().sameBlock(currentTarget)) {
+            path.next();
+            return;
+        }
+
         if ((path.getCurrentType() == PNode.NodeType.JUMP)
                 && entity.isOnGround()
                 && path.capabilities().canJump()
         ) {
             jump(4f);
-        }
-
-        if (entity.getPosition().sameBlock(currentTarget) && entity.isOnGround()) {
-            path.next();
         }
     }
 

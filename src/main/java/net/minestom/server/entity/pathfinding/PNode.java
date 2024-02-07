@@ -347,6 +347,8 @@ public class PNode {
     }
 
     static Pos gravitySnap(Instance instance, Point point, BoundingBox boundingBox, double maxFall) {
+        point = new Pos(point.blockX() + 0.5, point.blockY(), point.blockZ() + 0.5);
+
         Chunk c = instance.getChunkAt(point);
         if (c == null) return null;
 
