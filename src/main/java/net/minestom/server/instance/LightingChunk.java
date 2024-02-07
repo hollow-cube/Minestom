@@ -195,6 +195,17 @@ public class LightingChunk extends DynamicChunk {
             Set<Chunk> combined = new HashSet<>();
             int chunkMin = instance.getDimensionType().getMinY();
 
+            int highestRegionPoint = instance.getDimensionType().getMinY();
+            for (int x = chunkX - 1; x <= chunkX + 1; x++) {
+                for (int z = chunkZ - 1; z <= chunkZ + 1; z++) {
+                    Chunk chunk = instance.getChunk(x, z);
+                    if (chunk instanceof LightingChunk light) {
+                        light.getHeightmap();
+                        if (light.highestBlock > highestRegionPoint) highestRegionPoint = light.highestBlock;
+                    }
+                }
+            }
+
             int index = 0;
             for (Section section : sections) {
                 boolean wasUpdatedBlock = false;
@@ -222,7 +233,7 @@ public class LightingChunk extends DynamicChunk {
                 final byte[] blockLight = section.blockLight().array();
                 final int sectionMaxY = index * 16 + chunkMin;
 
-                if ((wasUpdatedSky) && this.instance.getDimensionType().isSkylightEnabled() && sectionMaxY <= (highestBlock + 16)) {
+                if ((wasUpdatedSky) && this.instance.getDimensionType().isSkylightEnabled() && sectionMaxY <= (highestRegionPoint + 16)) {
                     if (skyLight.length != 0 && skyLight != emptyContent) {
                         skyLights.add(skyLight);
                         skyMask.set(index);
@@ -355,8 +366,8 @@ public class LightingChunk extends DynamicChunk {
 
                 for (int y = point.blockY() - 1; y <= point.blockY() + 1; y++) {
                     Point sectionPosition = new Vec(x, y, z);
-                    int sectionHeight = instance.getDimensionType().getMinY() + 16 * y;
-                    if ((sectionHeight + 16) > highestRegionPoint && type == LightType.SKY) continue;
+                    // int sectionHeight = instance.getDimensionType().getMinY() + 16 * y;
+                    // if ((sectionHeight + 16) > highestRegionPoint && type == LightType.SKY) continue;
 
                     if (sectionPosition.blockY() < chunkCheck.getMaxSection() && sectionPosition.blockY() >= chunkCheck.getMinSection()) {
                         Section s = chunkCheck.getSection(sectionPosition.blockY());
