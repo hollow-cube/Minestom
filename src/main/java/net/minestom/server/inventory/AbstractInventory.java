@@ -26,6 +26,7 @@ import java.util.function.UnaryOperator;
 public sealed abstract class AbstractInventory implements InventoryClickHandler, Taggable
         permits Inventory, PlayerInventory {
 
+    private boolean notifyPlayerInventoryEvents = true;
     private static final VarHandle ITEM_UPDATER = MethodHandles.arrayElementVarHandle(ItemStack[].class);
 
     private final int size;
@@ -78,10 +79,13 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
             if (itemStack.equals(previous)) return; // Avoid sending updates if the item has not changed
             UNSAFE_itemInsert(slot, itemStack, sendPacket);
         }
-        if (this instanceof PlayerInventory inv) {
-            EventDispatcher.call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
-        } else if (this instanceof Inventory inv) {
-            EventDispatcher.call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
+
+        if (notifyPlayerInventoryEvents) {
+            if (this instanceof PlayerInventory inv) {
+                EventDispatcher.call(new PlayerInventoryItemChangeEvent(inv.player, slot, previous, itemStack));
+            } else if (this instanceof Inventory inv) {
+                EventDispatcher.call(new InventoryItemChangeEvent(inv, slot, previous, itemStack));
+            }
         }
     }
 
@@ -254,5 +258,9 @@ public sealed abstract class AbstractInventory implements InventoryClickHandler,
     @Override
     public @NotNull TagHandler tagHandler() {
         return tagHandler;
+    }
+
+    public void setNotifyPlayerInventoryEvents(boolean notifyPlayerInventoryEvents) {
+        this.notifyPlayerInventoryEvents = notifyPlayerInventoryEvents;
     }
 }
