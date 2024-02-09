@@ -1,6 +1,7 @@
 package net.minestom.server.world;
 
 import net.minestom.server.utils.NamespaceID;
+import net.minestom.server.utils.validate.Check;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jglrxavpok.hephaistos.mcdata.SizesKt;
@@ -64,6 +65,15 @@ public class DimensionType {
                   boolean skylightEnabled, @Nullable Long fixedTime, boolean raidCapable,
                   boolean respawnAnchorSafe, boolean ultrawarm, boolean bedSafe, String effects, boolean piglinSafe,
                   int minY, int height, int logicalHeight, double coordinateScale, NamespaceID infiniburn) {
+        Check.argCondition(minY < -2032, "minY cannot be lower than -2032");
+        Check.argCondition(minY > 2031, "minY cannot be higher than 2031");
+        Check.argCondition(minY % 16 != 0, "minY must be a multiple of 16");
+        Check.argCondition(height < 16, "height cannot be lower than 16");
+        Check.argCondition(height > 4064, "height cannot be higher than 4064");
+        Check.argCondition(height % 16 != 0, "height must be a multiple of 16");
+        Check.argCondition(minY + height > 2031, "buildable height (minY + height) cannot be higher than 2031");
+        Check.argCondition(logicalHeight > height, "logicalHeight cannot be higher than height");
+
         this.name = name;
         this.natural = natural;
         this.ambientLight = ambientLight;
@@ -356,9 +366,13 @@ public class DimensionType {
         }
 
         public DimensionType build() {
-            return new DimensionType(name, natural, ambientLight, ceilingEnabled, skylightEnabled,
-                    fixedTime, raidCapable, respawnAnchorSafe, ultrawarm, bedSafe, effects,
-                    piglinSafe, minY, height, logicalHeight, coordinateScale, infiniburn);
+            try {
+                return new DimensionType(name, natural, ambientLight, ceilingEnabled, skylightEnabled,
+                        fixedTime, raidCapable, respawnAnchorSafe, ultrawarm, bedSafe, effects,
+                        piglinSafe, minY, height, logicalHeight, coordinateScale, infiniburn);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid dimension type (" + name + "): " + e.getMessage());
+            }
         }
     }
 }
