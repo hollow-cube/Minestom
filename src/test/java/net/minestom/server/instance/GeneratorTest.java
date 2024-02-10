@@ -6,8 +6,10 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
 import net.minestom.server.utils.MathUtils;
+import net.minestom.server.utils.NamespaceID;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import net.minestom.server.world.biomes.Biome;
+import net.minestom.server.world.biomes.BiomeEffects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -26,6 +28,22 @@ import static net.minestom.server.utils.chunk.ChunkUtils.floorSection;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class GeneratorTest {
+    private static final BiomeEffects DEFAULT_EFFECTS = BiomeEffects.builder()
+            .fogColor(0xC0D8FF)
+            .skyColor(0x78A7FF)
+            .waterColor(0x3F76E4)
+            .waterFogColor(0x50533)
+            .build();
+
+    //A plains biome has to be registered or else minecraft will crash
+    public static final Biome PLAINS = Biome.builder()
+            .name(NamespaceID.from("minecraft:plains"))
+            .temperature(0.8F)
+            .downfall(0.4F)
+            .depth(0.125F)
+            .scale(0.05F)
+            .effects(DEFAULT_EFFECTS)
+            .build();
 
     @Test
     public void unitSize() {
@@ -253,13 +271,13 @@ public class GeneratorTest {
         var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
-            modifier.setBiome(48, 0, -32, Biome.PLAINS);
-            modifier.setBiome(48 + 8, 0, -32, Biome.PLAINS);
+            modifier.setBiome(48, 0, -32, PLAINS);
+            modifier.setBiome(48 + 8, 0, -32, PLAINS);
         };
         generator.generate(chunkUnits);
-        assertEquals(Biome.PLAINS.id(), sections[0].biomePalette().get(0, 0, 0));
+        assertEquals(PLAINS.id(), sections[0].biomePalette().get(0, 0, 0));
         assertEquals(0, sections[0].biomePalette().get(1, 0, 0));
-        assertEquals(Biome.PLAINS.id(), sections[0].biomePalette().get(2, 0, 0));
+        assertEquals(PLAINS.id(), sections[0].biomePalette().get(2, 0, 0));
     }
 
     @Test
@@ -274,12 +292,12 @@ public class GeneratorTest {
         var chunkUnits = GeneratorImpl.chunk(minSection, maxSection, List.of(sections), chunkX, chunkZ);
         Generator generator = chunk -> {
             var modifier = chunk.modifier();
-            modifier.fillBiome(Biome.PLAINS);
+            modifier.fillBiome(PLAINS);
         };
         generator.generate(chunkUnits);
         for (var section : sections) {
             section.biomePalette().getAll((x, y, z, value) ->
-                    assertEquals(Biome.PLAINS.id(), value));
+                    assertEquals(PLAINS.id(), value));
         }
     }
 
