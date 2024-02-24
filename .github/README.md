@@ -1,3 +1,7 @@
+> [!IMPORTANT]  
+> `minestom-ce` has been merged back to the main repository at [Minestom/Minestom](https://github.com/Minestom/Minestom).
+> This repository is now archived and will no longer be updated, please direct all issues and pull requests to the main repository.
+
 ![banner](banner_dark.png#gh-dark-mode-only)
 ![banner](banner_light.png#gh-light-mode-only)
 
