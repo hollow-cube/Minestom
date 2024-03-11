@@ -49,6 +49,14 @@ public abstract class PlayerConnection {
      */
     public abstract void sendPacket(@NotNull SendablePacket packet);
 
+    /**
+     * Serializes the packet and send it to the client immediately.
+     *
+     * @param packet the packet to send
+     */
+    @ApiStatus.Experimental
+    public abstract void sendPacketImmediate(@NotNull SendablePacket packet);
+
     @ApiStatus.Experimental
     public void sendPackets(@NotNull Collection<SendablePacket> packets) {
         packets.forEach(this::sendPacket);
@@ -57,6 +65,16 @@ public abstract class PlayerConnection {
     @ApiStatus.Experimental
     public void sendPackets(@NotNull SendablePacket... packets) {
         sendPackets(List.of(packets));
+    }
+
+    @ApiStatus.Experimental
+    public void sendPacketsImmediate(@NotNull Collection<SendablePacket> packets) {
+        packets.forEach(this::sendPacketImmediate);
+    }
+
+    @ApiStatus.Experimental
+    public void sendPacketsImmediate(@NotNull SendablePacket... packets) {
+        sendPacketsImmediate(List.of(packets));
     }
 
     /**

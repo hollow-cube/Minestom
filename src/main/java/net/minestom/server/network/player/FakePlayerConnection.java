@@ -20,6 +20,11 @@ public class FakePlayerConnection extends PlayerConnection {
         controller.consumePacket(serverPacket);
     }
 
+    @Override
+    public void sendPacketImmediate(@NotNull SendablePacket packet) {
+        sendPacket(packet);
+    }
+
     @NotNull
     @Override
     public SocketAddress getRemoteAddress() {
